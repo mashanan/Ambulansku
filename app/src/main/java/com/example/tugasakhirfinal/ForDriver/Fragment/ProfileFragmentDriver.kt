@@ -1,6 +1,7 @@
 package com.example.tugasakhirfinal.ForDriver.Fragment
 
 import android.Manifest
+import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -17,7 +18,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -27,7 +30,10 @@ import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.RoleSelectionActivity
 import com.example.tugasakhirfinal.databinding.FragmentProfileDriverBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.File
 import java.io.FileOutputStream
@@ -46,6 +52,12 @@ class ProfileFragmentDriver : Fragment() {
 
     private val sharedPreferences: SharedPreferences by lazy {
         requireActivity().getSharedPreferences("driver_preferences", Context.MODE_PRIVATE)
+    }
+
+    private val progressDialog by lazy {
+        ProgressDialog(requireContext()).apply {
+            setCancelable(false)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -107,6 +119,90 @@ class ProfileFragmentDriver : Fragment() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             })
             requireActivity().finish()
+        }
+        binding.deleteAccountButton.setOnClickListener {
+            showDeleteConfirmStep1()
+        }
+    }
+
+    // Verifikasi 1: konfirmasi niat menghapus akun
+    private fun showDeleteConfirmStep1() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Hapus Akun?")
+            .setMessage("Apakah Anda yakin ingin menghapus akun Driver ini? Tindakan ini tidak dapat dibatalkan.")
+            .setPositiveButton("Lanjutkan") { dialog, _ ->
+                dialog.dismiss()
+                showDeleteConfirmStep2()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    // Verifikasi 2: konfirmasi akhir dengan memasukkan password (sekaligus re-autentikasi)
+    private fun showDeleteConfirmStep2() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_delete_account, null)
+        val etPassword = dialogView.findViewById<TextInputEditText>(R.id.etDeletePassword)
+
+        AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setPositiveButton("Hapus Permanen") { _, _ ->
+                val password = etPassword.text.toString().trim()
+                if (password.isEmpty()) {
+                    Toast.makeText(requireContext(), "Password wajib diisi", Toast.LENGTH_SHORT).show()
+                } else {
+                    deleteAccountFlow(password)
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun deleteAccountFlow(password: String) {
+        val user = firebaseAuth.currentUser ?: return
+        val email = user.email
+        if (email.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "Tidak dapat memverifikasi akun ini.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        progressDialog.setMessage("Memverifikasi password...")
+        progressDialog.show()
+
+        val credential = EmailAuthProvider.getCredential(email, password)
+        user.reauthenticate(credential).addOnCompleteListener { reAuthTask ->
+            if (reAuthTask.isSuccessful) {
+                deleteUserDataThenAccount(user)
+            } else {
+                progressDialog.dismiss()
+                Toast.makeText(requireContext(), "Password salah. Akun tidak dihapus.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun deleteUserDataThenAccount(user: FirebaseUser) {
+        progressDialog.setMessage("Menghapus data akun...")
+        firestore.collection("users").document(user.uid).delete()
+            .addOnSuccessListener { finalizeAccountDeletion(user) }
+            .addOnFailureListener { e ->
+                progressDialog.dismiss()
+                Toast.makeText(requireContext(), "Gagal menghapus data: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+    }
+
+    private fun finalizeAccountDeletion(user: FirebaseUser) {
+        progressDialog.setMessage("Menghapus akun...")
+        user.delete().addOnCompleteListener { deleteTask ->
+            progressDialog.dismiss()
+            if (deleteTask.isSuccessful) {
+                sharedPreferences.edit().clear().apply()
+                Toast.makeText(requireContext(), "Akun berhasil dihapus.", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(requireContext(), RoleSelectionActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                })
+                requireActivity().finish()
+            } else {
+                Toast.makeText(requireContext(), "Gagal menghapus akun: ${deleteTask.exception?.message}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 

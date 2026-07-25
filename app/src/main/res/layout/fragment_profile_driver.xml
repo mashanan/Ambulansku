@@ -75,10 +75,21 @@
         android:id="@+id/logoutButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="32dp"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="32dp"
         android:text="Logout"
         android:backgroundTint="@android:color/holo_red_dark"
         app:layout_constraintBottom_toBottomOf="parent" />
+
+    <Button
+        android:id="@+id/deleteAccountButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="10dp"
+        android:text="Hapus Akun"
+        android:backgroundTint="@color/pink_button"
+        app:layout_constraintBottom_toTopOf="@id/logoutButton" />
 
     <ProgressBar
         android:id="@+id/progressBar"

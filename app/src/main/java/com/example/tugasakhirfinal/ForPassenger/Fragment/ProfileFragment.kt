@@ -1,11 +1,14 @@
 package com.example.tugasakhirfinal.ForPassenger.Fragment
 
+import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -17,7 +20,10 @@ import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEdit
 import com.example.tugasakhirfinal.RoleSelectionActivity
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.FragmentProfileBinding
+import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -36,6 +42,12 @@ class ProfileFragment : Fragment() {
         requireActivity().getSharedPreferences("user_cache", Context.MODE_PRIVATE)
     }
 
+    private val progressDialog by lazy {
+        ProgressDialog(requireContext()).apply {
+            setCancelable(false)
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         return binding.root
@@ -47,6 +59,7 @@ class ProfileFragment : Fragment() {
 
         setupListeners()
         setupLogoutButton()
+        setupDeleteAccountButton()
 
         binding.profileImage.setOnClickListener {
             startActivity(Intent(requireContext(), ActivityEditFotoProfile::class.java))
@@ -178,6 +191,108 @@ class ProfileFragment : Fragment() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             })
             requireActivity().finish()
+        }
+    }
+
+    private fun setupDeleteAccountButton() {
+        binding.deleteAccountButton.setOnClickListener {
+            showDeleteConfirmStep1()
+        }
+    }
+
+    // Verifikasi 1: konfirmasi niat menghapus akun
+    private fun showDeleteConfirmStep1() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Hapus Akun?")
+            .setMessage("Apakah Anda yakin ingin menghapus akun ini? Tindakan ini tidak dapat dibatalkan.")
+            .setPositiveButton("Lanjutkan") { dialog, _ ->
+                dialog.dismiss()
+                showDeleteConfirmStep2()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    // Verifikasi 2: konfirmasi akhir dengan memasukkan password (sekaligus re-autentikasi)
+    private fun showDeleteConfirmStep2() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_delete_account, null)
+        val etPassword = dialogView.findViewById<TextInputEditText>(R.id.etDeletePassword)
+
+        AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setPositiveButton("Hapus Permanen") { _, _ ->
+                val password = etPassword.text.toString().trim()
+                if (password.isEmpty()) {
+                    Toast.makeText(requireContext(), "Password wajib diisi", Toast.LENGTH_SHORT).show()
+                } else {
+                    deleteAccountFlow(password)
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun deleteAccountFlow(password: String) {
+        val user = firebaseAuth.currentUser ?: return
+        val email = user.email
+        if (email.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "Tidak dapat memverifikasi akun ini.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        progressDialog.setMessage("Memverifikasi password...")
+        progressDialog.show()
+
+        val credential = EmailAuthProvider.getCredential(email, password)
+        user.reauthenticate(credential).addOnCompleteListener { reAuthTask ->
+            if (reAuthTask.isSuccessful) {
+                deleteUserDataThenAccount(user)
+            } else {
+                progressDialog.dismiss()
+                Toast.makeText(requireContext(), "Password salah. Akun tidak dihapus.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun deleteUserDataThenAccount(user: FirebaseUser) {
+        val uid = user.uid
+        progressDialog.setMessage("Menghapus data akun...")
+
+        firestore.collection("users").document(uid).collection("addresses").get()
+            .addOnSuccessListener { snapshot ->
+                val batch = firestore.batch()
+                for (addressDoc in snapshot.documents) batch.delete(addressDoc.reference)
+
+                batch.commit()
+                    .addOnCompleteListener {
+                        firestore.collection("users").document(uid).delete()
+                            .addOnSuccessListener { finalizeAccountDeletion(user) }
+                            .addOnFailureListener { e ->
+                                progressDialog.dismiss()
+                                Toast.makeText(requireContext(), "Gagal menghapus data: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
+                    }
+            }
+            .addOnFailureListener { e ->
+                progressDialog.dismiss()
+                Toast.makeText(requireContext(), "Gagal menghapus data: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+    }
+
+    private fun finalizeAccountDeletion(user: FirebaseUser) {
+        progressDialog.setMessage("Menghapus akun...")
+        user.delete().addOnCompleteListener { deleteTask ->
+            progressDialog.dismiss()
+            if (deleteTask.isSuccessful) {
+                sharedPrefs.edit().clear().apply()
+                Toast.makeText(requireContext(), "Akun berhasil dihapus.", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(requireContext(), RoleSelectionActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                })
+                requireActivity().finish()
+            } else {
+                Toast.makeText(requireContext(), "Gagal menghapus akun: ${deleteTask.exception?.message}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
