@@ -44,9 +44,12 @@ class ApproveDriverActivity : AppCompatActivity() {
     }
 
     private fun loadPendingDrivers() {
+        // Query hanya berdasar role="driver" (bukan sekaligus isApproved==false) supaya akun driver
+        // lama yang belum punya field isApproved sama sekali (dibuat sebelum fitur ini ada) tetap
+        // ikut tersaring & muncul di sini, bukan hilang begitu saja. Filter isApproved dilakukan
+        // di client agar mencakup baik isApproved==false maupun field yang belum ada (null).
         firestore.collection("users")
             .whereEqualTo("role", "driver")
-            .whereEqualTo("isApproved", false)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Toast.makeText(this, "Gagal memuat data: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
@@ -56,6 +59,8 @@ class ApproveDriverActivity : AppCompatActivity() {
                 pendingList.clear()
                 if (snapshot != null) {
                     for (doc in snapshot.documents) {
+                        if (doc.getBoolean("isApproved") == true) continue
+
                         pendingList.add(
                             PendingDriverItem(
                                 uid = doc.id,
