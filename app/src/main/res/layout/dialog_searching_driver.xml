@@ -38,6 +38,7 @@
                 android:textAlignment="center" />
 
             <TextView
+                android:id="@+id/tvSearchingDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -46,12 +47,33 @@
                 android:textColor="#757575"
                 android:textSize="13sp" />
 
+            <TextView
+                android:id="@+id/tvElapsedTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="0 detik berlalu"
+                android:textColor="#D32F2F"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnRefreshSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="#D32F2F"
+                android:text="Cari Ulang"
+                android:textColor="@android:color/white"
+                android:textAllCaps="false"
+                android:visibility="gone" />
+
             <Button
                 android:id="@+id/btnCancelSearch"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:text="Batalkan Pesanan"
                 android:textColor="#D32F2F" />
 

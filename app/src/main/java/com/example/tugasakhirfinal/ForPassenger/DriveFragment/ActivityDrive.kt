@@ -8,10 +8,13 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -54,8 +57,14 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
     // State Pelacakan
     private var searchDialog: AlertDialog? = null
+    private var searchDialogView: View? = null
+    private var searchCountDownTimer: CountDownTimer? = null
     private var bookingListenerRegistration: ListenerRegistration? = null
     private var driverLocationListener: ListenerRegistration? = null
+
+    companion object {
+        private const val MAX_SEARCH_SECONDS = 30
+    }
 
     // 🚀 Listener untuk Notifikasi Pesan Belum Dibaca
     private var unreadListener: ListenerRegistration? = null
@@ -313,7 +322,10 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     private fun prosesPemesananAmbulans() {
         if (destinationHospitalLoc == null || lastKnownLocation == null) return
         showSearchingDriverDialog()
+        createBookingRequest()
+    }
 
+    private fun createBookingRequest() {
         val pickupGeoPoint = GeoPoint(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude)
         val passengerName = auth.currentUser?.displayName ?: "Pasien Ambulans"
 
@@ -340,7 +352,52 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             .addOnSuccessListener { docRef ->
                 currentBookingId = docRef.id
                 listenDriverResponse(docRef.id)
+                startSearchTimer()
             }
+    }
+
+    // 🚀 Batas maksimal pencarian driver: 30 detik, dengan hitungan detik berjalan.
+    // Kalau habis waktu dan belum ada driver yang menerima, tampilkan tombol "Cari Ulang".
+    private fun startSearchTimer() {
+        searchCountDownTimer?.cancel()
+        searchCountDownTimer = object : CountDownTimer(MAX_SEARCH_SECONDS * 1000L, 1000L) {
+            override fun onTick(millisUntilFinished: Long) {
+                val elapsed = MAX_SEARCH_SECONDS - (millisUntilFinished / 1000L).toInt()
+                searchDialogView?.findViewById<TextView>(R.id.tvElapsedTime)?.text = "$elapsed detik berlalu"
+            }
+
+            override fun onFinish() {
+                searchDialogView?.let { view ->
+                    view.findViewById<TextView>(R.id.tvElapsedTime)?.text = "$MAX_SEARCH_SECONDS detik berlalu"
+                    view.findViewById<ProgressBar>(R.id.pbSearching)?.visibility = View.GONE
+                    view.findViewById<TextView>(R.id.tvSearchingDescription)?.text =
+                        "Driver belum ditemukan dalam $MAX_SEARCH_SECONDS detik."
+                    view.findViewById<Button>(R.id.btnRefreshSearch)?.visibility = View.VISIBLE
+                }
+            }
+        }.start()
+    }
+
+    private fun retrySearch() {
+        searchCountDownTimer?.cancel()
+        bookingListenerRegistration?.remove()
+
+        // Batalkan booking lama yang belum ada driver-nya, lalu buat permintaan baru
+        currentBookingId?.let { id -> firestore.collection("bookings").document(id).update("status", "CANCELLED") }
+        currentBookingId = null
+
+        resetSearchDialogState()
+        createBookingRequest()
+    }
+
+    private fun resetSearchDialogState() {
+        searchDialogView?.let { view ->
+            view.findViewById<ProgressBar>(R.id.pbSearching)?.visibility = View.VISIBLE
+            view.findViewById<TextView>(R.id.tvSearchingDescription)?.text =
+                "Mohon tunggu sebentar, sistem sedang menghubungkan dengan driver terdekat."
+            view.findViewById<TextView>(R.id.tvElapsedTime)?.text = "0 detik berlalu"
+            view.findViewById<Button>(R.id.btnRefreshSearch)?.visibility = View.GONE
+        }
     }
 
     private fun listenDriverResponse(bookingId: String) {
@@ -490,6 +547,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
     private fun showSearchingDriverDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_searching_driver, null)
+        searchDialogView = dialogView
         searchDialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(false).create()
         searchDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
         searchDialog?.show()
@@ -500,9 +558,18 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             currentBookingId?.let { id -> firestore.collection("bookings").document(id).update("status", "CANCELLED") }
             resetToStandbyMode()
         }
+
+        dialogView.findViewById<Button>(R.id.btnRefreshSearch)?.setOnClickListener {
+            retrySearch()
+        }
     }
 
-    private fun dismissSearchingDriverDialog() { searchDialog?.dismiss(); searchDialog = null }
+    private fun dismissSearchingDriverDialog() {
+        searchCountDownTimer?.cancel()
+        searchDialog?.dismiss()
+        searchDialog = null
+        searchDialogView = null
+    }
 
     // Menampilkan satu marker untuk rumah sakit yang dipilih manual dari HospitalListActivity
     private fun displaySelectedHospitalMarker() {
@@ -538,6 +605,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onDestroy() {
         super.onDestroy()
+        searchCountDownTimer?.cancel()
         bookingListenerRegistration?.remove()
         driverLocationListener?.remove()
         unreadListener?.remove() // Pembersihan tambahan

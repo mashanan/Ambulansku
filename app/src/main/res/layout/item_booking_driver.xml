@@ -29,6 +29,16 @@
             android:text="Lokasi Jemput: Jl. Mawar No. 12"
             android:textColor="#666666" />
 
+        <TextView
+            android:id="@+id/tvDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Jarak: - km"
+            android:textColor="#D32F2F"
+            android:textStyle="bold"
+            android:textSize="13sp" />
+
         <Button
             android:id="@+id/btnTerima"
             android:layout_width="match_parent"

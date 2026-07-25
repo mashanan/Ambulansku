@@ -17,6 +17,7 @@ import com.example.tugasakhirfinal.databinding.FragmentHomeDriverBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
 
 class HomeFragmentDriver : Fragment() {
@@ -30,6 +31,11 @@ class HomeFragmentDriver : Fragment() {
     private val bookingList = mutableListOf<Booking>()
     private lateinit var bookingAdapter: BookingAdapter
     private var bookingListener: ListenerRegistration? = null
+
+    // Lokasi driver sendiri (dibaca dari users/{uid}.lokasi, sudah diperbarui berkala saat Online
+    // oleh DriverHomeActivity), dipakai untuk mengurutkan pesanan masuk dari yang terdekat.
+    private var driverLocation: GeoPoint? = null
+    private var driverLocationListener: ListenerRegistration? = null
 
     // Variabel UI dari Activity Induk
     private var switchOnline: SwitchCompat? = null
@@ -94,6 +100,7 @@ class HomeFragmentDriver : Fragment() {
 
     private fun listenToBookings() {
         bookingListener?.remove()
+        listenToDriverLocation()
 
         bookingListener = db.collection("bookings")
             .whereEqualTo("status", "SEARCHING")
@@ -107,16 +114,29 @@ class HomeFragmentDriver : Fragment() {
                 bookingList.clear()
                 if (snapshots != null && !snapshots.isEmpty) {
 
-                    // 🚀 ALUR PINTAR: URUTKAN BERDASARKAN WAKTU PESAN (createdAt) TERLAMA
-                    // sortedBy mengurutkan dari waktu yang paling kecil/lama ke yang terbaru.
-                    val sortedDocs = snapshots.documents.sortedBy {
-                        it.getTimestamp("createdAt")
+                    // 🚀 ALUR PINTAR: Kalau lokasi driver sudah diketahui, urutkan pesanan dari yang
+                    // JARAKNYA PALING DEKAT dengan driver. Kalau lokasi belum tersedia, fallback ke
+                    // urutan waktu pesan (createdAt) paling lama seperti sebelumnya.
+                    val myLocation = driverLocation
+                    val sortedDocs = if (myLocation != null) {
+                        snapshots.documents.sortedBy { doc ->
+                            doc.getGeoPoint("pickupLocation")?.let { pickup ->
+                                distanceMeters(myLocation, pickup)
+                            } ?: Float.MAX_VALUE
+                        }
+                    } else {
+                        snapshots.documents.sortedBy { it.getTimestamp("createdAt") }
                     }
 
                     for (doc in sortedDocs) {
                         val booking = doc.toObject(Booking::class.java)
                         if (booking != null) {
                             booking.bookingId = doc.id
+                            if (myLocation != null) {
+                                doc.getGeoPoint("pickupLocation")?.let { pickup ->
+                                    booking.distanceMeters = distanceMeters(myLocation, pickup)
+                                }
+                            }
                             bookingList.add(booking)
                         }
                     }
@@ -129,9 +149,28 @@ class HomeFragmentDriver : Fragment() {
             }
     }
 
+    private fun listenToDriverLocation() {
+        val uid = auth.currentUser?.uid ?: return
+        driverLocationListener?.remove()
+        driverLocationListener = db.collection("users").document(uid)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) return@addSnapshotListener
+                driverLocation = snapshot?.getGeoPoint("lokasi")
+            }
+    }
+
+    private fun distanceMeters(a: GeoPoint, b: GeoPoint): Float {
+        val results = FloatArray(1)
+        android.location.Location.distanceBetween(a.latitude, a.longitude, b.latitude, b.longitude, results)
+        return results[0]
+    }
+
     private fun stopListening() {
         bookingListener?.remove()
         bookingListener = null
+        driverLocationListener?.remove()
+        driverLocationListener = null
+        driverLocation = null
 
         bookingList.clear()
         bookingAdapter.notifyDataSetChanged()

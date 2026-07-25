@@ -26,6 +26,11 @@ class BookingAdapter(
         holder.binding.apply {
             tvPassengerName.text = booking.passengerName
             tvLocation.text = "Lokasi: ${booking.locationName}"
+            tvDistance.text = if (booking.distanceMeters >= 0) {
+                "Jarak: ${String.format("%.1f", booking.distanceMeters / 1000)} km"
+            } else {
+                "Jarak: -"
+            }
 
             btnTerima.setOnClickListener {
                 onAcceptClick(booking)
