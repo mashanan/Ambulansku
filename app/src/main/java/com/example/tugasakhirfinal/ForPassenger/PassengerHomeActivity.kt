@@ -1,7 +1,6 @@
 package com.example.tugasakhirfinal.ForPassenger
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -70,7 +69,6 @@ class PassengerHomeActivity : AppCompatActivity() {
             .addOnSuccessListener { doc ->
                 val currentName = doc.getString("nama") ?: ""
                 val currentNoTlp = doc.getString("phoneNumber") ?: ""
-                Log.d("PROFILE_CHECK", "nama='$currentName' phoneNumber='$currentNoTlp'")
 
                 val isNameEmpty = currentName.isBlank() || currentName == "Masukkan Nama Anda"
                 val isPhoneEmpty = currentNoTlp.isBlank() || currentNoTlp == "Masukkan Nomor Telepon Anda"
@@ -78,9 +76,6 @@ class PassengerHomeActivity : AppCompatActivity() {
                 if (isNameEmpty || isPhoneEmpty) {
                     showIncompleteProfileDialog()
                 }
-            }
-            .addOnFailureListener { e ->
-                Log.e("PROFILE_CHECK", "Gagal cek kelengkapan profil: ${e.message}")
             }
     }
 

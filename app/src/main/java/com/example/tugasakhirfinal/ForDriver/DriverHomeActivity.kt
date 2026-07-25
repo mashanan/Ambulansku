@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -104,7 +103,6 @@ class DriverHomeActivity : AppCompatActivity() {
             .addOnSuccessListener { doc ->
                 val currentName = doc.getString("nama") ?: ""
                 val currentNoTlp = doc.getString("phoneNumber") ?: ""
-                Log.d("PROFILE_CHECK", "nama='$currentName' phoneNumber='$currentNoTlp'")
 
                 val isNameEmpty = currentName.isBlank() || currentName == "Driver Baru"
                 val isPhoneEmpty = currentNoTlp.isBlank() || currentNoTlp == "Belum diisi"
@@ -112,9 +110,6 @@ class DriverHomeActivity : AppCompatActivity() {
                 if (isNameEmpty || isPhoneEmpty) {
                     showIncompleteProfileDialog()
                 }
-            }
-            .addOnFailureListener { e ->
-                Log.e("PROFILE_CHECK", "Gagal cek kelengkapan profil: ${e.message}")
             }
     }
 
