@@ -26,6 +26,8 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditNama
+import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditNoTlp
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.RoleSelectionActivity
 import com.example.tugasakhirfinal.databinding.FragmentProfileDriverBinding
@@ -113,6 +115,16 @@ class ProfileFragmentDriver : Fragment() {
 
     private fun setupListeners() {
         binding.profileImage.setOnClickListener { checkPermissions() }
+        binding.frameNama.setOnClickListener {
+            val intent = Intent(requireContext(), ActivityEditNama::class.java)
+            intent.putExtra("current_name", binding.textNama.text.toString())
+            startActivity(intent)
+        }
+        binding.frameNoTlp.setOnClickListener {
+            val intent = Intent(requireContext(), ActivityEditNoTlp::class.java)
+            intent.putExtra("current_no_tlp", binding.noTlp.text.toString())
+            startActivity(intent)
+        }
         binding.logoutButton.setOnClickListener {
             firebaseAuth.signOut()
             startActivity(Intent(requireContext(), RoleSelectionActivity::class.java).apply {

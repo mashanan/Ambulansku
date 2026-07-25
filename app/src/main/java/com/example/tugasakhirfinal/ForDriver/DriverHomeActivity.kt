@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
@@ -40,6 +41,7 @@ class DriverHomeActivity : AppCompatActivity() {
         // 🚩 Menampilkan HomeFragmentDriver sebagai tampilan awal
         if (savedInstanceState == null) {
             loadFragment(HomeFragmentDriver())
+            checkProfileCompletion() // Periksa profil saat pertama kali HomeActivity dibuka
         }
 
         // Setup Bottom Navigation
@@ -89,6 +91,37 @@ class DriverHomeActivity : AppCompatActivity() {
     private fun updateDriverStatus(status: String) {
         val uid = auth.currentUser?.uid ?: return
         firestore.collection("users").document(uid).update("status", status)
+    }
+
+    // Fungsi untuk memeriksa apakah profil driver sudah lengkap
+    private fun checkProfileCompletion() {
+        val uid = auth.currentUser?.uid ?: return
+
+        firestore.collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                val currentName = doc.getString("nama") ?: ""
+                val currentNoTlp = doc.getString("phoneNumber") ?: ""
+
+                val isNameEmpty = currentName.isBlank() || currentName == "Driver Baru"
+                val isPhoneEmpty = currentNoTlp.isBlank() || currentNoTlp == "Belum diisi"
+
+                if (isNameEmpty || isPhoneEmpty) {
+                    showIncompleteProfileDialog()
+                }
+            }
+    }
+
+    // Fungsi untuk menampilkan dialog jika profil belum lengkap
+    private fun showIncompleteProfileDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Lengkapi Profil Anda")
+            .setMessage("Nama dan nomor telepon Anda masih kosong. Silakan buka halaman Profil untuk melengkapi data Anda.")
+            .setPositiveButton("Buka Profil") { _, _ ->
+                loadFragment(ProfileFragmentDriver())
+                binding.bottomNavigation.selectedItemId = R.id.nav_profile
+            }
+            .setCancelable(false) // Pop-up tidak bisa ditutup tanpa tindakan
+            .show()
     }
 
     private fun startLocationUpdates() {

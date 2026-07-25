@@ -1,7 +1,5 @@
 package com.example.tugasakhirfinal.ForPassenger
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -12,19 +10,19 @@ import com.example.tugasakhirfinal.ForPassenger.Fragment.HomeFragment
 import com.example.tugasakhirfinal.ForPassenger.Fragment.ProfileFragment
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.ActivityHomeBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class PassengerHomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
-    private lateinit var sharedPreferences: SharedPreferences
+    private val firebaseAuth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // Inisialisasi SharedPreferences
-        sharedPreferences = getSharedPreferences("user_preferences", Context.MODE_PRIVATE)
 
         // Menghilangkan Action Bar
         supportActionBar?.hide()
@@ -60,17 +58,23 @@ class PassengerHomeActivity : AppCompatActivity() {
     }
 
     // Fungsi untuk memeriksa apakah profil pengguna sudah lengkap
+    // Sumber data yang benar adalah dokumen Firestore users/{uid} (yang sama dipakai/diupdate oleh ProfileFragment),
+    // bukan SharedPreferences yang tidak pernah diisi oleh alur edit profil manapun.
     private fun checkProfileCompletion() {
-        // Ambil data nama (Kunci: user_name sudah benar)
-        val currentName = sharedPreferences.getString("user_name", "Masukkan Nama Anda") ?: "Masukkan Nama Anda"
+        val uid = firebaseAuth.currentUser?.uid ?: return
 
-        // 🚩 PERBAIKAN: Mengganti kunci pembacaan nomor telepon menjadi 'user_phone'
-        val currentNoTlp = sharedPreferences.getString("user_phone", "Masukkan Nomor Telepon Anda") ?: "Masukkan Nomor Telepon Anda"
+        firestore.collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                val currentName = doc.getString("nama") ?: ""
+                val currentNoTlp = doc.getString("phoneNumber") ?: ""
 
-        // Jika nama atau nomor telepon masih berupa default, tampilkan pop-up
-        if (currentName == "Masukkan Nama Anda" || currentNoTlp == "Masukkan Nomor Telepon Anda") {
-            showIncompleteProfileDialog()
-        }
+                val isNameEmpty = currentName.isBlank() || currentName == "Masukkan Nama Anda"
+                val isPhoneEmpty = currentNoTlp.isBlank() || currentNoTlp == "Masukkan Nomor Telepon Anda"
+
+                if (isNameEmpty || isPhoneEmpty) {
+                    showIncompleteProfileDialog()
+                }
+            }
     }
 
     // Fungsi untuk menampilkan dialog jika profil belum lengkap
