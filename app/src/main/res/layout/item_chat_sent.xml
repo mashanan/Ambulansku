@@ -11,8 +11,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:maxWidth="260dp"
-        android:background="#D32F2F"
-        android:padding="10dp"
+        android:background="@drawable/bg_chat_bubble_sent"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
         android:text="Halo driver, posisi di mana?"
         android:textColor="@android:color/white"
         android:textSize="14sp" />
