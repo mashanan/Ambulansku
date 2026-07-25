@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Ambulansku</string>
+    <string name="nama_placeholder">Nama</string>
+    <string name="tlp_placeholder">Nomor Telepon</string>
+    <string name="email_placeholder">Email</string>
+    <string name="foto_profil">Foto Profil</string>
+    <string name="alamat">Alamat</string>
+    <string name="google_maps_key">AIzaSyCLTYqX8kMH8tr5FckicJ7ZAq0Mm6CAYgE</string>
+</resources>

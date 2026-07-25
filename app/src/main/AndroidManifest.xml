@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Koneksi & Lokasi -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Kamera -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <!-- Storage (Kompatibilitas Luas) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/ic_apps"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_apps"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TugasAkhirFinal"
+        tools:targetApi="31">
+
+        <!-- 🚩 Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.tugasakhirfinal.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <activity
+            android:name=".SplashScreenActivity"
+            android:exported="true"
+            android:theme="@style/Theme.TugasAkhirFinal">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Activities -->
+        <activity android:name=".RoleSelectionActivity" android:exported="false" />
+        <activity android:name=".ForPassanger.Welcome.SignInActivity" android:exported="false" />
+        <activity android:name=".ForPassanger.Welcome.SignUpActivity" android:exported="false" />
+        <activity android:name=".ForPassanger.Welcome.MainActivity" android:exported="false" />
+        <activity android:name=".ForPassanger.PassangerHomeActivity" android:exported="false" />
+
+        <!-- 🛠️ DIBETULKAN: ActivityDrive sesuaikan package subfolder ForPassanger -->
+        <activity android:name=".ForPassanger.ActivityDrive" android:exported="false" />
+        <activity android:name=".ForPassanger.HospitalListActivity" android:exported="false" />
+
+        <!-- 🛠️ DITAMBAHKAN: ChatPassengerActivity terdaftar resmi -->
+        <activity android:name=".ForPassanger.ChatPassengerActivity" android:exported="false" />
+
+        <!-- Edit Profile Group -->
+        <activity android:name=".ForPassanger.EditProfileFragment.ActivityEditNama" android:exported="false" />
+        <activity android:name=".ForPassanger.EditProfileFragment.ActivityEditNoTlp" android:exported="false" />
+        <activity android:name=".ForPassanger.EditProfileFragment.ActivityEditEmail" android:exported="false" />
+        <activity android:name=".ForPassanger.EditProfileFragment.ActivityEditAlamat" android:exported="false" />
+        <activity android:name=".ForPassanger.EditProfileFragment.AddAddressActivity" android:exported="false" />
+
+        <activity
+            android:name=".ForPassanger.EditProfileFragment.ActivityEditFotoProfile"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.Dialog" />
+
+        <!-- Driver Side -->
+        <activity android:name=".ForDriver.Welcome.MainActivityDriver" android:exported="false" />
+        <activity android:name=".ForDriver.SignUpActivityDriver" android:exported="false" />
+        <activity android:name=".ForDriver.DriverHomeActivity" android:exported="false" />
+        <activity android:name=".ForDriver.Chat.ChatDriverActivity" android:exported="false" />
+
+    </application>
+
+</manifest>

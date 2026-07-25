@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Placeholder CardMenu sebagai anchor -->
+    <View
+        android:id="@+id/cardMenu"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- CardView Kiri -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardMiniLeft"
+        android:layout_width="175dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginEnd="10dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:layout_constraintTop_toBottomOf="@id/cardMenu"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/cardMiniRight"
+        app:layout_constraintWidth_percent="0.45">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Gambar di kanan atas -->
+            <ImageView
+                android:id="@+id/imagerumahsakit"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="15dp"
+                android:contentDescription="Icon Rumah Sakit"
+                android:src="@drawable/ic_address" />
+
+            <!-- Teks di kiri bawah -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="5dp"
+                android:text="Pilih Rumah Sakit"
+                android:textStyle="bold"
+                android:textSize="14sp" />
+
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- CardView Kanan -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardMiniRight"
+        android:layout_width="175dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginEnd="20dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:layout_constraintTop_toBottomOf="@id/cardMenu"
+        app:layout_constraintStart_toEndOf="@id/cardMiniLeft"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.45">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Gambar di kanan atas -->
+            <ImageView
+                android:id="@+id/imageambulans"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="10dp"
+                android:contentDescription="Icon Ambulans"
+                android:src="@drawable/ic_small_car" />
+
+            <!-- Teks di kiri bawah -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="10dp"
+                android:text="Panggil Ambulans"
+                android:textStyle="bold"
+                android:textSize="14sp" />
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
