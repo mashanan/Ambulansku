@@ -42,6 +42,10 @@ class DriverOnlineService : Service() {
     private var isFirstBookingSnapshot = true
     private var nextBookingNotificationId = BOOKING_NOTIFICATION_ID_BASE
 
+    // bookingId -> notificationId, supaya notifikasi bisa dibatalkan lagi begitu booking itu
+    // tidak lagi SEARCHING (dibatalkan passenger, kedaluwarsa, atau sudah diambil driver lain).
+    private val activeBookingNotifications = mutableMapOf<String, Int>()
+
     companion object {
         private const val STATUS_CHANNEL_ID = "driver_status_channel"
         private const val BOOKING_CHANNEL_ID = "driver_booking_channel"
@@ -79,6 +83,15 @@ class DriverOnlineService : Service() {
         bookingListener?.remove()
         bookingListener = null
         updateDriverStatus("offline")
+    }
+
+    // 🛠️ PENTING: onDestroy() TIDAK dijamin terpanggil kalau OS/pengguna membunuh proses app
+    // secara paksa (mis. "Clear all" / swipe dari daftar Recent Apps) — beda dengan app ditutup
+    // secara normal. onTaskRemoved() adalah callback yang memang ditujukan untuk kasus ini, jadi
+    // status Firestore & notifikasi tidak nyangkut "Online" padahal app sudah dipaksa keluar total.
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        stopSelf()
     }
 
     private fun createNotificationChannels() {
@@ -151,9 +164,13 @@ class DriverOnlineService : Service() {
     }
 
     // Deteksi pesanan SEARCHING yang baru masuk (bukan yang sudah ada duluan saat listener baru
-    // menyala) dan tampilkan notifikasi heads-up untuk masing-masing.
+    // menyala) dan tampilkan notifikasi heads-up untuk masing-masing. Sebaliknya, kalau sebuah
+    // booking KELUAR dari hasil query ini (dibatalkan passenger, kedaluwarsa, atau sudah diambil
+    // driver lain), Firestore melaporkannya sebagai event REMOVED — dipakai untuk membatalkan
+    // notifikasi terkait supaya tidak nyangkut menampilkan pesanan yang sudah tidak relevan.
     private fun listenToNewBookings() {
         isFirstBookingSnapshot = true
+        activeBookingNotifications.clear()
         bookingListener?.remove()
         bookingListener = firestore.collection("bookings")
             .whereEqualTo("status", "SEARCHING")
@@ -167,15 +184,21 @@ class DriverOnlineService : Service() {
                 }
 
                 for (change in snapshot.documentChanges) {
-                    if (change.type == DocumentChange.Type.ADDED) {
-                        val hospitalName = change.document.getString("hospitalName") ?: "Rumah Sakit"
-                        showNewBookingNotification(hospitalName)
+                    when (change.type) {
+                        DocumentChange.Type.ADDED -> {
+                            val hospitalName = change.document.getString("hospitalName") ?: "Rumah Sakit"
+                            showNewBookingNotification(change.document.id, hospitalName)
+                        }
+                        DocumentChange.Type.REMOVED -> {
+                            dismissBookingNotification(change.document.id)
+                        }
+                        else -> Unit
                     }
                 }
             }
     }
 
-    private fun showNewBookingNotification(hospitalName: String) {
+    private fun showNewBookingNotification(bookingId: String, hospitalName: String) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return
         }
@@ -191,5 +214,12 @@ class DriverOnlineService : Service() {
             .build()
 
         NotificationManagerCompat.from(this).notify(notificationId, notification)
+        activeBookingNotifications[bookingId] = notificationId
+    }
+
+    private fun dismissBookingNotification(bookingId: String) {
+        activeBookingNotifications.remove(bookingId)?.let { notificationId ->
+            NotificationManagerCompat.from(this).cancel(notificationId)
+        }
     }
 }
