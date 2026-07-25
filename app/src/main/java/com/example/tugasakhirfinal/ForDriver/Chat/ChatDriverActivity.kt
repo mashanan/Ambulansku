@@ -34,6 +34,12 @@ class ChatDriverActivity : AppCompatActivity() {
     private var bookingId: String = ""
 
     private var chatListener: ListenerRegistration? = null
+    private var isChatLocked = false
+
+    private var chip1: Chip? = null
+    private var chip2: Chip? = null
+    private var chip3: Chip? = null
+    private var chip4: Chip? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,27 +89,41 @@ class ChatDriverActivity : AppCompatActivity() {
                 val isExpired = expiresAt != null && expiresAt.toDate().before(java.util.Date())
 
                 if (status == "completed" || isExpired) {
+                    isChatLocked = true
                     etMessage.isEnabled = false
                     etMessage.hint = "Sesi chat telah berakhir"
                     btnSend.isEnabled = false
                     btnSend.alpha = 0.5f
+                    lockQuickChatChips()
                 }
             }
     }
 
-    private fun setupQuickChatChips() {
-        val chip1 = findViewById<Chip?>(R.id.chip1)
-        val chip2 = findViewById<Chip?>(R.id.chip2)
-        val chip3 = findViewById<Chip?>(R.id.chip3)
-        val chip4 = findViewById<Chip?>(R.id.chip4)
+    private fun lockQuickChatChips() {
+        for (chip in listOf(chip1, chip2, chip3, chip4)) {
+            chip?.isEnabled = false
+            chip?.alpha = 0.5f
+        }
+    }
 
-        chip1?.setOnClickListener { sendMessage(chip1.text.toString()) }
-        chip2?.setOnClickListener { sendMessage(chip2.text.toString()) }
-        chip3?.setOnClickListener { sendMessage(chip3.text.toString()) }
-        chip4?.setOnClickListener { sendMessage(chip4.text.toString()) }
+    private fun setupQuickChatChips() {
+        chip1 = findViewById(R.id.chip1)
+        chip2 = findViewById(R.id.chip2)
+        chip3 = findViewById(R.id.chip3)
+        chip4 = findViewById(R.id.chip4)
+
+        chip1?.setOnClickListener { sendMessage(chip1?.text.toString()) }
+        chip2?.setOnClickListener { sendMessage(chip2?.text.toString()) }
+        chip3?.setOnClickListener { sendMessage(chip3?.text.toString()) }
+        chip4?.setOnClickListener { sendMessage(chip4?.text.toString()) }
     }
 
     private fun sendMessage(text: String) {
+        if (isChatLocked) {
+            Toast.makeText(this, "Sesi chat telah berakhir", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         if (currentDriverId.isEmpty() || bookingId.isEmpty()) {
             Toast.makeText(this, "Sesi driver tidak valid", Toast.LENGTH_SHORT).show()
             return
