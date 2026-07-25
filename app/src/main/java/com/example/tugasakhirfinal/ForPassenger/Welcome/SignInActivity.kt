@@ -9,11 +9,14 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.tugasakhirfinal.ForPassenger.PassengerHomeActivity
 import com.example.tugasakhirfinal.databinding.ActivitySignInPassengerBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 
 class SignInActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignInPassengerBinding
     private lateinit var firebaseAuth: FirebaseAuth
+    private val firestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,7 +30,7 @@ class SignInActivity : AppCompatActivity() {
             val user = firebaseAuth.currentUser
             // Cek apakah email sudah diverifikasi
             if (user?.isEmailVerified == true) {
-                navigateToHomeActivity()
+                checkActiveThenNavigate()
             } else {
                 Toast.makeText(this, "Please verify your email before logging in.", Toast.LENGTH_SHORT).show()
                 navigateToMainActivity()
@@ -53,7 +56,7 @@ class SignInActivity : AppCompatActivity() {
                         val user = firebaseAuth.currentUser
                         if (user?.isEmailVerified == true) {
                             Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
-                            navigateToHomeActivity()
+                            checkActiveThenNavigate()
                         } else {
                             Toast.makeText(this, "Please verify your email before logging in.", Toast.LENGTH_SHORT).show()
                             showResendVerificationButton()
@@ -117,6 +120,26 @@ class SignInActivity : AppCompatActivity() {
     // Fungsi untuk menampilkan tombol kirim ulang email verifikasi
     private fun showResendVerificationButton() {
         binding.btnResendVerification.visibility = View.VISIBLE
+    }
+
+    // Cek field isActive di Firestore sebelum masuk Home — kalau akun dinonaktifkan Admin,
+    // tolak masuk & sign out, jangan cuma andalkan status login Firebase Auth.
+    private fun checkActiveThenNavigate() {
+        val uid = firebaseAuth.currentUser?.uid ?: return
+        firestore.collection("users").document(uid).get(Source.SERVER)
+            .addOnSuccessListener { doc ->
+                val isActive = doc.getBoolean("isActive") ?: true
+                if (isActive) {
+                    navigateToHomeActivity()
+                } else {
+                    Toast.makeText(this, "Akun Anda dinonaktifkan oleh admin.", Toast.LENGTH_LONG).show()
+                    firebaseAuth.signOut()
+                }
+            }
+            .addOnFailureListener {
+                // Gagal cek (mis. offline) - tetap izinkan masuk, jangan blokir karena masalah jaringan.
+                navigateToHomeActivity()
+            }
     }
 
     // Fungsi untuk navigasi ke HomeActivity

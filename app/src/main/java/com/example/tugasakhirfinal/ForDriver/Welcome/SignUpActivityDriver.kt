@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.tugasakhirfinal.ForDriver.Welcome.DriverQualificationActivity
 import com.example.tugasakhirfinal.ForDriver.Welcome.SignInActivityDriver
 import com.example.tugasakhirfinal.databinding.ActivitySignUpDriverBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -48,6 +49,8 @@ class SignUpActivityDriver : AppCompatActivity() {
 
                             if (userId != null) {
                                 // 2. Buat Dokumen di Firestore dengan ROLE DRIVER
+                                // isApproved=false: driver belum bisa mengemudi sampai data kualifikasinya
+                                // (SIM, ambulans) diperiksa & disetujui Admin. isActive hanya boleh diubah Admin.
                                 val driverMap = hashMapOf(
                                     "uid" to userId,
                                     "email" to email,
@@ -55,23 +58,18 @@ class SignUpActivityDriver : AppCompatActivity() {
                                     "phoneNumber" to "Belum diisi", // Default
                                     "role" to "driver", // 🚩 SANGAT PENTING
                                     "status" to "offline",
-                                    "profileImageUrl" to ""
+                                    "profileImageUrl" to "",
+                                    "isActive" to true,
+                                    "isApproved" to false
                                 )
 
                                 firestore.collection("users").document(userId).set(driverMap)
                                     .addOnSuccessListener {
-                                        // 3. Kirim Email Verifikasi
-                                        user.sendEmailVerification().addOnCompleteListener { emailTask ->
-                                            if (emailTask.isSuccessful) {
-                                                Toast.makeText(this, "Registrasi Driver Berhasil! Cek email verifikasi.", Toast.LENGTH_LONG).show()
-                                                firebaseAuth.signOut()
-
-                                                val intent = Intent(this, SignInActivityDriver::class.java)
-                                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                                startActivity(intent)
-                                                finish()
-                                            }
-                                        }
+                                        // 3. Lanjut ke form kualifikasi (SIM, plat ambulans, foto dokumen)
+                                        // sebelum kirim email verifikasi & sign out.
+                                        val intent = Intent(this, DriverQualificationActivity::class.java)
+                                        startActivity(intent)
+                                        finish()
                                     }
                                     .addOnFailureListener { e ->
                                         Toast.makeText(this, "Gagal simpan data: ${e.message}", Toast.LENGTH_SHORT).show()

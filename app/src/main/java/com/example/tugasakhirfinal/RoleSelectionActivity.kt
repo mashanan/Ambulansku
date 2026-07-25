@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.example.tugasakhirfinal.ForAdmin.AdminHomeActivity
+import com.example.tugasakhirfinal.ForAdmin.Welcome.AdminSignInActivity
 import com.example.tugasakhirfinal.ForDriver.DriverHomeActivity
 import com.example.tugasakhirfinal.ForDriver.Welcome.MainActivityDriver
 import com.example.tugasakhirfinal.ForPassenger.PassengerHomeActivity
@@ -51,6 +53,12 @@ class RoleSelectionActivity : AppCompatActivity() {
             }
             startActivity(intent)
         }
+
+        // 4. Entry point Admin — tidak mencolok, keamanan sesungguhnya ada di Firestore Rules
+        // (role admin tidak bisa dibuat sendiri lewat sign up), bukan di menyembunyikan tombol ini.
+        binding.adminEntryText.setOnClickListener {
+            startActivity(Intent(this, AdminSignInActivity::class.java))
+        }
     }
 
     private fun checkUserRoleAndNavigate() {
@@ -63,7 +71,28 @@ class RoleSelectionActivity : AppCompatActivity() {
                     val userRole = document.getString("role")
                     Log.d("ROLE_SELECTION", "Role terdeteksi: $userRole")
 
-                    val targetActivity = if (userRole.equals("driver", ignoreCase = true)) {
+                    if (userRole.equals("admin", ignoreCase = true)) {
+                        val intent = Intent(this, AdminHomeActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent)
+                        finish()
+                        return@addOnSuccessListener
+                    }
+
+                    val isActive = document.getBoolean("isActive") ?: true
+                    if (!isActive) {
+                        Log.w("ROLE_SELECTION", "Akun dinonaktifkan admin")
+                        firebaseAuth.signOut()
+                        return@addOnSuccessListener
+                    }
+
+                    val isDriver = userRole.equals("driver", ignoreCase = true)
+                    if (isDriver && document.getBoolean("isApproved") != true) {
+                        firebaseAuth.signOut()
+                        return@addOnSuccessListener
+                    }
+
+                    val targetActivity = if (isDriver) {
                         DriverHomeActivity::class.java
                     } else {
                         PassengerHomeActivity::class.java

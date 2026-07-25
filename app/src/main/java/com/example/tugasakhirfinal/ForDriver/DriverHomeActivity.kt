@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -14,9 +15,11 @@ import com.example.tugasakhirfinal.ForDriver.Fragment.ProfileFragmentDriver
 import com.example.tugasakhirfinal.ForDriver.Fragment.ActivityDriveFragmentDriver
 import com.example.tugasakhirfinal.ForDriver.Fragment.ChatFragmentDriver
 import com.example.tugasakhirfinal.R
+import com.example.tugasakhirfinal.RoleSelectionActivity
 import com.example.tugasakhirfinal.databinding.ActivityDriverHomeBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Source
 
 class DriverHomeActivity : AppCompatActivity() {
@@ -25,6 +28,7 @@ class DriverHomeActivity : AppCompatActivity() {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private var accountStatusListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +40,8 @@ class DriverHomeActivity : AppCompatActivity() {
             loadFragment(HomeFragmentDriver())
             checkProfileCompletion() // Periksa profil saat pertama kali HomeActivity dibuka
         }
+
+        listenToAccountStatus()
 
         // Setup Bottom Navigation
         binding.bottomNavigation.setOnItemSelectedListener { item ->
@@ -131,4 +137,29 @@ class DriverHomeActivity : AppCompatActivity() {
             .show()
     }
 
+    // 🛠️ Pantau real-time dokumen sendiri — kalau Admin menonaktifkan akun ini SAAT sedang
+    // aktif dipakai, hentikan dulu DriverOnlineService (kalau sedang Online) lalu paksa logout.
+    private fun listenToAccountStatus() {
+        val uid = auth.currentUser?.uid ?: return
+        accountStatusListener?.remove()
+        accountStatusListener = firestore.collection("users").document(uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+                val isActive = snapshot?.getBoolean("isActive") ?: true
+                if (!isActive) {
+                    stopService(Intent(this, DriverOnlineService::class.java))
+                    Toast.makeText(this, "Akun Anda dinonaktifkan oleh admin.", Toast.LENGTH_LONG).show()
+                    auth.signOut()
+                    startActivity(Intent(this, RoleSelectionActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    })
+                    finish()
+                }
+            }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        accountStatusListener?.remove()
+    }
 }

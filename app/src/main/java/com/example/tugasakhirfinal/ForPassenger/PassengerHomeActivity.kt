@@ -1,6 +1,8 @@
 package com.example.tugasakhirfinal.ForPassenger
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -9,9 +11,11 @@ import com.example.tugasakhirfinal.ForPassenger.Fragment.ActivityDriveFragment
 import com.example.tugasakhirfinal.ForPassenger.Fragment.HomeFragment
 import com.example.tugasakhirfinal.ForPassenger.Fragment.ProfileFragment
 import com.example.tugasakhirfinal.R
+import com.example.tugasakhirfinal.RoleSelectionActivity
 import com.example.tugasakhirfinal.databinding.ActivityHomeBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Source
 
 class PassengerHomeActivity : AppCompatActivity() {
@@ -19,6 +23,7 @@ class PassengerHomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
+    private var accountStatusListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,6 +38,8 @@ class PassengerHomeActivity : AppCompatActivity() {
             loadFragment(HomeFragment()) // Fragment pertama yang ditampilkan
             checkProfileCompletion() // Periksa profil saat pertama kali HomeActivity dibuka
         }
+
+        listenToAccountStatus()
 
         // Listener untuk BottomNavigationView
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
@@ -92,6 +99,31 @@ class PassengerHomeActivity : AppCompatActivity() {
             }
             .setCancelable(false) // Pop-up tidak bisa ditutup tanpa tindakan
             .show()
+    }
+
+    // 🛠️ Pantau real-time dokumen sendiri — kalau Admin menonaktifkan akun ini SAAT sedang
+    // aktif dipakai, langsung paksa logout (tidak perlu tutup-buka app dulu).
+    private fun listenToAccountStatus() {
+        val uid = firebaseAuth.currentUser?.uid ?: return
+        accountStatusListener?.remove()
+        accountStatusListener = firestore.collection("users").document(uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+                val isActive = snapshot?.getBoolean("isActive") ?: true
+                if (!isActive) {
+                    Toast.makeText(this, "Akun Anda dinonaktifkan oleh admin.", Toast.LENGTH_LONG).show()
+                    firebaseAuth.signOut()
+                    startActivity(Intent(this, RoleSelectionActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    })
+                    finish()
+                }
+            }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        accountStatusListener?.remove()
     }
 
     // Override tombol Back untuk mencegah kembali ke halaman login

@@ -87,6 +87,7 @@
         <!-- Driver Side -->
         <activity android:name=".ForDriver.Welcome.MainActivityDriver" android:exported="false" />
         <activity android:name=".ForDriver.Welcome.SignInActivityDriver" android:exported="false" />
+        <activity android:name=".ForDriver.Welcome.DriverQualificationActivity" android:exported="false" />
         <activity android:name=".ForDriver.SignUpActivityDriver" android:exported="false" />
         <activity android:name=".ForDriver.DriverHomeActivity" android:exported="false" />
         <activity android:name=".ForDriver.Chat.ChatDriverActivity" android:exported="false" />
@@ -95,6 +96,14 @@
             android:name=".ForDriver.DriverOnlineService"
             android:exported="false"
             android:foregroundServiceType="location" />
+
+        <!-- Admin Side -->
+        <activity android:name=".ForAdmin.Welcome.AdminSignInActivity" android:exported="false" />
+        <activity android:name=".ForAdmin.AdminHomeActivity" android:exported="false" />
+        <activity android:name=".ForAdmin.ManageHospitalActivity" android:exported="false" />
+        <activity android:name=".ForAdmin.AddEditHospitalActivity" android:exported="false" />
+        <activity android:name=".ForAdmin.ManageUsersActivity" android:exported="false" />
+        <activity android:name=".ForAdmin.ApproveDriverActivity" android:exported="false" />
 
     </application>
 

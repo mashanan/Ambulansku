@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.example.tugasakhirfinal.ForAdmin.AdminHomeActivity
 import com.example.tugasakhirfinal.ForDriver.DriverHomeActivity
 import com.example.tugasakhirfinal.ForPassenger.PassengerHomeActivity
 import com.google.firebase.auth.FirebaseAuth
@@ -44,7 +45,30 @@ class SplashScreenActivity : AppCompatActivity() {
                     val role = document.getString("role")
                     Log.d("SPLASH_DONE", "Role terdeteksi: $role")
 
-                    val intent = if (role.equals("driver", ignoreCase = true)) {
+                    // Admin tidak tunduk pada isActive (dikelola manual lewat Firebase Console).
+                    if (role.equals("admin", ignoreCase = true)) {
+                        val intent = Intent(this, AdminHomeActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent)
+                        finish()
+                        return@addOnSuccessListener
+                    }
+
+                    val isActive = document.getBoolean("isActive") ?: true
+                    if (!isActive) {
+                        firebaseAuth.signOut()
+                        goToRoleSelection()
+                        return@addOnSuccessListener
+                    }
+
+                    val isDriver = role.equals("driver", ignoreCase = true)
+                    if (isDriver && document.getBoolean("isApproved") != true) {
+                        firebaseAuth.signOut()
+                        goToRoleSelection()
+                        return@addOnSuccessListener
+                    }
+
+                    val intent = if (isDriver) {
                         Intent(this, DriverHomeActivity::class.java)
                     } else {
                         Intent(this, PassengerHomeActivity::class.java)

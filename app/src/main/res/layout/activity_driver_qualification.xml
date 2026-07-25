@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Lengkapi Data Kualifikasi Driver"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Data ini akan diperiksa Admin sebelum akun Anda disetujui untuk mengemudi."
+            android:textColor="#757575"
+            android:textSize="13sp"
+            android:layout_marginBottom="20dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nomor SIM"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_marginBottom="12dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etLicenseNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nomor Plat Ambulans"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_marginBottom="20dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etAmbulancePlate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Foto SIM"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <ImageView
+            android:id="@+id/imgLicensePreview"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:background="#EEEEEE"
+            android:scaleType="centerCrop"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="Preview Foto SIM" />
+
+        <Button
+            android:id="@+id/btnPickLicensePhoto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pilih Foto SIM"
+            android:layout_marginBottom="20dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Foto Ambulans"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <ImageView
+            android:id="@+id/imgAmbulancePreview"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:background="#EEEEEE"
+            android:scaleType="centerCrop"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="Preview Foto Ambulans" />
+
+        <Button
+            android:id="@+id/btnPickAmbulancePhoto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pilih Foto Ambulans"
+            android:layout_marginBottom="24dp" />
+
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#D32F2F"
+            android:textColor="@android:color/white"
+            android:text="Kirim untuk Verifikasi"
+            android:textAllCaps="false"
+            android:padding="12dp" />
+
+    </LinearLayout>
+</ScrollView>

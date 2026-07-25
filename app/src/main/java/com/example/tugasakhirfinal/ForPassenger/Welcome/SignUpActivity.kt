@@ -58,7 +58,8 @@ class SignUpActivity : AppCompatActivity() {
                                     "phoneNumber" to "Masukkan Nomor Telepon Anda",
                                     "role" to selectedRole, // Menyimpan role yang dipilih di awal
                                     "status" to "offline", // Default untuk driver (tidak masalah jika untuk passenger)
-                                    "profileImageUrl" to ""
+                                    "profileImageUrl" to "",
+                                    "isActive" to true // Hanya Admin yang boleh mengubah field ini (lihat Firestore Rules)
                                 )
 
                                 firestore.collection("users").document(userId).set(userMap)

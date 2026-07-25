@@ -75,6 +75,22 @@ class SignInActivityDriver : AppCompatActivity() {
                     Log.d("LOGIN_DEBUG", "Role yang diterima: $role")
 
                     if (role.equals("driver", ignoreCase = true)) {
+                        val isActive = document.getBoolean("isActive") ?: true
+                        val isApproved = document.getBoolean("isApproved") ?: false
+
+                        if (!isActive) {
+                            Toast.makeText(this, "Akun Anda dinonaktifkan oleh admin.", Toast.LENGTH_LONG).show()
+                            firebaseAuth.signOut()
+                            binding.signinbutton.isEnabled = true
+                            return@addOnSuccessListener
+                        }
+                        if (!isApproved) {
+                            Toast.makeText(this, "Akun Anda masih menunggu persetujuan Admin.", Toast.LENGTH_LONG).show()
+                            firebaseAuth.signOut()
+                            binding.signinbutton.isEnabled = true
+                            return@addOnSuccessListener
+                        }
+
                         // Navigasi sukses ke Home Driver
                         val intent = Intent(this, DriverHomeActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
