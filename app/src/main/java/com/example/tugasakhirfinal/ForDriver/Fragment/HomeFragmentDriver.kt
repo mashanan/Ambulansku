@@ -53,7 +53,7 @@ class HomeFragmentDriver : Fragment() {
         statusText = requireActivity().findViewById(R.id.statusText)
 
         setupRecyclerView()
-        setupToggleStatus()
+        listenToDriverStatusAndLocation()
     }
 
     private fun setupRecyclerView() {
@@ -68,39 +68,37 @@ class HomeFragmentDriver : Fragment() {
         }
     }
 
-    private fun setupToggleStatus() {
-        if (switchOnline == null || statusText == null) return
+    // 🛠️ PENTING: JANGAN pasang switchOnline.setOnCheckedChangeListener di sini.
+    // DriverHomeActivity sudah memasang listener-nya sendiri di switch yang sama untuk
+    // menjalankan startLocationUpdates()/updateDriverStatus(). Satu View cuma bisa punya SATU
+    // OnCheckedChangeListener aktif — memasang listener kedua di sini akan MENIMPA punya
+    // DriverHomeActivity, sehingga lokasi driver tidak pernah terkirim ke Firestore.
+    // Makanya status Online/Offline & lokasi driver di sini dibaca langsung dari Firestore
+    // (satu-satunya sumber kebenaran, sudah pasti sinkron dengan apa yang ditulis DriverHomeActivity).
+    private fun listenToDriverStatusAndLocation() {
+        val uid = auth.currentUser?.uid ?: return
+        driverLocationListener?.remove()
+        driverLocationListener = db.collection("users").document(uid)
+            .addSnapshotListener { snapshot, e ->
+                if (_binding == null || e != null) return@addSnapshotListener
 
-        // 💡 ALUR PINTAR: Baca posisi switch saat ini (Jangan paksa false)
-        val isCurrentlyOnline = switchOnline?.isChecked == true
+                driverLocation = snapshot?.getGeoPoint("lokasi")
+                val isOnline = (snapshot?.getString("status") ?: "offline").equals("online", ignoreCase = true)
 
-        if (isCurrentlyOnline) {
-            statusText?.text = "Status: Online"
-            binding.tvEmpty.text = "Mencari pesanan ambulans..."
-            listenToBookings()
-        } else {
-            statusText?.text = "Status: Offline/Sibuk"
-            stopListening()
-        }
-
-        // Listener saat switch digeser manual oleh driver
-        switchOnline?.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                statusText?.text = "Status: Online"
-                binding.tvEmpty.text = "Mencari pesanan ambulans..."
-                listenToBookings()
-                Toast.makeText(requireContext(), "Anda sedang Online", Toast.LENGTH_SHORT).show()
-            } else {
-                statusText?.text = "Status: Offline"
-                stopListening()
-                Toast.makeText(requireContext(), "Anda sedang Offline", Toast.LENGTH_SHORT).show()
+                if (isOnline && bookingListener == null) {
+                    binding.tvEmpty.text = "Mencari pesanan ambulans..."
+                    listenToBookings()
+                } else if (!isOnline && bookingListener != null) {
+                    stopListening()
+                } else {
+                    // Statusnya belum berubah kategori, tapi lokasi bisa saja baru update
+                    applyDistanceSortingAndRefresh()
+                }
             }
-        }
     }
 
     private fun listenToBookings() {
         bookingListener?.remove()
-        listenToDriverLocation()
 
         bookingListener = db.collection("bookings")
             .whereEqualTo("status", "SEARCHING")
@@ -129,19 +127,6 @@ class HomeFragmentDriver : Fragment() {
                     binding.tvEmpty.text = "Belum ada pesanan masuk..."
                     binding.tvEmpty.visibility = View.VISIBLE
                 }
-                applyDistanceSortingAndRefresh()
-            }
-    }
-
-    private fun listenToDriverLocation() {
-        val uid = auth.currentUser?.uid ?: return
-        driverLocationListener?.remove()
-        driverLocationListener = db.collection("users").document(uid)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) return@addSnapshotListener
-                driverLocation = snapshot?.getGeoPoint("lokasi")
-                // 🚀 Lokasi driver bisa baru tersedia belakangan (perlu waktu GPS fix pertama) —
-                // begitu didapat/berubah, hitung ulang jarak & estimasi pesanan yang sudah tampil.
                 applyDistanceSortingAndRefresh()
             }
     }
@@ -180,12 +165,11 @@ class HomeFragmentDriver : Fragment() {
         return ((distanceKm / averageSpeedKmh) * 60).toInt().coerceAtLeast(1)
     }
 
+    // Hanya menghentikan listener daftar pesanan. driverLocationListener (status+lokasi) SENGAJA
+    // tidak ikut dihentikan di sini karena dialah yang mendeteksi ketika driver kembali Online.
     private fun stopListening() {
         bookingListener?.remove()
         bookingListener = null
-        driverLocationListener?.remove()
-        driverLocationListener = null
-        driverLocation = null
 
         bookingList.clear()
         bookingAdapter.notifyDataSetChanged()
@@ -239,8 +223,9 @@ class HomeFragmentDriver : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        switchOnline?.setOnCheckedChangeListener(null)
         stopListening()
+        driverLocationListener?.remove()
+        driverLocationListener = null
         _binding = null
     }
 }
