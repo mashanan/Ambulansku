@@ -83,6 +83,15 @@ class DriverOnlineService : Service() {
         bookingListener?.remove()
         bookingListener = null
         updateDriverStatus("offline")
+
+        // Notifikasi "Pesanan Baru" adalah notifikasi TERPISAH dari notifikasi persisten foreground
+        // service — sistem cuma otomatis membersihkan notifikasi persisten saat service berhenti,
+        // notifikasi pesanan yang masih aktif harus dibatalkan manual di sini juga.
+        val manager = NotificationManagerCompat.from(this)
+        for (notificationId in activeBookingNotifications.values) {
+            manager.cancel(notificationId)
+        }
+        activeBookingNotifications.clear()
     }
 
     // 🛠️ PENTING: onDestroy() TIDAK dijamin terpanggil kalau OS/pengguna membunuh proses app
