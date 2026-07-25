@@ -1,5 +1,6 @@
 package com.example.tugasakhirfinal.ForPassenger
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -38,7 +39,7 @@ class HospitalListActivity : AppCompatActivity() {
         // Setup RecyclerView
         rvHospitalList.layoutManager = LinearLayoutManager(this)
         hospitalAdapter = HospitalAdapter(fullHospitalList) { selectedHospital ->
-            Toast.makeText(this, "Memilih ${selectedHospital.nama}", Toast.LENGTH_SHORT).show()
+            openHospitalOnMap(selectedHospital)
         }
         rvHospitalList.adapter = hospitalAdapter
 
@@ -94,6 +95,24 @@ class HospitalListActivity : AppCompatActivity() {
                     Toast.makeText(this, "Belum ada data rumah sakit", Toast.LENGTH_SHORT).show()
                 }
             }
+    }
+
+    // Buka rumah sakit yang dipilih di peta (ActivityDrive), lengkap dengan rute & estimasi waktu/jarak.
+    // Alur pemesanan setelahnya sama persis dengan "Panggil Ambulans" (ActivityDrive sudah menangani
+    // kedua kasus lewat extra SELECTED_HOSPITAL_*), bedanya hanya tujuan rumah sakit sudah ditentukan.
+    private fun openHospitalOnMap(hospital: Hospital) {
+        val latLng = hospital.getLatLng()
+        if (latLng == null) {
+            Toast.makeText(this, "Lokasi rumah sakit ini belum tersedia", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val intent = Intent(this, ActivityDrive::class.java).apply {
+            putExtra("SELECTED_HOSPITAL_NAME", hospital.nama)
+            putExtra("SELECTED_HOSPITAL_LAT", latLng.latitude)
+            putExtra("SELECTED_HOSPITAL_LNG", latLng.longitude)
+        }
+        startActivity(intent)
     }
 
     private fun filterHospitals(query: String) {

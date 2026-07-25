@@ -138,7 +138,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
                     if (isManualHospitalSelected && destinationHospitalLoc != null) {
                         drawRouteLine(currentLatLng, destinationHospitalLoc!!, "antar")
-                        displayHospitalMarkers()
+                        displaySelectedHospitalMarker()
                     } else {
                         loadHospitalData()
                     }
@@ -503,6 +503,17 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun dismissSearchingDriverDialog() { searchDialog?.dismiss(); searchDialog = null }
+
+    // Menampilkan satu marker untuk rumah sakit yang dipilih manual dari HospitalListActivity
+    private fun displaySelectedHospitalMarker() {
+        val pos = destinationHospitalLoc ?: return
+        hospitalMarkers.forEach { it.remove() }
+        hospitalMarkers.clear()
+
+        val icon = getResizedBitmapDescriptor(R.drawable.ic_hospital, 80)
+        val m = mMap.addMarker(MarkerOptions().position(pos).title(selectedHospitalName ?: "Rumah Sakit").apply { if (icon != null) icon(icon) })
+        m?.let { hospitalMarkers.add(it) }
+    }
 
     private fun displayHospitalMarkers() {
         for (hospital in hospitalList) {
