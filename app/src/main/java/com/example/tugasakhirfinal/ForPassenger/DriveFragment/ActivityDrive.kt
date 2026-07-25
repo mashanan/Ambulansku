@@ -338,32 +338,38 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         }
         val expiryTimestamp = Timestamp(calendar.time)
 
-        // Ubah koordinat jemput jadi alamat yang bisa dibaca driver (mis. "Jl. Mawar No. 12"),
-        // supaya kartu pesanan di sisi Driver tidak kosong pada bagian lokasi.
+        val bookingData = hashMapOf(
+            "passengerId" to (auth.currentUser?.uid ?: ""),
+            "passengerName" to passengerName,
+            "hospitalName" to (selectedHospitalName ?: "Rumah Sakit"),
+            "locationName" to "Mendeteksi alamat...",
+            "pickupLocation" to pickupGeoPoint,
+            "hospitalLat" to destinationHospitalLoc?.latitude,
+            "hospitalLng" to destinationHospitalLoc?.longitude,
+            "status" to "SEARCHING",
+            "driverId" to "",
+            "createdAt" to Timestamp.now(),
+            "expiresAt" to expiryTimestamp // 🚀 Field batas kedaluwarsa 3 hari
+        )
+
+        // Kirim booking SEGERA agar langsung terlihat oleh driver, jangan ditunda oleh proses lain.
+        firestore.collection("bookings").add(bookingData)
+            .addOnSuccessListener { docRef ->
+                currentBookingId = docRef.id
+                listenDriverResponse(docRef.id)
+                startSearchTimer()
+                resolveAndUpdateAddress(docRef.id, pickupLatLng)
+            }
+    }
+
+    // Reverse-geocode berjalan di belakang layar SETELAH booking terkirim, supaya proses yang bisa
+    // lambat/menggantung di beberapa perangkat ini tidak menunda notifikasi pesanan ke driver.
+    // Hasilnya diupdate ke field locationName dan otomatis muncul di kartu Driver via listener real-time.
+    private fun resolveAndUpdateAddress(bookingId: String, latLng: LatLng) {
         CoroutineScope(Dispatchers.IO).launch {
-            val addressLabel = reverseGeocodeAddress(pickupLatLng)
-
-            val bookingData = hashMapOf(
-                "passengerId" to (auth.currentUser?.uid ?: ""),
-                "passengerName" to passengerName,
-                "hospitalName" to (selectedHospitalName ?: "Rumah Sakit"),
-                "locationName" to addressLabel,
-                "pickupLocation" to pickupGeoPoint,
-                "hospitalLat" to destinationHospitalLoc?.latitude,
-                "hospitalLng" to destinationHospitalLoc?.longitude,
-                "status" to "SEARCHING",
-                "driverId" to "",
-                "createdAt" to Timestamp.now(),
-                "expiresAt" to expiryTimestamp // 🚀 Field batas kedaluwarsa 3 hari
-            )
-
+            val addressLabel = reverseGeocodeAddress(latLng)
             withContext(Dispatchers.Main) {
-                firestore.collection("bookings").add(bookingData)
-                    .addOnSuccessListener { docRef ->
-                        currentBookingId = docRef.id
-                        listenDriverResponse(docRef.id)
-                        startSearchTimer()
-                    }
+                firestore.collection("bookings").document(bookingId).update("locationName", addressLabel)
             }
         }
     }
