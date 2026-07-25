@@ -1,13 +1,13 @@
 package com.example.tugasakhirfinal.ForDriver
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Looper
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.tugasakhirfinal.ForDriver.Fragment.HomeFragmentDriver // Nama sudah diperbaiki
 import com.example.tugasakhirfinal.ForDriver.Fragment.ProfileFragmentDriver
@@ -15,29 +15,21 @@ import com.example.tugasakhirfinal.ForDriver.Fragment.ActivityDriveFragmentDrive
 import com.example.tugasakhirfinal.ForDriver.Fragment.ChatFragmentDriver
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.ActivityDriverHomeBinding
-import com.google.android.gms.location.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.Source
 
 class DriverHomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDriverHomeBinding
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationCallback: LocationCallback
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
-
-    private var isOnline = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDriverHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         // 🚩 Menampilkan HomeFragmentDriver sebagai tampilan awal
         if (savedInstanceState == null) {
@@ -69,17 +61,35 @@ class DriverHomeActivity : AppCompatActivity() {
         }
 
         // Setup Toggle Button Online/Offline
+        // 🛠️ Lokasi & status "online"/"offline" ditangani oleh DriverOnlineService (Foreground
+        // Service), BUKAN langsung di sini — supaya driver tetap terlacak & bisa dapat notifikasi
+        // pesanan baru walau app di-background. Lihat DriverOnlineService.kt.
         binding.switchOnline.setOnCheckedChangeListener { _, checked ->
-            isOnline = checked
-            updateDriverStatus(if (isOnline) "online" else "offline")
-
-            if (isOnline) {
-                startLocationUpdates()
+            if (checked) {
+                requestOnlinePermissionsIfNeeded()
+                ContextCompat.startForegroundService(this, Intent(this, DriverOnlineService::class.java))
                 binding.statusText.text = "Status: Online (Siap Menerima Pesanan)"
             } else {
-                stopLocationUpdates()
+                stopService(Intent(this, DriverOnlineService::class.java))
                 binding.statusText.text = "Status: Offline"
             }
+        }
+    }
+
+    // Minta izin lokasi & notifikasi kalau belum diberikan. DriverOnlineService tidak bisa
+    // memicu dialog izin sendiri (bukan Activity), jadi permintaannya harus dari sini.
+    private fun requestOnlinePermissionsIfNeeded() {
+        val missingPermissions = mutableListOf<String>()
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            missingPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            missingPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        if (missingPermissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missingPermissions.toTypedArray(), 101)
         }
     }
 
@@ -87,11 +97,6 @@ class DriverHomeActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .commit()
-    }
-
-    private fun updateDriverStatus(status: String) {
-        val uid = auth.currentUser?.uid ?: return
-        firestore.collection("users").document(uid).update("status", status)
     }
 
     // Fungsi untuk memeriksa apakah profil driver sudah lengkap
@@ -126,43 +131,4 @@ class DriverHomeActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun startLocationUpdates() {
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000).build()
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                val location = locationResult.lastLocation ?: return
-                val uid = auth.currentUser?.uid ?: return
-                val geoPoint = GeoPoint(location.latitude, location.longitude)
-
-                firestore.collection("users").document(uid)
-                    .update("lokasi", geoPoint)
-                    .addOnFailureListener { e ->
-                        if (isOnline) {
-                            Toast.makeText(this@DriverHomeActivity, "Gagal update lokasi: ${e.message}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-            }
-        }
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
-        } else {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 101)
-        }
-    }
-
-    private fun stopLocationUpdates() {
-        if (::locationCallback.isInitialized) {
-            fusedLocationClient.removeLocationUpdates(locationCallback)
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (auth.currentUser != null) {
-            updateDriverStatus("offline")
-        }
-        stopLocationUpdates()
-    }
 }

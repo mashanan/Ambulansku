@@ -26,6 +26,7 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.example.tugasakhirfinal.ForDriver.DriverOnlineService
 import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditNama
 import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditNoTlp
 import com.example.tugasakhirfinal.R
@@ -126,6 +127,7 @@ class ProfileFragmentDriver : Fragment() {
             startActivity(intent)
         }
         binding.logoutButton.setOnClickListener {
+            requireContext().stopService(Intent(requireContext(), DriverOnlineService::class.java))
             firebaseAuth.signOut()
             startActivity(Intent(requireContext(), RoleSelectionActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -206,6 +208,7 @@ class ProfileFragmentDriver : Fragment() {
         user.delete().addOnCompleteListener { deleteTask ->
             progressDialog.dismiss()
             if (deleteTask.isSuccessful) {
+                requireContext().stopService(Intent(requireContext(), DriverOnlineService::class.java))
                 sharedPreferences.edit().clear().apply()
                 Toast.makeText(requireContext(), "Akun berhasil dihapus.", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(requireContext(), RoleSelectionActivity::class.java).apply {
