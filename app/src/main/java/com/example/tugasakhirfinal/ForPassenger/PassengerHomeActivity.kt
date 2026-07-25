@@ -1,6 +1,7 @@
 package com.example.tugasakhirfinal.ForPassenger
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -12,6 +13,7 @@ import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.ActivityHomeBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 
 class PassengerHomeActivity : AppCompatActivity() {
 
@@ -63,10 +65,12 @@ class PassengerHomeActivity : AppCompatActivity() {
     private fun checkProfileCompletion() {
         val uid = firebaseAuth.currentUser?.uid ?: return
 
-        firestore.collection("users").document(uid).get()
+        // Source.SERVER agar tidak terjebak cache Firestore lokal yang mungkin masih menyimpan data lama
+        firestore.collection("users").document(uid).get(Source.SERVER)
             .addOnSuccessListener { doc ->
                 val currentName = doc.getString("nama") ?: ""
                 val currentNoTlp = doc.getString("phoneNumber") ?: ""
+                Log.d("PROFILE_CHECK", "nama='$currentName' phoneNumber='$currentNoTlp'")
 
                 val isNameEmpty = currentName.isBlank() || currentName == "Masukkan Nama Anda"
                 val isPhoneEmpty = currentNoTlp.isBlank() || currentNoTlp == "Masukkan Nomor Telepon Anda"
@@ -74,6 +78,9 @@ class PassengerHomeActivity : AppCompatActivity() {
                 if (isNameEmpty || isPhoneEmpty) {
                     showIncompleteProfileDialog()
                 }
+            }
+            .addOnFailureListener { e ->
+                Log.e("PROFILE_CHECK", "Gagal cek kelengkapan profil: ${e.message}")
             }
     }
 

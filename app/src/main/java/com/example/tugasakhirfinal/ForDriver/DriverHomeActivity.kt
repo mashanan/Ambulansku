@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +20,7 @@ import com.google.android.gms.location.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.Source
 
 class DriverHomeActivity : AppCompatActivity() {
 
@@ -97,10 +99,12 @@ class DriverHomeActivity : AppCompatActivity() {
     private fun checkProfileCompletion() {
         val uid = auth.currentUser?.uid ?: return
 
-        firestore.collection("users").document(uid).get()
+        // Source.SERVER agar tidak terjebak cache Firestore lokal yang mungkin masih menyimpan data lama
+        firestore.collection("users").document(uid).get(Source.SERVER)
             .addOnSuccessListener { doc ->
                 val currentName = doc.getString("nama") ?: ""
                 val currentNoTlp = doc.getString("phoneNumber") ?: ""
+                Log.d("PROFILE_CHECK", "nama='$currentName' phoneNumber='$currentNoTlp'")
 
                 val isNameEmpty = currentName.isBlank() || currentName == "Driver Baru"
                 val isPhoneEmpty = currentNoTlp.isBlank() || currentNoTlp == "Belum diisi"
@@ -108,6 +112,9 @@ class DriverHomeActivity : AppCompatActivity() {
                 if (isNameEmpty || isPhoneEmpty) {
                     showIncompleteProfileDialog()
                 }
+            }
+            .addOnFailureListener { e ->
+                Log.e("PROFILE_CHECK", "Gagal cek kelengkapan profil: ${e.message}")
             }
     }
 
