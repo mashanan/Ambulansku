@@ -113,32 +113,14 @@ class HomeFragmentDriver : Fragment() {
 
                 bookingList.clear()
                 if (snapshots != null && !snapshots.isEmpty) {
-
-                    // 🚀 ALUR PINTAR: Kalau lokasi driver sudah diketahui, urutkan pesanan dari yang
-                    // JARAKNYA PALING DEKAT dengan driver. Kalau lokasi belum tersedia, fallback ke
-                    // urutan waktu pesan (createdAt) paling lama seperti sebelumnya.
-                    val myLocation = driverLocation
-                    val sortedDocs = if (myLocation != null) {
-                        snapshots.documents.sortedBy { doc ->
-                            doc.getGeoPoint("pickupLocation")?.let { pickup ->
-                                distanceMeters(myLocation, pickup)
-                            } ?: Float.MAX_VALUE
-                        }
-                    } else {
-                        snapshots.documents.sortedBy { it.getTimestamp("createdAt") }
-                    }
+                    // Urutan awal berdasar createdAt; nanti disempurnakan ke jarak terdekat oleh
+                    // applyDistanceSortingAndRefresh() begitu lokasi driver sudah/tetap tersedia.
+                    val sortedDocs = snapshots.documents.sortedBy { it.getTimestamp("createdAt") }
 
                     for (doc in sortedDocs) {
                         val booking = doc.toObject(Booking::class.java)
                         if (booking != null) {
                             booking.bookingId = doc.id
-                            if (myLocation != null) {
-                                doc.getGeoPoint("pickupLocation")?.let { pickup ->
-                                    val dist = distanceMeters(myLocation, pickup)
-                                    booking.distanceMeters = dist
-                                    booking.estimatedMinutes = estimateMinutes(dist)
-                                }
-                            }
                             bookingList.add(booking)
                         }
                     }
@@ -147,7 +129,7 @@ class HomeFragmentDriver : Fragment() {
                     binding.tvEmpty.text = "Belum ada pesanan masuk..."
                     binding.tvEmpty.visibility = View.VISIBLE
                 }
-                bookingAdapter.notifyDataSetChanged()
+                applyDistanceSortingAndRefresh()
             }
     }
 
@@ -158,7 +140,29 @@ class HomeFragmentDriver : Fragment() {
             .addSnapshotListener { snapshot, e ->
                 if (e != null) return@addSnapshotListener
                 driverLocation = snapshot?.getGeoPoint("lokasi")
+                // 🚀 Lokasi driver bisa baru tersedia belakangan (perlu waktu GPS fix pertama) —
+                // begitu didapat/berubah, hitung ulang jarak & estimasi pesanan yang sudah tampil.
+                applyDistanceSortingAndRefresh()
             }
+    }
+
+    // 🚀 ALUR PINTAR: Kalau lokasi driver sudah diketahui, urutkan & isi jarak/estimasi pesanan
+    // dari yang PALING DEKAT dengan driver. Dipanggil ulang setiap kali daftar pesanan ATAU lokasi
+    // driver berubah, supaya keduanya selalu sinkron (tidak ada yang nyangkut di "-").
+    private fun applyDistanceSortingAndRefresh() {
+        if (_binding == null) return
+        val myLocation = driverLocation
+        if (myLocation != null) {
+            for (booking in bookingList) {
+                booking.pickupLocation?.let { pickup ->
+                    val dist = distanceMeters(myLocation, pickup)
+                    booking.distanceMeters = dist
+                    booking.estimatedMinutes = estimateMinutes(dist)
+                }
+            }
+            bookingList.sortBy { if (it.distanceMeters >= 0) it.distanceMeters else Float.MAX_VALUE }
+        }
+        bookingAdapter.notifyDataSetChanged()
     }
 
     private fun distanceMeters(a: GeoPoint, b: GeoPoint): Float {
