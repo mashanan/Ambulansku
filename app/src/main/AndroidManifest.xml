@@ -55,27 +55,27 @@
 
         <!-- Activities -->
         <activity android:name=".RoleSelectionActivity" android:exported="false" />
-        <activity android:name=".ForPassanger.Welcome.SignInActivity" android:exported="false" />
-        <activity android:name=".ForPassanger.Welcome.SignUpActivity" android:exported="false" />
-        <activity android:name=".ForPassanger.Welcome.MainActivity" android:exported="false" />
-        <activity android:name=".ForPassanger.PassangerHomeActivity" android:exported="false" />
+        <activity android:name=".ForPassenger.Welcome.SignInActivity" android:exported="false" />
+        <activity android:name=".ForPassenger.Welcome.SignUpActivity" android:exported="false" />
+        <activity android:name=".ForPassenger.Welcome.MainActivity" android:exported="false" />
+        <activity android:name=".ForPassenger.PassengerHomeActivity" android:exported="false" />
 
-        <!-- 🛠️ DIBETULKAN: ActivityDrive sesuaikan package subfolder ForPassanger -->
-        <activity android:name=".ForPassanger.ActivityDrive" android:exported="false" />
-        <activity android:name=".ForPassanger.HospitalListActivity" android:exported="false" />
+        <!-- 🛠️ DIBETULKAN: ActivityDrive sesuaikan package subfolder ForPassenger -->
+        <activity android:name=".ForPassenger.ActivityDrive" android:exported="false" />
+        <activity android:name=".ForPassenger.HospitalListActivity" android:exported="false" />
 
         <!-- 🛠️ DITAMBAHKAN: ChatPassengerActivity terdaftar resmi -->
-        <activity android:name=".ForPassanger.ChatPassengerActivity" android:exported="false" />
+        <activity android:name=".ForPassenger.ChatPassengerActivity" android:exported="false" />
 
         <!-- Edit Profile Group -->
-        <activity android:name=".ForPassanger.EditProfileFragment.ActivityEditNama" android:exported="false" />
-        <activity android:name=".ForPassanger.EditProfileFragment.ActivityEditNoTlp" android:exported="false" />
-        <activity android:name=".ForPassanger.EditProfileFragment.ActivityEditEmail" android:exported="false" />
-        <activity android:name=".ForPassanger.EditProfileFragment.ActivityEditAlamat" android:exported="false" />
-        <activity android:name=".ForPassanger.EditProfileFragment.AddAddressActivity" android:exported="false" />
+        <activity android:name=".ForPassenger.EditProfileFragment.ActivityEditNama" android:exported="false" />
+        <activity android:name=".ForPassenger.EditProfileFragment.ActivityEditNoTlp" android:exported="false" />
+        <activity android:name=".ForPassenger.EditProfileFragment.ActivityEditEmail" android:exported="false" />
+        <activity android:name=".ForPassenger.EditProfileFragment.ActivityEditAlamat" android:exported="false" />
+        <activity android:name=".ForPassenger.EditProfileFragment.AddAddressActivity" android:exported="false" />
 
         <activity
-            android:name=".ForPassanger.EditProfileFragment.ActivityEditFotoProfile"
+            android:name=".ForPassenger.EditProfileFragment.ActivityEditFotoProfile"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.Dialog" />
 

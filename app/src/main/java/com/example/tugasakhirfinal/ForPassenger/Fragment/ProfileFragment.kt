@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassanger.Fragment
+package com.example.tugasakhirfinal.ForPassenger.Fragment
 
 import android.content.Context
 import android.content.Intent
@@ -9,11 +9,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.example.tugasakhirfinal.ForPassanger.EditProfileFragment.ActivityEditEmail
-import com.example.tugasakhirfinal.ForPassanger.EditProfileFragment.ActivityEditNama
-import com.example.tugasakhirfinal.ForPassanger.EditProfileFragment.ActivityEditNoTlp
-import com.example.tugasakhirfinal.ForPassanger.EditProfileFragment.ActivityEditFotoProfile
-import com.example.tugasakhirfinal.ForPassanger.EditProfileFragment.ActivityEditAlamat
+import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditEmail
+import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditNama
+import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditNoTlp
+import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditFotoProfile
+import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditAlamat
 import com.example.tugasakhirfinal.RoleSelectionActivity
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.FragmentProfileBinding

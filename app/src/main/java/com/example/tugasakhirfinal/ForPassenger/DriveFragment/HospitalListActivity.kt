@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassanger
+package com.example.tugasakhirfinal.ForPassenger
 
 import android.os.Bundle
 import android.text.Editable

@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassanger.Welcome
+package com.example.tugasakhirfinal.ForPassenger.Welcome
 
 import android.app.ProgressDialog
 import android.content.Intent
@@ -7,7 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.tugasakhirfinal.ForDriver.DriverHomeActivity
-import com.example.tugasakhirfinal.ForPassanger.PassangerHomeActivity
+import com.example.tugasakhirfinal.ForPassenger.PassengerHomeActivity
 import com.example.tugasakhirfinal.databinding.ActivitySignInDriverBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore

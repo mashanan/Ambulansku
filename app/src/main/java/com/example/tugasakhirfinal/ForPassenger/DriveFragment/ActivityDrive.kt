@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassanger
+package com.example.tugasakhirfinal.ForPassenger
 
 import android.Manifest
 import android.content.Intent

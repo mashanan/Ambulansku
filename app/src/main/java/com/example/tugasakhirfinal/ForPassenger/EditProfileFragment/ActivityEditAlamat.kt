@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassanger.EditProfileFragment
+package com.example.tugasakhirfinal.ForPassenger.EditProfileFragment
 
 import android.content.Intent
 import android.os.Bundle

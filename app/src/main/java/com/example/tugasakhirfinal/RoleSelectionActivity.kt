@@ -6,8 +6,8 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.example.tugasakhirfinal.ForDriver.DriverHomeActivity
 import com.example.tugasakhirfinal.ForDriver.Welcome.MainActivityDriver
-import com.example.tugasakhirfinal.ForPassanger.PassangerHomeActivity
-import com.example.tugasakhirfinal.ForPassanger.Welcome.MainActivity
+import com.example.tugasakhirfinal.ForPassenger.PassengerHomeActivity
+import com.example.tugasakhirfinal.ForPassenger.Welcome.MainActivity
 import com.example.tugasakhirfinal.databinding.ActivityRoleSelectionBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -66,7 +66,7 @@ class RoleSelectionActivity : AppCompatActivity() {
                     val targetActivity = if (userRole.equals("driver", ignoreCase = true)) {
                         DriverHomeActivity::class.java
                     } else {
-                        PassangerHomeActivity::class.java
+                        PassengerHomeActivity::class.java
                     }
 
                     val intent = Intent(this, targetActivity)

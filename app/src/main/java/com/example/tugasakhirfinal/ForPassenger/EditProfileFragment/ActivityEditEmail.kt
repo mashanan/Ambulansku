@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassanger.EditProfileFragment
+package com.example.tugasakhirfinal.ForPassenger.EditProfileFragment
 
 import android.app.ProgressDialog
 import android.content.Intent
@@ -221,7 +221,7 @@ class ActivityEditEmail : AppCompatActivity() {
 
     private fun logoutAndReset() {
         firebaseAuth.signOut()
-        val intent = Intent(this, com.example.tugasakhirfinal.ForPassanger.Welcome.SignInActivity::class.java)
+        val intent = Intent(this, com.example.tugasakhirfinal.ForPassenger.Welcome.SignInActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassanger.Fragment
+package com.example.tugasakhirfinal.ForPassenger.Fragment
 
 import android.content.Context
 import android.content.Intent
@@ -10,7 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.example.tugasakhirfinal.ForPassanger.ActivityDrive
+import com.example.tugasakhirfinal.ForPassenger.ActivityDrive
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.FragmentHomeBinding
 import com.google.firebase.auth.FirebaseAuth

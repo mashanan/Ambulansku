@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.example.tugasakhirfinal.ForDriver.DriverHomeActivity
-import com.example.tugasakhirfinal.ForPassanger.PassangerHomeActivity
+import com.example.tugasakhirfinal.ForPassenger.PassengerHomeActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
@@ -47,7 +47,7 @@ class SplashScreenActivity : AppCompatActivity() {
                     val intent = if (role.equals("driver", ignoreCase = true)) {
                         Intent(this, DriverHomeActivity::class.java)
                     } else {
-                        Intent(this, PassangerHomeActivity::class.java)
+                        Intent(this, PassengerHomeActivity::class.java)
                     }
 
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

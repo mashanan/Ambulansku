@@ -32,7 +32,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvHeaderTitle"
-        tools:listitem="@layout/item_passanger_chat" />
+        tools:listitem="@layout/item_passenger_chat" />
 
     <!-- Tampilan Jika Riwayat Chat Masih Kosong -->
     <TextView

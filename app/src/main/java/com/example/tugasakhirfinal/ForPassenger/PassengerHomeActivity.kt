@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassanger
+package com.example.tugasakhirfinal.ForPassenger
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -6,14 +6,14 @@ import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import com.example.tugasakhirfinal.ForPassanger.Fragment.ChatFragment
-import com.example.tugasakhirfinal.ForPassanger.Fragment.ActivityDriveFragment
-import com.example.tugasakhirfinal.ForPassanger.Fragment.HomeFragment
-import com.example.tugasakhirfinal.ForPassanger.Fragment.ProfileFragment
+import com.example.tugasakhirfinal.ForPassenger.Fragment.ChatFragment
+import com.example.tugasakhirfinal.ForPassenger.Fragment.ActivityDriveFragment
+import com.example.tugasakhirfinal.ForPassenger.Fragment.HomeFragment
+import com.example.tugasakhirfinal.ForPassenger.Fragment.ProfileFragment
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.ActivityHomeBinding
 
-class PassangerHomeActivity : AppCompatActivity() {
+class PassengerHomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
     private lateinit var sharedPreferences: SharedPreferences

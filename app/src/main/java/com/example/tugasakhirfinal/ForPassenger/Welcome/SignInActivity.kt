@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassanger.Welcome
+package com.example.tugasakhirfinal.ForPassenger.Welcome
 
 import android.content.Intent
 import android.os.Bundle
@@ -6,18 +6,18 @@ import android.util.Patterns
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.tugasakhirfinal.ForPassanger.PassangerHomeActivity
-import com.example.tugasakhirfinal.databinding.ActivitySignInPassangerBinding
+import com.example.tugasakhirfinal.ForPassenger.PassengerHomeActivity
+import com.example.tugasakhirfinal.databinding.ActivitySignInPassengerBinding
 import com.google.firebase.auth.FirebaseAuth
 
 class SignInActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivitySignInPassangerBinding
+    private lateinit var binding: ActivitySignInPassengerBinding
     private lateinit var firebaseAuth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivitySignInPassangerBinding.inflate(layoutInflater)
+        binding = ActivitySignInPassengerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         firebaseAuth = FirebaseAuth.getInstance()
@@ -121,7 +121,7 @@ class SignInActivity : AppCompatActivity() {
 
     // Fungsi untuk navigasi ke HomeActivity
     private fun navigateToHomeActivity() {
-        val intent = Intent(this, PassangerHomeActivity::class.java)
+        val intent = Intent(this, PassengerHomeActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

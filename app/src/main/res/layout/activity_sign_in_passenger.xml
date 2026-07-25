@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_sign_in"
-    tools:context=".ForPassanger.Welcome.SignInActivity">
+    tools:context=".ForPassenger.Welcome.SignInActivity">
 
     <!-- Input Email -->
     <com.google.android.material.textfield.TextInputLayout

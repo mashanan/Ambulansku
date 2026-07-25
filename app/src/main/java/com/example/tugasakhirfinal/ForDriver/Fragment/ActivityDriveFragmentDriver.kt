@@ -336,7 +336,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         listenUnreadMessages(bookingId) // 🚀 Aktifkan listener badge notifikasi
 
         binding.btnChatPassenger?.setOnClickListener {
-            val intent = Intent(requireContext(), com.example.tugasakhirfinal.ForPassanger.ChatPassengerActivity::class.java)
+            val intent = Intent(requireContext(), com.example.tugasakhirfinal.ForPassenger.ChatPassengerActivity::class.java)
             intent.putExtra("BOOKING_ID", bookingId)
             startActivity(intent)
         }

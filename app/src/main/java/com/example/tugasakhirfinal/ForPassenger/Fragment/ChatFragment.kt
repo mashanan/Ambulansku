@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassanger.Fragment
+package com.example.tugasakhirfinal.ForPassenger.Fragment
 
 import android.content.Intent
 import android.os.Bundle
@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.tugasakhirfinal.Adapter.PassengerChatAdapter
-import com.example.tugasakhirfinal.ForPassanger.ChatPassengerActivity
+import com.example.tugasakhirfinal.ForPassenger.ChatPassengerActivity
 import com.example.tugasakhirfinal.Model.PassengerChatHistory
 import com.example.tugasakhirfinal.databinding.FragmentChatBinding
 import com.google.firebase.auth.FirebaseAuth
