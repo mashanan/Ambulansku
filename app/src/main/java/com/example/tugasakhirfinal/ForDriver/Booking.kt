@@ -15,8 +15,11 @@ data class Booking(
     var driverId: String = "",
     var status: String = "SEARCHING",       // Default disamakan menjadi SEARCHING
 
-    // Jarak dari lokasi driver saat ini ke titik jemput, dihitung lokal di client untuk
-    // mengurutkan & menampilkan pesanan terdekat. Bukan field Firestore.
+    // Jarak & estimasi waktu dari lokasi driver saat ini ke titik jemput, dihitung lokal di client
+    // untuk mengurutkan & menampilkan pesanan terdekat. Bukan field Firestore.
     @get:Exclude @set:Exclude
-    var distanceMeters: Float = -1f
+    var distanceMeters: Float = -1f,
+
+    @get:Exclude @set:Exclude
+    var estimatedMinutes: Int = -1
 )

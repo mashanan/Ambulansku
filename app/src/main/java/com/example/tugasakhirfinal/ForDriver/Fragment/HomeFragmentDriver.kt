@@ -134,7 +134,9 @@ class HomeFragmentDriver : Fragment() {
                             booking.bookingId = doc.id
                             if (myLocation != null) {
                                 doc.getGeoPoint("pickupLocation")?.let { pickup ->
-                                    booking.distanceMeters = distanceMeters(myLocation, pickup)
+                                    val dist = distanceMeters(myLocation, pickup)
+                                    booking.distanceMeters = dist
+                                    booking.estimatedMinutes = estimateMinutes(dist)
                                 }
                             }
                             bookingList.add(booking)
@@ -163,6 +165,15 @@ class HomeFragmentDriver : Fragment() {
         val results = FloatArray(1)
         android.location.Location.distanceBetween(a.latitude, a.longitude, b.latitude, b.longitude, results)
         return results[0]
+    }
+
+    // Estimasi kasar waktu tempuh (asumsi kecepatan rata-rata ambulans di kota ~30 km/jam),
+    // dipakai di daftar pesanan supaya driver punya gambaran cepat tanpa memanggil Directions API
+    // berulang kali untuk setiap pesanan yang masuk.
+    private fun estimateMinutes(distanceMeters: Float): Int {
+        val averageSpeedKmh = 30.0
+        val distanceKm = distanceMeters / 1000.0
+        return ((distanceKm / averageSpeedKmh) * 60).toInt().coerceAtLeast(1)
     }
 
     private fun stopListening() {

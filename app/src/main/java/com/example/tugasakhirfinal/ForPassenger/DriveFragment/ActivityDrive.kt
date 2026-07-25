@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -33,6 +34,7 @@ import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 
 class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
@@ -326,7 +328,8 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun createBookingRequest() {
-        val pickupGeoPoint = GeoPoint(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude)
+        val pickupLatLng = lastKnownLocation!!
+        val pickupGeoPoint = GeoPoint(pickupLatLng.latitude, pickupLatLng.longitude)
         val passengerName = auth.currentUser?.displayName ?: "Pasien Ambulans"
 
         // 🚀 Hitung waktu kedaluwarsa 3 hari ke depan
@@ -335,25 +338,46 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         }
         val expiryTimestamp = Timestamp(calendar.time)
 
-        val bookingData = hashMapOf(
-            "passengerId" to (auth.currentUser?.uid ?: ""),
-            "passengerName" to passengerName,
-            "hospitalName" to (selectedHospitalName ?: "Rumah Sakit"),
-            "pickupLocation" to pickupGeoPoint,
-            "hospitalLat" to destinationHospitalLoc?.latitude,
-            "hospitalLng" to destinationHospitalLoc?.longitude,
-            "status" to "SEARCHING",
-            "driverId" to "",
-            "createdAt" to Timestamp.now(),
-            "expiresAt" to expiryTimestamp // 🚀 Field batas kedaluwarsa 3 hari
-        )
+        // Ubah koordinat jemput jadi alamat yang bisa dibaca driver (mis. "Jl. Mawar No. 12"),
+        // supaya kartu pesanan di sisi Driver tidak kosong pada bagian lokasi.
+        CoroutineScope(Dispatchers.IO).launch {
+            val addressLabel = reverseGeocodeAddress(pickupLatLng)
 
-        firestore.collection("bookings").add(bookingData)
-            .addOnSuccessListener { docRef ->
-                currentBookingId = docRef.id
-                listenDriverResponse(docRef.id)
-                startSearchTimer()
+            val bookingData = hashMapOf(
+                "passengerId" to (auth.currentUser?.uid ?: ""),
+                "passengerName" to passengerName,
+                "hospitalName" to (selectedHospitalName ?: "Rumah Sakit"),
+                "locationName" to addressLabel,
+                "pickupLocation" to pickupGeoPoint,
+                "hospitalLat" to destinationHospitalLoc?.latitude,
+                "hospitalLng" to destinationHospitalLoc?.longitude,
+                "status" to "SEARCHING",
+                "driverId" to "",
+                "createdAt" to Timestamp.now(),
+                "expiresAt" to expiryTimestamp // 🚀 Field batas kedaluwarsa 3 hari
+            )
+
+            withContext(Dispatchers.Main) {
+                firestore.collection("bookings").add(bookingData)
+                    .addOnSuccessListener { docRef ->
+                        currentBookingId = docRef.id
+                        listenDriverResponse(docRef.id)
+                        startSearchTimer()
+                    }
             }
+        }
+    }
+
+    private fun reverseGeocodeAddress(latLng: LatLng): String {
+        return try {
+            @Suppress("DEPRECATION")
+            val addresses = Geocoder(this, Locale.getDefault())
+                .getFromLocation(latLng.latitude, latLng.longitude, 1)
+            addresses?.firstOrNull()?.getAddressLine(0) ?: "Lokasi Penjemputan"
+        } catch (e: Exception) {
+            Log.e("GEOCODER", "Gagal reverse geocode: ${e.message}")
+            "Lokasi Penjemputan"
+        }
     }
 
     // 🚀 Batas maksimal pencarian driver: 30 detik, dengan hitungan detik berjalan.

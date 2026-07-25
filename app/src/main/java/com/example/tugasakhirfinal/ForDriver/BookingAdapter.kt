@@ -25,11 +25,17 @@ class BookingAdapter(
         val booking = bookings[position]
         holder.binding.apply {
             tvPassengerName.text = booking.passengerName
-            tvLocation.text = "Lokasi: ${booking.locationName}"
+            tvHospitalName.text = "Tujuan: ${booking.hospitalName.ifEmpty { "Rumah Sakit" }}"
+            tvLocation.text = "Lokasi Jemput: ${booking.locationName.ifEmpty { "-" }}"
             tvDistance.text = if (booking.distanceMeters >= 0) {
                 "Jarak: ${String.format("%.1f", booking.distanceMeters / 1000)} km"
             } else {
                 "Jarak: -"
+            }
+            tvEstimasi.text = if (booking.estimatedMinutes >= 0) {
+                "Estimasi: ${booking.estimatedMinutes} menit"
+            } else {
+                "Estimasi: -"
             }
 
             btnTerima.setOnClickListener {
