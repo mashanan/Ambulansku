@@ -4,7 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.tugasakhirfinal.ForPassenger.Welcome.SignInActivity
+import com.example.tugasakhirfinal.ForDriver.Welcome.SignInActivityDriver
 import com.example.tugasakhirfinal.databinding.ActivitySignUpDriverBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -25,7 +25,7 @@ class SignUpActivityDriver : AppCompatActivity() {
 
         // Navigasi ke Sign In
         binding.textView.setOnClickListener {
-            val intent = Intent(this, SignInActivity::class.java)
+            val intent = Intent(this, SignInActivityDriver::class.java)
             startActivity(intent)
         }
 
@@ -66,7 +66,7 @@ class SignUpActivityDriver : AppCompatActivity() {
                                                 Toast.makeText(this, "Registrasi Driver Berhasil! Cek email verifikasi.", Toast.LENGTH_LONG).show()
                                                 firebaseAuth.signOut()
 
-                                                val intent = Intent(this, SignInActivity::class.java)
+                                                val intent = Intent(this, SignInActivityDriver::class.java)
                                                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                                 startActivity(intent)
                                                 finish()

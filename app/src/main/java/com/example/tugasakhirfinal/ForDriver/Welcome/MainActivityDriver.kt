@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.tugasakhirfinal.ForDriver.SignUpActivityDriver
-import com.example.tugasakhirfinal.ForPassenger.Welcome.SignInActivity
 import com.example.tugasakhirfinal.databinding.ActivityMainDriverBinding
 
 class MainActivityDriver : AppCompatActivity() {
@@ -22,9 +21,9 @@ class MainActivityDriver : AppCompatActivity() {
         // Menangkap role yang dikirim dari RoleSelectionActivity
         selectedRole = intent.getStringExtra("USER_ROLE") ?: "driver"
 
-        // Tombol menuju halaman Login (SignIn tetap menggunakan satu activity yang sama)
+        // Tombol menuju halaman Login khusus Driver
         binding.buttonsignindriver.setOnClickListener {
-            val intent = Intent(this, SignInActivity::class.java).apply {
+            val intent = Intent(this, SignInActivityDriver::class.java).apply {
                 putExtra("USER_ROLE", selectedRole)
             }
             startActivity(intent)

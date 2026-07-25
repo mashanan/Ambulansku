@@ -81,6 +81,7 @@
 
         <!-- Driver Side -->
         <activity android:name=".ForDriver.Welcome.MainActivityDriver" android:exported="false" />
+        <activity android:name=".ForDriver.Welcome.SignInActivityDriver" android:exported="false" />
         <activity android:name=".ForDriver.SignUpActivityDriver" android:exported="false" />
         <activity android:name=".ForDriver.DriverHomeActivity" android:exported="false" />
         <activity android:name=".ForDriver.Chat.ChatDriverActivity" android:exported="false" />
