@@ -129,7 +129,8 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                         val results = FloatArray(1)
                         android.location.Location.distanceBetween(currentPos.latitude, currentPos.longitude, target.latitude, target.longitude, results)
                         val statusStr = if (currentMode == "jemput") "Menjemput Pasien" else "Menuju RS"
-                        binding.tvCurrentStatus.text = "$statusStr • Sisa Jarak: ${String.format("%.1f", results[0]/1000)} km"
+                        binding.tvCurrentStatus.text = statusStr
+                        binding.tvEstimationInfo.text = "Sisa Jarak: ${String.format("%.1f", results[0]/1000)} km"
                     }
                 }
             }
@@ -260,7 +261,8 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                     )
 
                     val statusStr = if (mode == "jemput") "Menjemput Pasien" else "Menuju RS"
-                    binding.tvCurrentStatus.text = "$statusStr • $durationText ($distanceText)"
+                    binding.tvCurrentStatus.text = statusStr
+                    binding.tvEstimationInfo.text = "Estimasi: $durationText ($distanceText)"
 
                     if (!isRouteZoomed) {
                         val boundsBuilder = LatLngBounds.Builder().include(start).include(end)
@@ -277,7 +279,9 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                     roadOverlay = mMap.addPolyline(PolylineOptions().add(start, end).width(10f).color(lineColor).pattern(listOf(Dash(20f), Gap(10f))))
                     val results = FloatArray(1)
                     android.location.Location.distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude, results)
-                    binding.tvCurrentStatus.text = "Sisa Jarak: ${String.format("%.1f", results[0]/1000)} km"
+                    val statusStr = if (mode == "jemput") "Menjemput Pasien" else "Menuju RS"
+                    binding.tvCurrentStatus.text = statusStr
+                    binding.tvEstimationInfo.text = "Sisa Jarak: ${String.format("%.1f", results[0]/1000)} km"
                 }
             }
         }
@@ -387,6 +391,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         binding.btnChatPassenger?.visibility = View.GONE
         binding.tvUnreadBadge.visibility = View.GONE // Reset Badge
         binding.tvCurrentStatus.text = "Siap menerima pesanan..."
+        binding.tvEstimationInfo.text = ""
 
         unreadListener?.remove() // Hapus Listener Badge
     }
