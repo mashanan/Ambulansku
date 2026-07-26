@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.tugasakhirfinal.ForAdmin.ApproveDriverActivity
+import com.example.tugasakhirfinal.ForAdmin.ManageFirstAidActivity
 import com.example.tugasakhirfinal.ForAdmin.ManageHospitalActivity
 import com.example.tugasakhirfinal.ForAdmin.ManageUsersActivity
 import com.example.tugasakhirfinal.databinding.FragmentHomeAdminBinding
@@ -32,6 +33,9 @@ class HomeFragmentAdmin : Fragment() {
         }
         binding.cardApproveDriver.setOnClickListener {
             startActivity(Intent(requireContext(), ApproveDriverActivity::class.java))
+        }
+        binding.cardManageFirstAid.setOnClickListener {
+            startActivity(Intent(requireContext(), ManageFirstAidActivity::class.java))
         }
     }
 

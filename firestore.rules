@@ -47,6 +47,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /firstAidConditions/{conditionId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /bookings/{bookingId} {
       allow read, write: if isSignedIn();
       match /messages/{messageId} {

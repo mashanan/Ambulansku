@@ -10,13 +10,18 @@ import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tugasakhirfinal.R
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 class PertolonganPertamaActivity : AppCompatActivity() {
 
     private lateinit var rvFirstAid: RecyclerView
     private lateinit var tvEmptyFirstAid: TextView
     private lateinit var firstAidAdapter: FirstAidAdapter
-    private val fullList = FirstAidData.getList()
+
+    private val firestore = FirebaseFirestore.getInstance()
+    private var fullList: List<FirstAidCondition> = emptyList()
+    private var currentQuery: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,18 +37,41 @@ class PertolonganPertamaActivity : AppCompatActivity() {
         rvFirstAid.adapter = firstAidAdapter
 
         findViewById<EditText>(R.id.etSearchFirstAid).addTextChangedListener { text ->
-            filterList(text?.toString() ?: "")
+            currentQuery = text?.toString() ?: ""
+            applyFilter()
         }
+
+        loadFirstAidConditions()
+    }
+
+    // Data dikelola Admin lewat Firestore (bukan lagi statis di FirstAidData.kt), supaya bisa
+    // ditambah/diedit/dihapus tanpa perlu update aplikasi.
+    private fun loadFirstAidConditions() {
+        firestore.collection("firstAidConditions")
+            .orderBy("createdAt", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+
+                fullList = snapshot.documents.map { doc ->
+                    FirstAidCondition(
+                        id = doc.id,
+                        title = doc.getString("title") ?: "",
+                        symptoms = doc.getString("symptoms") ?: "",
+                        steps = doc.get("steps") as? List<String> ?: emptyList()
+                    )
+                }
+                applyFilter()
+            }
     }
 
     // Cari berdasarkan nama kondisi ATAU gejala, supaya passenger bisa cari lewat keluhan yang
     // dirasakan (mis. "sesak napas") tanpa harus tahu persis nama kondisi medisnya.
-    private fun filterList(query: String) {
-        val filtered = if (query.isBlank()) {
+    private fun applyFilter() {
+        val filtered = if (currentQuery.isBlank()) {
             fullList
         } else {
             fullList.filter {
-                it.title.contains(query, ignoreCase = true) || it.symptoms.contains(query, ignoreCase = true)
+                it.title.contains(currentQuery, ignoreCase = true) || it.symptoms.contains(currentQuery, ignoreCase = true)
             }
         }
         firstAidAdapter.updateList(filtered)
