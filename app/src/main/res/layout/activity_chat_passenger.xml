@@ -22,10 +22,19 @@
             android:src="@drawable/ic_hospital"
             app:tint="@android:color/black" />
 
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/ivContactPhoto"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="12dp"
+            android:src="@drawable/foto_profil"
+            app:civ_border_color="#80FF624E"
+            app:civ_border_width="1dp" />
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -35,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:text="Driver Ambulans"
                 android:textColor="@android:color/black"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -46,6 +55,19 @@
                 android:textColor="#2E7D32"
                 android:textSize="12sp" />
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/btnCallContact"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/rounded_button"
+            android:backgroundTint="#2E7D32"
+            android:contentDescription="Telepon"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_call"
+            android:visibility="gone"
+            app:tint="@color/white" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

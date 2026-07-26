@@ -1,13 +1,17 @@
 package com.example.tugasakhirfinal.ForPassenger
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.tugasakhirfinal.Adapter.ChatAdapter
 import com.example.tugasakhirfinal.Model.ChatMessage
 import com.example.tugasakhirfinal.R
@@ -17,6 +21,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import de.hdodenhof.circleimageview.CircleImageView
 
 class ChatPassengerActivity : AppCompatActivity() {
 
@@ -30,6 +35,11 @@ class ChatPassengerActivity : AppCompatActivity() {
     private lateinit var etMessage: EditText
     private lateinit var btnSend: ImageView
     private lateinit var btnBack: ImageView
+    private lateinit var ivContactPhoto: CircleImageView
+    private lateinit var tvContactName: TextView
+    private lateinit var tvContactInfo: TextView
+    private lateinit var btnCallContact: ImageView
+    private var driverPhoneNumber: String = ""
 
     private lateinit var chatAdapter: ChatAdapter
     private val messageList = ArrayList<ChatMessage>()
@@ -62,8 +72,20 @@ class ChatPassengerActivity : AppCompatActivity() {
         rvChat = findViewById(R.id.rvPassengerChat)
         etMessage = findViewById(R.id.etChatMessage)
         btnSend = findViewById(R.id.btnSendPassengerChat)
+        ivContactPhoto = findViewById(R.id.ivContactPhoto)
+        tvContactName = findViewById(R.id.tvDriverName)
+        tvContactInfo = findViewById(R.id.tvDriverStatus)
+        btnCallContact = findViewById(R.id.btnCallContact)
 
         btnBack.setOnClickListener { finish() }
+
+        btnCallContact.setOnClickListener {
+            if (driverPhoneNumber.isNotEmpty()) {
+                startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$driverPhoneNumber")))
+            } else {
+                Toast.makeText(this, "Nomor telepon driver tidak tersedia", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         val layoutManager = LinearLayoutManager(this)
         layoutManager.stackFromEnd = true
@@ -82,6 +104,35 @@ class ChatPassengerActivity : AppCompatActivity() {
         setupQuickChatChips()
         checkBookingStatusForChat() // 🚀 Cek apakah tugas sudah selesai / terkunci
         listenChatMessages()
+        fetchDriverContactInfo()
+    }
+
+    // Ambil data kontak driver (nama, plat, foto, no. tlp) supaya passenger tetap bisa
+    // menghubungi driver walau chat sudah masuk mode terkunci/riwayat (mis. ada barang tertinggal).
+    private fun fetchDriverContactInfo() {
+        firestore.collection("bookings").document(bookingId).get()
+            .addOnSuccessListener { bookingDoc ->
+                val driverId = bookingDoc.getString("driverId") ?: return@addOnSuccessListener
+                firestore.collection("users").document(driverId).get()
+                    .addOnSuccessListener { userDoc ->
+                        if (!userDoc.exists()) return@addOnSuccessListener
+
+                        val name = userDoc.getString("nama") ?: "Driver Ambulans"
+                        val plate = userDoc.getString("ambulancePlateNumber") ?: "-"
+                        val phone = userDoc.getString("phoneNumber") ?: ""
+                        val photoUrl = userDoc.getString("profileImageUrl") ?: ""
+
+                        tvContactName.text = name
+                        tvContactInfo.text = "Plat: $plate  •  $phone"
+                        driverPhoneNumber = phone
+                        btnCallContact.visibility = if (phone.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+
+                        if (photoUrl.isNotEmpty()) {
+                            Glide.with(this).load(photoUrl).placeholder(R.drawable.foto_profil)
+                                .into(ivContactPhoto)
+                        }
+                    }
+            }
     }
 
     // 🚀 Fungsi untuk mengunci chat jika status pesanan sudah completed
