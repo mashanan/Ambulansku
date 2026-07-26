@@ -8,5 +8,12 @@ data class PendingDriverItem(
     val licenseNumber: String = "",
     val ambulancePlateNumber: String = "",
     val licensePhotoUrl: String = "",
-    val ambulancePhotoUrl: String = ""
+    val stnkPhotoUrl: String = "",
+    val ambulancePhotoUrls: List<String> = emptyList(),
+    val aedCertificateUrl: String = "",
+    val medicalCertificateUrl: String = "",
+    val sopSirineChecked: Boolean = false,
+    val sopEquipmentChecked: Boolean = false,
+    val sopApdChecked: Boolean = false,
+    val sopHealthCheckChecked: Boolean = false
 )

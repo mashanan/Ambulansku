@@ -48,14 +48,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="No. Plat Ambulans: -"
+            android:text="No. Plat / STNK: -"
             android:textColor="#333333"
             android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Foto SIM &amp; STNK"
+            android:textColor="#757575"
+            android:textSize="11sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal">
 
             <ImageView
@@ -69,14 +77,149 @@
                 android:scaleType="centerCrop" />
 
             <ImageView
-                android:id="@+id/ivAmbulancePhoto"
+                android:id="@+id/ivStnkPhoto"
                 android:layout_width="0dp"
                 android:layout_height="110dp"
                 android:layout_weight="1"
                 android:background="#EEEEEE"
-                android:contentDescription="Foto Ambulans"
+                android:contentDescription="Foto STNK"
                 android:scaleType="centerCrop" />
         </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Foto Kondisi Ambulans"
+            android:textColor="#757575"
+            android:textSize="11sp" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/containerAmbulancePhotos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sertifikat AED"
+                    android:textColor="#757575"
+                    android:textSize="11sp" />
+
+                <ImageView
+                    android:id="@+id/ivAedCert"
+                    android:layout_width="match_parent"
+                    android:layout_height="90dp"
+                    android:layout_marginTop="4dp"
+                    android:background="#EEEEEE"
+                    android:contentDescription="Sertifikat AED"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvAedMissing"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Tidak dilampirkan"
+                    android:textColor="#9E9E9E"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sertifikat BTLS/BHD"
+                    android:textColor="#757575"
+                    android:textSize="11sp" />
+
+                <ImageView
+                    android:id="@+id/ivMedicalCert"
+                    android:layout_width="match_parent"
+                    android:layout_height="90dp"
+                    android:layout_marginTop="4dp"
+                    android:background="#EEEEEE"
+                    android:contentDescription="Sertifikat BTLS/BHD"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvMedicalMissing"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Tidak dilampirkan"
+                    android:textColor="#9E9E9E"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Checklist SOP (pernyataan driver)"
+            android:textColor="#757575"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tvSopSirine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="✗ Etika &amp; peraturan sirine"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvSopEquipment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="✗ Penguasaan alat utama ambulans"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvSopApd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="✗ Penggunaan APD dasar"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvSopHealthCheck"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="✗ Tes kesehatan berkala"
+            android:textSize="12sp" />
 
         <LinearLayout
             android:layout_width="match_parent"

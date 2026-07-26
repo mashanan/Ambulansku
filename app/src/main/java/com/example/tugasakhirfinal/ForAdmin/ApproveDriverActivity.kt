@@ -61,6 +61,7 @@ class ApproveDriverActivity : AppCompatActivity() {
                     for (doc in snapshot.documents) {
                         if (doc.getBoolean("isApproved") == true) continue
 
+                        @Suppress("UNCHECKED_CAST")
                         pendingList.add(
                             PendingDriverItem(
                                 uid = doc.id,
@@ -69,7 +70,14 @@ class ApproveDriverActivity : AppCompatActivity() {
                                 licenseNumber = doc.getString("licenseNumber") ?: "",
                                 ambulancePlateNumber = doc.getString("ambulancePlateNumber") ?: "",
                                 licensePhotoUrl = doc.getString("licensePhotoUrl") ?: "",
-                                ambulancePhotoUrl = doc.getString("ambulancePhotoUrl") ?: ""
+                                stnkPhotoUrl = doc.getString("stnkPhotoUrl") ?: "",
+                                ambulancePhotoUrls = doc.get("ambulancePhotoUrls") as? List<String> ?: emptyList(),
+                                aedCertificateUrl = doc.getString("aedCertificateUrl") ?: "",
+                                medicalCertificateUrl = doc.getString("medicalCertificateUrl") ?: "",
+                                sopSirineChecked = doc.getBoolean("sopSirineChecked") ?: false,
+                                sopEquipmentChecked = doc.getBoolean("sopEquipmentChecked") ?: false,
+                                sopApdChecked = doc.getBoolean("sopApdChecked") ?: false,
+                                sopHealthCheckChecked = doc.getBoolean("sopHealthCheckChecked") ?: false
                             )
                         )
                     }
