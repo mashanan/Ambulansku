@@ -24,11 +24,15 @@ service cloud.firestore {
 
       // Update: pemilik boleh edit profil sendiri, TAPI role/isActive/isApproved
       // tidak bisa diubah sendiri - hanya Admin yang boleh.
+      // isApproved cuma ada di dokumen Driver (Passenger tidak pernah punya field ini) -
+      // akses lewat .get(key, default) supaya TIDAK error saat field-nya tidak ada sama
+      // sekali di kedua sisi (request & resource). Akses langsung (.isApproved) akan error
+      // dan bikin seluruh allow update ini gagal/ditolak untuk dokumen Passenger.
       allow update: if (
           isOwner(userId) &&
           request.resource.data.role == resource.data.role &&
-          request.resource.data.isActive == resource.data.isActive &&
-          request.resource.data.isApproved == resource.data.isApproved
+          request.resource.data.get('isActive', null) == resource.data.get('isActive', null) &&
+          request.resource.data.get('isApproved', null) == resource.data.get('isApproved', null)
         ) || isAdmin();
 
       allow delete: if isOwner(userId) || isAdmin();

@@ -405,6 +405,14 @@ class ProfileFragmentDriver : Fragment() {
                                 progressDialog.dismiss()
                                 loadProfileImage(downloadUri.toString(), newVersion)
                             }
+                            .addOnFailureListener { e ->
+                                // Sebelumnya tidak ada listener di sini sama sekali - kalau Firestore
+                                // menolak write (mis. karena aturan security rules), dialog "Mengunggah
+                                // foto..." nyangkut selamanya tanpa pesan error apapun.
+                                progressDialog.dismiss()
+                                Log.e("DriverProfileTiming", "firestore update gagal: ${e.message}")
+                                Toast.makeText(requireContext(), "Gagal simpan foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
                     }
                 }
                 .addOnFailureListener { e ->
