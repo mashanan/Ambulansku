@@ -54,7 +54,10 @@ class ProfileFragment : Fragment() {
     private lateinit var firebaseAuth: FirebaseAuth
     private val firestore = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance("gs://tugasakhirfinal-9e73d.firebasestorage.app")
-    private lateinit var latestCapturedUri: Uri
+    // Nullable (bukan lateinit) + dipulihkan dari savedInstanceState: kalau OS sempat mematikan
+    // proses app selagi aplikasi kamera terbuka di depan, Fragment ini dibuat ulang dari nol dan
+    // lateinit var akan crash (UninitializedPropertyAccessException) saat hasil kamera kembali.
+    private var latestCapturedUri: Uri? = null
 
     // Listener untuk pembaruan alamat utama secara real-time
     private var primaryAddressListener: ListenerRegistration? = null
@@ -77,6 +80,7 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         firebaseAuth = FirebaseAuth.getInstance()
+        latestCapturedUri = savedInstanceState?.getParcelable("latestCapturedUri")
 
         setupListeners()
         setupLogoutButton()
@@ -89,6 +93,13 @@ class ProfileFragment : Fragment() {
         super.onResume()
         loadProfileFromFirestore()
         loadPrimaryAddressFromFirestore()
+    }
+
+    // Supaya latestCapturedUri selamat kalau OS mematikan proses app selagi aplikasi kamera
+    // terbuka di depan (lihat penjelasan di deklarasi field-nya).
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        latestCapturedUri?.let { outState.putParcelable("latestCapturedUri", it) }
     }
 
     private fun loadProfileFromFirestore() {
@@ -223,13 +234,19 @@ class ProfileFragment : Fragment() {
     }
 
     private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) uploadProfileImage(latestCapturedUri)
+        val uri = latestCapturedUri
+        if (success && uri != null) {
+            uploadProfileImage(uri)
+        } else if (success) {
+            Toast.makeText(requireContext(), "Sesi pengambilan foto berakhir, coba lagi", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun openCamera() {
         try {
-            latestCapturedUri = getNewImageUri()
-            cameraLauncher.launch(latestCapturedUri)
+            val uri = getNewImageUri()
+            latestCapturedUri = uri
+            cameraLauncher.launch(uri)
         } catch (e: IOException) {
             Log.e("PassengerProfile", e.message.toString())
         }
