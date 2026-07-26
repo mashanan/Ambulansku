@@ -52,34 +52,28 @@
         android:layout_marginEnd="30dp"
         android:layout_marginTop="50dp" />
 
-    <!-- Search Bar -->
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchView"
-        android:layout_width="0dp"
+    <!-- Search bar dipindahkan ke PertolonganPertamaActivity (sebelumnya di sini tidak
+         berfungsi sama sekali - tidak ada listener yang terhubung). Barrier ini menggantikan
+         peran search bar sebagai anchor supaya "Saran Kami" tidak menabrak nama/foto profil. -->
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrierProfile"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="150dp"
-        android:layout_marginEnd="20dp"
-        android:background="@drawable/search_view_bg"
-        android:iconifiedByDefault="false"
-        android:queryHint="Search..."
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHorizontal_bias="0.0" />
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="textView3,profile_image" />
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="40dp"
         android:text="Saran Kami"
         android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/searchView" />
+        app:layout_constraintTop_toBottomOf="@id/barrierProfile" />
 
     <!-- penjelasan singkat tentang apps -->
     <androidx.cardview.widget.CardView

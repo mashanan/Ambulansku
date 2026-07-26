@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.tugasakhirfinal.R
 
 class FirstAidAdapter(
-    private val conditionList: List<FirstAidCondition>
+    private var conditionList: List<FirstAidCondition>
 ) : RecyclerView.Adapter<FirstAidAdapter.FirstAidViewHolder>() {
 
     class FirstAidViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -41,4 +41,9 @@ class FirstAidAdapter(
     }
 
     override fun getItemCount(): Int = conditionList.size
+
+    fun updateList(newList: List<FirstAidCondition>) {
+        conditionList = newList
+        notifyDataSetChanged()
+    }
 }
