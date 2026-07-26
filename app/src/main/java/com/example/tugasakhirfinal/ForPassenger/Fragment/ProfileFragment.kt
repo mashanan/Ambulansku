@@ -249,8 +249,12 @@ class ProfileFragment : Fragment() {
     private fun decodeSampledBitmapFromUri(uri: Uri, reqSize: Int): Bitmap? {
         val resolver = requireContext().contentResolver
 
+        // inJustDecodeBounds=true SELALU membuat decodeStream() balikin null (memang tidak
+        // decode pixel apapun, cuma isi outWidth/outHeight) - jadi hasilnya tidak boleh dipakai
+        // sebagai penanda gagal/berhasil, cuma stream-nya yang perlu dipastikan berhasil dibuka.
         val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, boundsOptions) } ?: return null
+        val boundsStream = resolver.openInputStream(uri) ?: return null
+        boundsStream.use { BitmapFactory.decodeStream(it, null, boundsOptions) }
 
         var inSampleSize = 1
         var halfWidth = boundsOptions.outWidth / 2
@@ -260,7 +264,8 @@ class ProfileFragment : Fragment() {
         }
 
         val decodeOptions = BitmapFactory.Options().apply { this.inSampleSize = inSampleSize }
-        return resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
+        val decodeStream = resolver.openInputStream(uri) ?: return null
+        return decodeStream.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
     }
 
     // inSampleSize cuma kelipatan 2, jadi hasilnya belum tentu pas <= maxDimension - dirapikan
