@@ -40,6 +40,8 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
 
     companion object {
         private const val CHAT_CHANNEL_ID = "chat_message_channel"
+        private const val TRIP_CHANNEL_ID = "trip_status_channel"
+        private const val ARRIVAL_THRESHOLD_METERS = 100f
     }
 
     private var _binding: FragmentDriveDriverBinding? = null
@@ -61,6 +63,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
     private var lastKnownDriverPosition: LatLng? = null
 
     private var isRouteZoomed = false
+    private var hasNotifiedArrival = false
 
     private var lastFetchedPassengerId: String? = null
     private var passengerPhoneNumber: String? = null
@@ -160,6 +163,8 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                         // supaya driver & tujuan selalu terlihat utuh di peta walau jaraknya berubah
                         // seiring driver bergerak. Directions API TIDAK dipanggil ulang di sini (hemat kuota).
                         fitCameraToRoute(currentPos, target)
+
+                        checkArrivalProximity(results[0])
                     }
                 }
             }
@@ -196,7 +201,10 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                 }
 
                 if (status == "accepted") {
-                    if (currentMode != "jemput") isRouteZoomed = false
+                    if (currentMode != "jemput") {
+                        isRouteZoomed = false
+                        hasNotifiedArrival = false
+                    }
                     currentMode = "jemput"
 
                     val geo = doc.getGeoPoint("pickupLocation")
@@ -464,6 +472,42 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         }
     }
 
+    // 🚀 Deteksi otomatis "sudah sampai" berdasarkan jarak (bukan tombol) — hanya untuk etape
+    // jemput (menuju pasien). Sekali per etape, dikirim ke driver sendiri.
+    private fun checkArrivalProximity(distanceMeters: Float) {
+        if (currentMode != "jemput" || hasNotifiedArrival) return
+        if (distanceMeters > ARRIVAL_THRESHOLD_METERS) return
+
+        hasNotifiedArrival = true
+        showTripNotification("Sudah Sampai", "Anda sudah sampai di lokasi penjemputan pasien.")
+    }
+
+    private fun showTripNotification(title: String, message: String) {
+        if (_binding == null) return
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
+
+        createTripNotificationChannel()
+
+        val notification = NotificationCompat.Builder(requireContext(), TRIP_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+
+        NotificationManagerCompat.from(requireContext())
+            .notify((title + message).hashCode(), notification)
+    }
+
+    private fun createTripNotificationChannel() {
+        val manager = requireContext().getSystemService(NotificationManager::class.java) ?: return
+        val channel = NotificationChannel(TRIP_CHANNEL_ID, "Status Perjalanan", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "Notifikasi tahapan penting perjalanan (sudah sampai, jemput, selesai)"
+        }
+        manager.createNotificationChannel(channel)
+    }
+
     private fun konfirmasiJemput() {
         currentBookingId?.let { id ->
             binding.btnSelesai.isEnabled = false
@@ -471,6 +515,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                 .addOnSuccessListener {
                     binding.btnSelesai.isEnabled = true
                     Toast.makeText(requireContext(), "Pasien dijemput. Menuju Rumah Sakit!", Toast.LENGTH_SHORT).show()
+                    showTripNotification("Pasien Dijemput", "Pasien berhasil dijemput. Menuju rumah sakit.")
                 }
         }
     }
@@ -481,6 +526,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
             db.collection("bookings").document(id).update("status", "completed")
                 .addOnSuccessListener {
                     Toast.makeText(requireContext(), "Tugas Selesai! Kembali online.", Toast.LENGTH_LONG).show()
+                    showTripNotification("Perjalanan Selesai", "Tugas selesai. Anda kembali online.")
                     resetToStandbyMode()
 
                     try {
@@ -505,6 +551,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         currentBookingId?.let { cancelChatNotification(it) }
         currentBookingId = null
         isRouteZoomed = false
+        hasNotifiedArrival = false
         lastFetchedPassengerId = null
         passengerPhoneNumber = null
 

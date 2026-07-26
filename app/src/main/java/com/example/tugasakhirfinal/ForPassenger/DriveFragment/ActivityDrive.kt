@@ -76,7 +76,12 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     companion object {
         private const val MAX_SEARCH_SECONDS = 30
         private const val CHAT_CHANNEL_ID = "chat_message_channel"
+        private const val TRIP_CHANNEL_ID = "trip_status_channel"
+        private const val ARRIVAL_THRESHOLD_METERS = 100f
     }
+
+    private var hasNotifiedArrival = false
+    private var lastNotifiedStatus: String? = null
 
     // 🚀 Listener untuk Notifikasi Pesan Belum Dibaca
     private var unreadListener: ListenerRegistration? = null
@@ -488,8 +493,17 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                         trackedDriverId = driverId
                         startTrackingDriverLocation(driverId)
                     }
+
+                    if (lastNotifiedStatus != "picked_up") {
+                        lastNotifiedStatus = "picked_up"
+                        showTripNotification("Anda Telah Dijemput", "Anda sedang dalam perjalanan menuju rumah sakit.")
+                    }
                 }
                 else if (status == "completed") {
+                    if (lastNotifiedStatus != "completed") {
+                        lastNotifiedStatus = "completed"
+                        showTripNotification("Sudah Sampai di Rumah Sakit", "Ambulans telah tiba di rumah sakit tujuan. Semoga lekas sembuh.")
+                    }
                     Toast.makeText(this, "Perjalanan Selesai! Semoga lekas sembuh.", Toast.LENGTH_LONG).show()
                     resetToStandbyMode()
                     finish()
@@ -532,11 +546,50 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
                 if (currentBookingStatus == "accepted" && lastKnownLocation != null) {
                     drawRouteLine(driverLatLng, lastKnownLocation!!, "jemput")
+
+                    val results = FloatArray(1)
+                    Location.distanceBetween(
+                        driverLatLng.latitude, driverLatLng.longitude,
+                        lastKnownLocation!!.latitude, lastKnownLocation!!.longitude, results
+                    )
+                    checkArrivalProximity(results[0])
                 }
                 else if (currentBookingStatus == "picked_up" && destinationHospitalLoc != null) {
                     drawRouteLine(driverLatLng, destinationHospitalLoc!!, "antar")
                 }
             }
+    }
+
+    // 🚀 Deteksi otomatis "sudah sampai" berdasarkan jarak (bukan tombol) — hanya untuk etape
+    // jemput (driver menuju passenger). Sekali per booking, dikirim ke passenger sendiri.
+    private fun checkArrivalProximity(distanceMeters: Float) {
+        if (hasNotifiedArrival || distanceMeters > ARRIVAL_THRESHOLD_METERS) return
+        hasNotifiedArrival = true
+        showTripNotification("Ambulans Tiba", "Ambulans sudah sampai di lokasi Anda. Pesanan sudah sesuai alamat.")
+    }
+
+    private fun showTripNotification(title: String, message: String) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
+
+        createTripNotificationChannel()
+
+        val notification = NotificationCompat.Builder(this, TRIP_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+
+        NotificationManagerCompat.from(this).notify((title + message).hashCode(), notification)
+    }
+
+    private fun createTripNotificationChannel() {
+        val manager = getSystemService(NotificationManager::class.java) ?: return
+        val channel = NotificationChannel(TRIP_CHANNEL_ID, "Status Perjalanan", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "Notifikasi tahapan penting perjalanan (sudah sampai, jemput, selesai)"
+        }
+        manager.createNotificationChannel(channel)
     }
 
     private fun updateDriverMarker(pos: LatLng) {
@@ -657,6 +710,8 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         currentBookingId = null
         trackedDriverId = null
         lastKnownDriverLocation = null
+        hasNotifiedArrival = false
+        lastNotifiedStatus = null
 
         binding.tvDestinationAddress.text = "Siap Melayani"
         binding.tvEstimationInfo.text = "Pilih Rumah Sakit atau Panggil Ambulans"
