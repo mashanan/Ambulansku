@@ -87,20 +87,36 @@ class ProfileFragmentDriver : Fragment() {
         val userId = firebaseAuth.currentUser?.uid ?: return
         if (_binding == null) return
 
-        binding.progressBar.visibility = View.VISIBLE
+        // 1. Tampilkan cache dulu (instan) supaya pindah dari Home ke Profile tidak terasa
+        // lama menunggu request Firestore, sama seperti pola di ProfileFragment (Passenger).
+        binding.textNama.text = sharedPreferences.getString("name_$userId", "Driver Baru")
+        binding.noTlp.text = sharedPreferences.getString("phone_$userId", "Atur Nomor")
+        binding.alamat.text = sharedPreferences.getString("alamat_$userId", "Atur Lokasi")
+        loadProfileImage(sharedPreferences.getString("img_$userId", null))
+
+        // 2. Ambil data terbaru dari Firestore di belakang layar, lalu update UI + cache
         firestore.collection("users").document(userId).get()
             .addOnSuccessListener { doc ->
                 if (_binding != null && isAdded) {
-                    binding.textNama.text = doc.getString("nama") ?: "Driver Baru"
-                    binding.noTlp.text = doc.getString("phoneNumber") ?: "Atur Nomor"
-                    binding.alamat.text = doc.getString("alamat") ?: "Atur Lokasi"
+                    val name = doc.getString("nama") ?: "Driver Baru"
+                    val phone = doc.getString("phoneNumber") ?: "Atur Nomor"
+                    val alamat = doc.getString("alamat") ?: "Atur Lokasi"
+                    val imageUrl = doc.getString("profileImageUrl")
 
-                    val path = doc.getString("profileImageUrl")
-                    loadProfileImage(path)
+                    binding.textNama.text = name
+                    binding.noTlp.text = phone
+                    binding.alamat.text = alamat
+                    loadProfileImage(imageUrl)
+
+                    sharedPreferences.edit().apply {
+                        putString("name_$userId", name)
+                        putString("phone_$userId", phone)
+                        putString("alamat_$userId", alamat)
+                        putString("img_$userId", imageUrl)
+                        apply()
+                    }
                 }
-                _binding?.progressBar?.visibility = View.GONE
             }
-            .addOnFailureListener { _binding?.progressBar?.visibility = View.GONE }
     }
 
     private fun loadProfileImage(url: String?) {

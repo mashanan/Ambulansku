@@ -152,9 +152,13 @@ class ProfileFragment : Fragment() {
 
     private fun loadProfileImage(url: String?) {
         if (_binding == null) return
+        // NONE + skipMemoryCache: setelah ganti foto, upload selalu overwrite path Storage yang
+        // sama (profile_images/{uid}.jpg) sehingga URL-nya seringkali identik dengan sebelumnya.
+        // Kalau di-cache Glide berdasarkan URL, foto baru tidak akan pernah terlihat.
         Glide.with(this)
-            .load(url ?: R.drawable.foto_profil)
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .load(url?.ifEmpty { null } ?: R.drawable.foto_profil)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
             .placeholder(R.drawable.foto_profil)
             .circleCrop()
             .into(binding.profileImage)
