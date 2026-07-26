@@ -19,17 +19,37 @@
         android:id="@+id/selectImageButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Pilih Foto dari Galeri" />
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_button"
+        android:backgroundTint="@color/pink_main"
+        android:padding="12dp"
+        android:text="Pilih Foto dari Galeri"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/captureImageButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ambil Foto Baru" />
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_button"
+        android:backgroundTint="@color/pink_main"
+        android:padding="12dp"
+        android:text="Ambil Foto Baru"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/cancelButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Batal" />
+        android:background="@drawable/rounded_button"
+        android:backgroundTint="@color/pink_main"
+        android:padding="12dp"
+        android:text="Batal"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
 </LinearLayout>

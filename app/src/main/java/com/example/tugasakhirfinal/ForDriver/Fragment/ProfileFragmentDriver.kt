@@ -266,6 +266,7 @@ class ProfileFragmentDriver : Fragment() {
             openCamera()
             dialog.dismiss()
         }
+        view.findViewById<Button>(R.id.cancelButton).setOnClickListener { dialog.dismiss() }
         dialog.setContentView(view)
         dialog.show()
     }

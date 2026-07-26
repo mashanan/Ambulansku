@@ -47,7 +47,7 @@ Firestore is the primary datastore (Realtime Database dependency is included but
 - `addresses` — saved passenger addresses.
 - `hospitals` — destination hospital list (`HospitalListActivity`, `HospitalAdapter`).
 
-FirebaseAuth is used for sign-in/sign-up (including Google Sign-In via Credential Manager / `googleid`). Firebase Storage is used for profile photo uploads (`ActivityEditFotoProfile`).
+FirebaseAuth is used for sign-in/sign-up (including Google Sign-In via Credential Manager / `googleid`). Firebase Storage is used for profile photo uploads, done inline in each role's Profile fragment (`ProfileFragment`/`ProfileFragmentDriver`) via a shared `BottomSheetDialog` (layout `activity_edit_foto_profile.xml`) offering gallery pick or camera capture.
 
 ### Known inconsistencies (real, not hypothetical — verify before assuming)
 

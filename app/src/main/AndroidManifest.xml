@@ -79,11 +79,6 @@
         <activity android:name=".ForPassenger.EditProfileFragment.ActivityEditAlamat" android:exported="false" />
         <activity android:name=".ForPassenger.EditProfileFragment.AddAddressActivity" android:exported="false" />
 
-        <activity
-            android:name=".ForPassenger.EditProfileFragment.ActivityEditFotoProfile"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.Dialog" />
-
         <!-- Driver Side -->
         <activity android:name=".ForDriver.Welcome.MainActivityDriver" android:exported="false" />
         <activity android:name=".ForDriver.Welcome.SignInActivityDriver" android:exported="false" />

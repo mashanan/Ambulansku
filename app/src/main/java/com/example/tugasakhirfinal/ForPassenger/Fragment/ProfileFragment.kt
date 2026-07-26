@@ -1,31 +1,50 @@
 package com.example.tugasakhirfinal.ForPassenger.Fragment
 
+import android.Manifest
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditEmail
 import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditNama
 import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditNoTlp
-import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditFotoProfile
 import com.example.tugasakhirfinal.ForPassenger.EditProfileFragment.ActivityEditAlamat
 import com.example.tugasakhirfinal.RoleSelectionActivity
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.FragmentProfileBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.storage.FirebaseStorage
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
+
+private const val FILE_PROVIDER_AUTHORITY = "com.example.tugasakhirfinal.fileprovider"
 
 class ProfileFragment : Fragment() {
 
@@ -34,6 +53,8 @@ class ProfileFragment : Fragment() {
 
     private lateinit var firebaseAuth: FirebaseAuth
     private val firestore = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance("gs://tugasakhirfinal-9e73d.firebasestorage.app")
+    private lateinit var latestCapturedUri: Uri
 
     // Listener untuk pembaruan alamat utama secara real-time
     private var primaryAddressListener: ListenerRegistration? = null
@@ -61,9 +82,7 @@ class ProfileFragment : Fragment() {
         setupLogoutButton()
         setupDeleteAccountButton()
 
-        binding.profileImage.setOnClickListener {
-            startActivity(Intent(requireContext(), ActivityEditFotoProfile::class.java))
-        }
+        binding.profileImage.setOnClickListener { checkCameraPermissionThenShowOptions() }
     }
 
     override fun onResume() {
@@ -166,6 +185,108 @@ class ProfileFragment : Fragment() {
             .placeholder(R.drawable.foto_profil)
             .circleCrop()
             .into(binding.profileImage)
+    }
+
+    // --- LOGIKA FOTO (KAMERA & GALERI) --- meniru pola ProfileFragmentDriver supaya bentuk
+    // popup ganti foto sama persis di kedua role (bottom sheet, bukan dialog activity terpisah).
+    private fun checkCameraPermissionThenShowOptions() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
+        } else {
+            showPhotoOptionsDialog()
+        }
+    }
+
+    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        if (permissions[Manifest.permission.CAMERA] == true) showPhotoOptionsDialog()
+    }
+
+    private fun showPhotoOptionsDialog() {
+        val dialog = BottomSheetDialog(requireContext())
+        val view = layoutInflater.inflate(R.layout.activity_edit_foto_profile, null)
+
+        view.findViewById<Button>(R.id.selectImageButton).setOnClickListener {
+            galleryLauncher.launch("image/*")
+            dialog.dismiss()
+        }
+        view.findViewById<Button>(R.id.captureImageButton).setOnClickListener {
+            openCamera()
+            dialog.dismiss()
+        }
+        view.findViewById<Button>(R.id.cancelButton).setOnClickListener { dialog.dismiss() }
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { uploadProfileImage(it) }
+    }
+
+    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) uploadProfileImage(latestCapturedUri)
+    }
+
+    private fun openCamera() {
+        try {
+            latestCapturedUri = getNewImageUri()
+            cameraLauncher.launch(latestCapturedUri)
+        } catch (e: IOException) {
+            Log.e("PassengerProfile", e.message.toString())
+        }
+    }
+
+    private fun getNewImageUri(): Uri {
+        val photoFile = File.createTempFile("IMG_PSG_", ".jpg", requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES))
+        return FileProvider.getUriForFile(requireContext(), FILE_PROVIDER_AUTHORITY, photoFile)
+    }
+
+    private fun uploadProfileImage(uri: Uri) {
+        val userId = firebaseAuth.currentUser?.uid ?: return
+        try {
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            var bitmap = BitmapFactory.decodeStream(inputStream)
+
+            // Rotasi otomatis berdasarkan metadata EXIF
+            val ei = ExifInterface(requireContext().contentResolver.openInputStream(uri)!!)
+            val orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            val matrix = Matrix()
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            }
+            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+
+            progressDialog.setMessage("Mengunggah foto...")
+            progressDialog.show()
+
+            val baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos)
+
+            val storageRef = storage.reference.child("profile_images/$userId.jpg")
+            storageRef.putBytes(baos.toByteArray())
+                .addOnSuccessListener {
+                    storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                        val newVersion = System.currentTimeMillis()
+                        val data = mapOf(
+                            "profileImageUrl" to downloadUri.toString(),
+                            "profileImageUpdatedAt" to newVersion
+                        )
+                        firestore.collection("users").document(userId)
+                            .update(data)
+                            .addOnSuccessListener {
+                                progressDialog.dismiss()
+                                loadProfileImage(downloadUri.toString(), newVersion)
+                            }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    progressDialog.dismiss()
+                    Toast.makeText(requireContext(), "Gagal unggah foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        } catch (e: Exception) {
+            Log.e("PassengerProfile", e.message.toString())
+        }
     }
 
     private fun setupListeners() {
