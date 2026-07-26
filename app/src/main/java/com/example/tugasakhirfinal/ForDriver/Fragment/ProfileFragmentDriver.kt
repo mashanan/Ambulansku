@@ -339,8 +339,12 @@ class ProfileFragmentDriver : Fragment() {
     // benar-benar bisa dilihat dari device lain (mis. passenger saat menunggu jemputan).
     private fun uploadProfileImage(uri: Uri) {
         val userId = firebaseAuth.currentUser?.uid ?: return
+        val t0 = System.currentTimeMillis()
+        // TEMPORARY: logging waktu tiap tahap untuk cari tahu tahap mana yang lambat.
+        // Hapus lagi setelah penyebab lambatnya ketemu. Lihat lewat: adb logcat -s DriverProfileTiming
         try {
             var bitmap = decodeSampledBitmapFromUri(uri, 800)
+            Log.d("DriverProfileTiming", "decode: ${System.currentTimeMillis() - t0}ms, size=${bitmap?.width}x${bitmap?.height}")
             if (bitmap == null) {
                 Toast.makeText(requireContext(), "Gagal memproses foto", Toast.LENGTH_SHORT).show()
                 return
@@ -357,17 +361,21 @@ class ProfileFragmentDriver : Fragment() {
             }
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             bitmap = resizeBitmap(bitmap, 800)
+            Log.d("DriverProfileTiming", "rotate+resize: ${System.currentTimeMillis() - t0}ms, size=${bitmap.width}x${bitmap.height}")
 
             progressDialog.setMessage("Mengunggah foto...")
             progressDialog.show()
 
             val baos = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos)
+            Log.d("DriverProfileTiming", "compress: ${System.currentTimeMillis() - t0}ms, bytes=${baos.size()}")
 
             val storageRef = storage.reference.child("profile_images/$userId.jpg")
             storageRef.putBytes(baos.toByteArray())
                 .addOnSuccessListener {
+                    Log.d("DriverProfileTiming", "putBytes selesai: ${System.currentTimeMillis() - t0}ms")
                     storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                        Log.d("DriverProfileTiming", "downloadUrl selesai: ${System.currentTimeMillis() - t0}ms")
                         val newVersion = System.currentTimeMillis()
                         val data = mapOf(
                             "profileImageUrl" to downloadUri.toString(),
@@ -376,6 +384,7 @@ class ProfileFragmentDriver : Fragment() {
                         firestore.collection("users").document(userId)
                             .update(data)
                             .addOnSuccessListener {
+                                Log.d("DriverProfileTiming", "firestore update selesai: ${System.currentTimeMillis() - t0}ms")
                                 progressDialog.dismiss()
                                 loadProfileImage(downloadUri.toString(), newVersion)
                             }
