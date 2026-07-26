@@ -291,9 +291,31 @@ class ProfileFragmentDriver : Fragment() {
         return FileProvider.getUriForFile(requireContext(), FILE_PROVIDER_AUTHORITY, photoFile)
     }
 
-    // Foto dari kamera/galeri bisa jauh lebih besar dari resolusi asli kamera (mis. 4000x3000px),
-    // padahal cuma ditampilkan sebagai foto profil bulat kecil. Diperkecil dulu supaya upload
-    // jauh lebih cepat & hemat kuota, tanpa memangkas dimensi kalau memang sudah kecil.
+    // Foto kamera/galeri modern bisa 4000x3000px+ (bahkan puluhan MP di HP flagship). Decode
+    // penuh baru di-rotate EXIF baru di-resize (urutan lama) berarti sempat ada bitmap raksasa
+    // di memory & CPU sibuk rotate gambar segede itu - inilah yang bikin "stuck di mengunggah
+    // foto". Solusinya: decode-nya sendiri sudah diperkecil dari awal via BitmapFactory
+    // inSampleSize (baca dimensi dulu tanpa load pixel, baru decode ulang dengan sample size
+    // yang pas), jadi rotate/resize sesudahnya sudah bekerja di bitmap kecil, bukan raksasa.
+    private fun decodeSampledBitmapFromUri(uri: Uri, reqSize: Int): Bitmap? {
+        val resolver = requireContext().contentResolver
+
+        val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, boundsOptions) } ?: return null
+
+        var inSampleSize = 1
+        var halfWidth = boundsOptions.outWidth / 2
+        var halfHeight = boundsOptions.outHeight / 2
+        while (halfWidth / inSampleSize >= reqSize && halfHeight / inSampleSize >= reqSize) {
+            inSampleSize *= 2
+        }
+
+        val decodeOptions = BitmapFactory.Options().apply { this.inSampleSize = inSampleSize }
+        return resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
+    }
+
+    // inSampleSize cuma kelipatan 2, jadi hasilnya belum tentu pas <= maxDimension - dirapikan
+    // sekali lagi di sini (bitmap-nya sudah kecil di titik ini, jadi operasi ini murah/cepat).
     private fun resizeBitmap(bitmap: Bitmap, maxDimension: Int): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
@@ -313,10 +335,13 @@ class ProfileFragmentDriver : Fragment() {
     private fun uploadProfileImage(uri: Uri) {
         val userId = firebaseAuth.currentUser?.uid ?: return
         try {
-            val inputStream = requireContext().contentResolver.openInputStream(uri)
-            var bitmap = BitmapFactory.decodeStream(inputStream)
+            var bitmap = decodeSampledBitmapFromUri(uri, 800)
+            if (bitmap == null) {
+                Toast.makeText(requireContext(), "Gagal memproses foto", Toast.LENGTH_SHORT).show()
+                return
+            }
 
-            // Rotasi otomatis berdasarkan metadata EXIF
+            // Rotasi otomatis berdasarkan metadata EXIF (bitmap sudah kecil, jadi cepat)
             val ei = ExifInterface(requireContext().contentResolver.openInputStream(uri)!!)
             val orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
             val matrix = Matrix()
@@ -356,7 +381,11 @@ class ProfileFragmentDriver : Fragment() {
                     Toast.makeText(requireContext(), "Gagal unggah foto: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         } catch (e: Exception) {
+            // Selalu tutup dialog & kasih tahu user kalau ada apa-apa - sebelumnya exception di
+            // sini cuma di-log, dialog "Mengunggah foto..." nyangkut selamanya tanpa penjelasan.
+            progressDialog.dismiss()
             Log.e("DriverProfile", e.message.toString())
+            Toast.makeText(requireContext(), "Gagal memproses foto: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
