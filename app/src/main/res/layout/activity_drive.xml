@@ -125,6 +125,59 @@
                     android:background="#E0E0E0"
                     android:layout_marginVertical="8dp" />
 
+                <!-- 🚑 Info Driver: supaya passenger bisa konfirmasi driver saat bertemu -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/ivDriverPhoto"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:src="@drawable/foto_profil"
+                        app:civ_border_color="#80FF624E"
+                        app:civ_border_width="2dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvDriverName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Nama Driver"
+                            android:textColor="@android:color/black"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvDriverPlate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Plat: -"
+                            android:textColor="#757575"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/btnCallDriver"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/rounded_button"
+                        android:backgroundTint="#2E7D32"
+                        android:contentDescription="Telepon Driver"
+                        android:padding="8dp"
+                        android:src="@android:drawable/ic_menu_call"
+                        app:tint="@color/white" />
+                </LinearLayout>
+
                 <TextView
                     android:id="@+id/tvDriverStatus"
                     android:layout_width="wrap_content"

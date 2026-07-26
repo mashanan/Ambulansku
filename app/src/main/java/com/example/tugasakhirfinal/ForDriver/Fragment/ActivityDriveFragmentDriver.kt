@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -15,6 +16,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.FragmentDriveDriverBinding
 import com.google.android.gms.location.*
@@ -50,6 +52,9 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
 
     private var isRouteZoomed = false
 
+    private var lastFetchedPassengerId: String? = null
+    private var passengerPhoneNumber: String? = null
+
     // 🚀 Listener untuk Notifikasi Pesan Belum Dibaca
     private var unreadListener: ListenerRegistration? = null
 
@@ -68,6 +73,15 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
 
         binding.btnSelesai.setOnClickListener {
             if (currentMode == "jemput") konfirmasiJemput() else selesaikanTugas()
+        }
+
+        binding.btnCallPassenger.setOnClickListener {
+            val phone = passengerPhoneNumber
+            if (!phone.isNullOrBlank()) {
+                startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
+            } else {
+                Toast.makeText(requireContext(), "Nomor telepon penumpang belum tersedia", Toast.LENGTH_SHORT).show()
+            }
         }
 
         binding.btnChatPassenger?.visibility = View.GONE
@@ -165,6 +179,12 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
 
                 setupChatButton(doc.id)
 
+                val passengerId = doc.getString("passengerId")
+                if (!passengerId.isNullOrEmpty() && passengerId != lastFetchedPassengerId) {
+                    lastFetchedPassengerId = passengerId
+                    fetchPassengerProfile(passengerId, doc.getString("passengerName"))
+                }
+
                 if (status == "accepted") {
                     if (currentMode != "jemput") isRouteZoomed = false
                     currentMode = "jemput"
@@ -193,6 +213,31 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                         if (!isRouteZoomed) drawRouteWithDirections(pos, target, currentMode)
                     }
                 }
+            }
+    }
+
+    // Ambil sekali (bukan tiap update) profil penumpang aktif, supaya driver bisa konfirmasi
+    // identitas penumpang saat bertemu (mirip Gojek/Uber). Nama diambil dari bookingData
+    // (sudah tersimpan di sana), foto & telepon diambil dari dokumen users/{passengerId}.
+    private fun fetchPassengerProfile(passengerId: String, fallbackName: String?) {
+        if (_binding == null) return
+        binding.layoutPassengerInfo.visibility = View.VISIBLE
+        binding.tvPassengerName.text = fallbackName ?: "Penumpang"
+
+        db.collection("users").document(passengerId).get()
+            .addOnSuccessListener { doc ->
+                if (_binding == null || doc == null || !doc.exists()) return@addOnSuccessListener
+
+                binding.tvPassengerName.text = doc.getString("nama") ?: fallbackName ?: "Penumpang"
+                val phone = doc.getString("phoneNumber")
+                binding.tvPassengerPhone.text = if (phone.isNullOrBlank()) "-" else phone
+                passengerPhoneNumber = phone
+
+                Glide.with(this)
+                    .load(doc.getString("profileImageUrl")?.ifEmpty { null } ?: R.drawable.foto_profil)
+                    .placeholder(R.drawable.foto_profil)
+                    .circleCrop()
+                    .into(binding.ivPassengerPhoto)
             }
     }
 
@@ -400,10 +445,13 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         targetLocation = null
         currentBookingId = null
         isRouteZoomed = false
+        lastFetchedPassengerId = null
+        passengerPhoneNumber = null
 
         binding.btnSelesai.visibility = View.GONE
         binding.btnChatPassenger?.visibility = View.GONE
         binding.tvUnreadBadge.visibility = View.GONE // Reset Badge
+        binding.layoutPassengerInfo.visibility = View.GONE
         binding.tvCurrentStatus.text = "Siap menerima pesanan..."
         binding.tvEstimationInfo.text = ""
 

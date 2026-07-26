@@ -38,8 +38,9 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 
 private const val FILE_PROVIDER_AUTHORITY = "com.example.tugasakhirfinal.fileprovider"
@@ -51,6 +52,7 @@ class ProfileFragmentDriver : Fragment() {
 
     private lateinit var firebaseAuth: FirebaseAuth
     private val firestore = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance("gs://tugasakhirfinal-9e73d.firebasestorage.app")
     private lateinit var latestCapturedUri: Uri
 
     private val sharedPreferences: SharedPreferences by lazy {
@@ -101,12 +103,9 @@ class ProfileFragmentDriver : Fragment() {
             .addOnFailureListener { _binding?.progressBar?.visibility = View.GONE }
     }
 
-    private fun loadProfileImage(path: String?) {
-        val userId = firebaseAuth.currentUser?.uid
-        val finalPath = path ?: sharedPreferences.getString("local_driver_path_$userId", null)
-
+    private fun loadProfileImage(url: String?) {
         Glide.with(this)
-            .load(if (finalPath != null) File(finalPath) else R.drawable.foto_profil)
+            .load(url?.ifEmpty { null } ?: R.drawable.foto_profil)
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .skipMemoryCache(true)
             .placeholder(R.drawable.foto_profil)
@@ -251,11 +250,11 @@ class ProfileFragmentDriver : Fragment() {
     }
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { saveImageToInternalStorage(it) }
+        uri?.let { uploadProfileImage(it) }
     }
 
     private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) saveImageToInternalStorage(latestCapturedUri)
+        if (success) uploadProfileImage(latestCapturedUri)
     }
 
     private fun openCamera() {
@@ -270,7 +269,9 @@ class ProfileFragmentDriver : Fragment() {
         return FileProvider.getUriForFile(requireContext(), FILE_PROVIDER_AUTHORITY, photoFile)
     }
 
-    private fun saveImageToInternalStorage(uri: Uri) {
+    // Upload ke Firebase Storage (BUKAN disimpan lokal di device) supaya foto profil driver
+    // benar-benar bisa dilihat dari device lain (mis. passenger saat menunggu jemputan).
+    private fun uploadProfileImage(uri: Uri) {
         val userId = firebaseAuth.currentUser?.uid ?: return
         try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
@@ -287,15 +288,31 @@ class ProfileFragmentDriver : Fragment() {
             }
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 
-            val file = File(requireContext().filesDir, "driver_profile_$userId.jpg")
-            val out = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
-            out.close()
+            progressDialog.setMessage("Mengunggah foto...")
+            progressDialog.show()
 
-            sharedPreferences.edit().putString("local_driver_path_$userId", file.absolutePath).apply()
-            firestore.collection("users").document(userId).update("profileImageUrl", file.absolutePath)
-                .addOnSuccessListener { loadProfileImage(file.absolutePath) }
-        } catch (e: Exception) { Log.e("DriverProfile", e.message.toString()) }
+            val baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos)
+
+            val storageRef = storage.reference.child("profile_images/$userId.jpg")
+            storageRef.putBytes(baos.toByteArray())
+                .addOnSuccessListener {
+                    storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                        firestore.collection("users").document(userId)
+                            .update("profileImageUrl", downloadUri.toString())
+                            .addOnSuccessListener {
+                                progressDialog.dismiss()
+                                loadProfileImage(downloadUri.toString())
+                            }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    progressDialog.dismiss()
+                    Toast.makeText(requireContext(), "Gagal unggah foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        } catch (e: Exception) {
+            Log.e("DriverProfile", e.message.toString())
+        }
     }
 
     override fun onDestroyView() {

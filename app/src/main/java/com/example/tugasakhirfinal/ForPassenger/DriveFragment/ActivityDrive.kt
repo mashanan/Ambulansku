@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Geocoder
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -22,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.ActivityDriveBinding
 import com.google.android.gms.location.*
@@ -56,6 +58,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
     private var selectedHospitalName: String? = null
     private var isManualHospitalSelected = false
+    private var driverPhoneNumber: String? = null
 
     // State Pelacakan
     private var searchDialog: AlertDialog? = null
@@ -99,6 +102,15 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         binding.btnPesanAmbulans.setOnClickListener { prosesPemesananAmbulans() }
+
+        binding.btnCallDriver.setOnClickListener {
+            val phone = driverPhoneNumber
+            if (!phone.isNullOrBlank()) {
+                startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
+            } else {
+                Toast.makeText(this, "Nomor telepon driver belum tersedia", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun updateHeaderTitle() {
@@ -449,6 +461,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     if (driverId.isNotEmpty() && driverId != trackedDriverId) {
                         trackedDriverId = driverId
                         startTrackingDriverLocation(driverId)
+                        fetchDriverProfile(driverId)
                     }
                 }
                 else if (status == "picked_up") {
@@ -470,6 +483,26 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     resetToStandbyMode()
                     finish()
                 }
+            }
+    }
+
+    // Ambil sekali (bukan tiap update lokasi) profil driver yang menerima pesanan, supaya
+    // passenger bisa konfirmasi identitas driver saat bertemu (mirip Gojek/Uber).
+    private fun fetchDriverProfile(driverId: String) {
+        firestore.collection("users").document(driverId).get()
+            .addOnSuccessListener { doc ->
+                if (doc == null || !doc.exists()) return@addOnSuccessListener
+
+                binding.tvDriverName.text = doc.getString("nama") ?: "Driver Ambulans"
+                val plate = doc.getString("ambulancePlateNumber")
+                binding.tvDriverPlate.text = "Plat: ${if (plate.isNullOrBlank()) "-" else plate}"
+                driverPhoneNumber = doc.getString("phoneNumber")
+
+                Glide.with(this)
+                    .load(doc.getString("profileImageUrl")?.ifEmpty { null } ?: R.drawable.foto_profil)
+                    .placeholder(R.drawable.foto_profil)
+                    .circleCrop()
+                    .into(binding.ivDriverPhoto)
             }
     }
 

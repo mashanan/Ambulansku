@@ -77,6 +77,61 @@
                 android:textColor="#757575"
                 android:textSize="13sp" />
 
+            <!-- 🚑 Info Penumpang: supaya driver bisa konfirmasi penumpang saat bertemu -->
+            <LinearLayout
+                android:id="@+id/layoutPassengerInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/ivPassengerPhoto"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:src="@drawable/foto_profil"
+                    app:civ_border_color="#80FF624E"
+                    app:civ_border_width="2dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvPassengerName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Nama Penumpang"
+                        android:textColor="@android:color/black"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvPassengerPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="-"
+                        android:textColor="#757575"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/btnCallPassenger"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/rounded_button"
+                    android:backgroundTint="#2E7D32"
+                    android:contentDescription="Telepon Penumpang"
+                    android:padding="8dp"
+                    android:src="@android:drawable/ic_menu_call"
+                    app:tint="@color/white" />
+            </LinearLayout>
+
             <Button
                 android:id="@+id/btnSelesai"
                 android:layout_width="match_parent"
