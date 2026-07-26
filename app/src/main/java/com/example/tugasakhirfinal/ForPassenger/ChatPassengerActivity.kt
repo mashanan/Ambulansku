@@ -1,14 +1,18 @@
 package com.example.tugasakhirfinal.ForPassenger
 
+import android.Manifest
 import android.app.ProgressDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -16,12 +20,15 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.tugasakhirfinal.Adapter.ChatAdapter
 import com.example.tugasakhirfinal.Model.ChatMessage
 import com.example.tugasakhirfinal.R
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -31,6 +38,10 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import de.hdodenhof.circleimageview.CircleImageView
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
+
+private const val FILE_PROVIDER_AUTHORITY = "com.example.tugasakhirfinal.fileprovider"
 
 class ChatPassengerActivity : AppCompatActivity() {
 
@@ -68,6 +79,8 @@ class ChatPassengerActivity : AppCompatActivity() {
     private var chip3: Chip? = null
     private var chip4: Chip? = null
 
+    private var latestCapturedUri: Uri? = null
+
     private val progressDialog by lazy {
         ProgressDialog(this).apply {
             setMessage("Mengirim foto...")
@@ -78,6 +91,7 @@ class ChatPassengerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_passenger)
+        latestCapturedUri = savedInstanceState?.getParcelable("latestCapturedUri")
 
         bookingId = intent.getStringExtra("BOOKING_ID") ?: ""
         if (bookingId.isEmpty()) {
@@ -110,7 +124,7 @@ class ChatPassengerActivity : AppCompatActivity() {
             if (isChatLocked) {
                 Toast.makeText(this, "Sesi chat telah berakhir", Toast.LENGTH_SHORT).show()
             } else {
-                galleryLauncher.launch("image/*")
+                checkCameraPermissionThenShowOptions()
             }
         }
 
@@ -134,8 +148,68 @@ class ChatPassengerActivity : AppCompatActivity() {
         fetchDriverContactInfo()
     }
 
+    // --- PILIH SUMBER FOTO (GALERI / KAMERA) --- reuse pola yang sama dipakai ganti foto profil.
+    private fun checkCameraPermissionThenShowOptions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
+        } else {
+            showPhotoOptionsDialog()
+        }
+    }
+
+    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        if (permissions[Manifest.permission.CAMERA] == true) showPhotoOptionsDialog()
+    }
+
+    private fun showPhotoOptionsDialog() {
+        val dialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.activity_edit_foto_profile, null)
+        view.findViewById<TextView>(R.id.editProfileTitle).text = "Kirim Foto"
+
+        view.findViewById<Button>(R.id.selectImageButton).setOnClickListener {
+            galleryLauncher.launch("image/*")
+            dialog.dismiss()
+        }
+        view.findViewById<Button>(R.id.captureImageButton).setOnClickListener {
+            openCamera()
+            dialog.dismiss()
+        }
+        view.findViewById<Button>(R.id.cancelButton).setOnClickListener { dialog.dismiss() }
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { uploadChatImage(it) }
+    }
+
+    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        val uri = latestCapturedUri
+        if (success && uri != null) {
+            uploadChatImage(uri)
+        } else if (success) {
+            Toast.makeText(this, "Sesi pengambilan foto berakhir, coba lagi", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun openCamera() {
+        try {
+            val uri = getNewImageUri()
+            latestCapturedUri = uri
+            cameraLauncher.launch(uri)
+        } catch (e: IOException) {
+            Log.e("PassengerChat", e.message.toString())
+        }
+    }
+
+    private fun getNewImageUri(): Uri {
+        val photoFile = File.createTempFile("IMG_CHAT_PSG_", ".jpg", getExternalFilesDir(Environment.DIRECTORY_PICTURES))
+        return FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, photoFile)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        latestCapturedUri?.let { outState.putParcelable("latestCapturedUri", it) }
     }
 
     private fun showImageDialog(url: String) {
