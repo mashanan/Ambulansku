@@ -81,7 +81,7 @@ class ProfileFragment : Fragment() {
         binding.noTlp.text = sharedPrefs.getString("phone_$uid", "Klik untuk atur telepon")
         binding.email.text = sharedPrefs.getString("email_$uid", "-")
         binding.alamat.text = sharedPrefs.getString("primary_address_label_$uid", "Pilih Alamat Utama")
-        loadProfileImage(sharedPrefs.getString("img_$uid", null))
+        loadProfileImage(sharedPrefs.getString("img_$uid", null), sharedPrefs.getLong("imgVersion_$uid", 0L))
 
         // 2. Load Profil dasar (Nama, No Tlp, Email, Foto) dari Firestore
         firestore.collection("users").document(uid).get()
@@ -91,12 +91,13 @@ class ProfileFragment : Fragment() {
                     val phone = doc.getString("phoneNumber") ?: "Klik untuk atur telepon"
                     val email = doc.getString("email") ?: "-"
                     val imageUrl = doc.getString("profileImageUrl")
+                    val imageVersion = doc.getLong("profileImageUpdatedAt") ?: 0L
 
                     // Update UI Profil
                     binding.textNama.text = name
                     binding.noTlp.text = phone
                     binding.email.text = email
-                    loadProfileImage(imageUrl)
+                    loadProfileImage(imageUrl, imageVersion)
 
                     // Simpan ke Cache
                     sharedPrefs.edit().apply {
@@ -104,6 +105,7 @@ class ProfileFragment : Fragment() {
                         putString("phone_$uid", phone)
                         putString("email_$uid", email)
                         putString("img_$uid", imageUrl)
+                        putLong("imgVersion_$uid", imageVersion)
                         apply()
                     }
                 }
@@ -150,15 +152,17 @@ class ProfileFragment : Fragment() {
             }
     }
 
-    private fun loadProfileImage(url: String?) {
+    // Upload foto selalu overwrite path Storage yang sama (profile_images/{uid}.jpg), jadi
+    // URL-nya sering identik dengan sebelumnya. Supaya cache Glide tetap kepakai (cepat) TAPI
+    // otomatis invalid begitu foto benar-benar diganti, cache key-nya pakai "version" terpisah
+    // (profileImageUpdatedAt, di-set ulang tiap kali upload) lewat signature(), bukan matikan
+    // cache total (yang bikin lambat & rawan nyangkut ke foto default kalau network sempat gagal).
+    private fun loadProfileImage(url: String?, version: Long = 0L) {
         if (_binding == null) return
-        // NONE + skipMemoryCache: setelah ganti foto, upload selalu overwrite path Storage yang
-        // sama (profile_images/{uid}.jpg) sehingga URL-nya seringkali identik dengan sebelumnya.
-        // Kalau di-cache Glide berdasarkan URL, foto baru tidak akan pernah terlihat.
         Glide.with(this)
             .load(url?.ifEmpty { null } ?: R.drawable.foto_profil)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .signature(com.bumptech.glide.signature.ObjectKey(version))
             .placeholder(R.drawable.foto_profil)
             .circleCrop()
             .into(binding.profileImage)

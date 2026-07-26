@@ -148,8 +148,14 @@ class ActivityEditFotoProfile : AppCompatActivity() {
 
     private fun updateFirestoreUrl(url: String) {
         val uid = firebaseAuth.currentUser?.uid ?: return
+        // profileImageUpdatedAt dipakai sebagai cache-busting signature Glide (lihat ProfileFragment)
+        // supaya foto baru langsung terlihat walau URL Storage-nya sama seperti sebelumnya.
+        val data = mapOf(
+            "profileImageUrl" to url,
+            "profileImageUpdatedAt" to System.currentTimeMillis()
+        )
         firestore.collection("users").document(uid)
-            .update("profileImageUrl", url)
+            .update(data)
             .addOnSuccessListener {
                 progressDialog.dismiss()
                 Toast.makeText(this, "Foto profil berhasil diperbarui", Toast.LENGTH_SHORT).show()

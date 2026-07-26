@@ -92,7 +92,7 @@ class ProfileFragmentDriver : Fragment() {
         binding.textNama.text = sharedPreferences.getString("name_$userId", "Driver Baru")
         binding.noTlp.text = sharedPreferences.getString("phone_$userId", "Atur Nomor")
         binding.alamat.text = sharedPreferences.getString("alamat_$userId", "Atur Lokasi")
-        loadProfileImage(sharedPreferences.getString("img_$userId", null))
+        loadProfileImage(sharedPreferences.getString("img_$userId", null), sharedPreferences.getLong("imgVersion_$userId", 0L))
 
         // 2. Ambil data terbaru dari Firestore di belakang layar, lalu update UI + cache
         firestore.collection("users").document(userId).get()
@@ -102,28 +102,33 @@ class ProfileFragmentDriver : Fragment() {
                     val phone = doc.getString("phoneNumber") ?: "Atur Nomor"
                     val alamat = doc.getString("alamat") ?: "Atur Lokasi"
                     val imageUrl = doc.getString("profileImageUrl")
+                    val imageVersion = doc.getLong("profileImageUpdatedAt") ?: 0L
 
                     binding.textNama.text = name
                     binding.noTlp.text = phone
                     binding.alamat.text = alamat
-                    loadProfileImage(imageUrl)
+                    loadProfileImage(imageUrl, imageVersion)
 
                     sharedPreferences.edit().apply {
                         putString("name_$userId", name)
                         putString("phone_$userId", phone)
                         putString("alamat_$userId", alamat)
                         putString("img_$userId", imageUrl)
+                        putLong("imgVersion_$userId", imageVersion)
                         apply()
                     }
                 }
             }
     }
 
-    private fun loadProfileImage(url: String?) {
+    // Cache key Glide pakai "version" (profileImageUpdatedAt) supaya cache normal tetap kepakai
+    // (cepat, tidak perlu network tiap buka Profile) TAPI otomatis invalid begitu foto diganti -
+    // lihat penjelasan sama di ProfileFragment (Passenger).
+    private fun loadProfileImage(url: String?, version: Long = 0L) {
         Glide.with(this)
             .load(url?.ifEmpty { null } ?: R.drawable.foto_profil)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .signature(com.bumptech.glide.signature.ObjectKey(version))
             .placeholder(R.drawable.foto_profil)
             .circleCrop()
             .into(binding.profileImage)
@@ -314,11 +319,16 @@ class ProfileFragmentDriver : Fragment() {
             storageRef.putBytes(baos.toByteArray())
                 .addOnSuccessListener {
                     storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                        val newVersion = System.currentTimeMillis()
+                        val data = mapOf(
+                            "profileImageUrl" to downloadUri.toString(),
+                            "profileImageUpdatedAt" to newVersion
+                        )
                         firestore.collection("users").document(userId)
-                            .update("profileImageUrl", downloadUri.toString())
+                            .update(data)
                             .addOnSuccessListener {
                                 progressDialog.dismiss()
-                                loadProfileImage(downloadUri.toString())
+                                loadProfileImage(downloadUri.toString(), newVersion)
                             }
                     }
                 }
