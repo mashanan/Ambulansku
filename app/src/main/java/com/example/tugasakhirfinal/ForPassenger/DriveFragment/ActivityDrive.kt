@@ -175,15 +175,71 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     lastKnownLocation = currentLatLng
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
 
-                    if (isManualHospitalSelected && destinationHospitalLoc != null) {
-                        drawRouteLine(currentLatLng, destinationHospitalLoc!!, "antar")
-                        displaySelectedHospitalMarker()
-                    } else {
-                        loadHospitalData()
+                    // Kalau passenger sudah punya booking aktif (baru saja back dari layar ini di
+                    // tengah penjemputan), reconnect ke trip itu dulu - jangan biarkan masuk ke
+                    // mode standby/pilih rumah sakit yang bisa berujung bikin booking baru.
+                    checkForActiveBooking { hasActive ->
+                        if (hasActive) return@checkForActiveBooking
+                        if (isManualHospitalSelected && destinationHospitalLoc != null) {
+                            drawRouteLine(currentLatLng, destinationHospitalLoc!!, "antar")
+                            displaySelectedHospitalMarker()
+                        } else {
+                            loadHospitalData()
+                        }
                     }
                 }
             }
         }
+    }
+
+    // Cek apakah passenger yang sedang login masih punya booking yang berjalan (belum
+    // completed/CANCELLED). Kalau ada, resume tampilan ke trip itu alih-alih mode standby.
+    private fun checkForActiveBooking(onResult: (Boolean) -> Unit) {
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            onResult(false)
+            return
+        }
+        firestore.collection("bookings")
+            .whereEqualTo("passengerId", uid)
+            .whereIn("status", listOf("SEARCHING", "accepted", "picked_up"))
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val activeDoc = snapshot.documents
+                    .sortedByDescending { it.getTimestamp("createdAt") }
+                    .firstOrNull()
+                if (activeDoc != null) {
+                    resumeActiveBooking(activeDoc)
+                    onResult(true)
+                } else {
+                    onResult(false)
+                }
+            }
+            .addOnFailureListener { onResult(false) }
+    }
+
+    private fun resumeActiveBooking(doc: DocumentSnapshot) {
+        val bookingId = doc.id
+        currentBookingId = bookingId
+        selectedHospitalName = doc.getString("hospitalName")
+        isManualHospitalSelected = true
+        updateHeaderTitle()
+
+        val hLat = doc.getDouble("hospitalLat")
+        val hLng = doc.getDouble("hospitalLng")
+        if (hLat != null && hLng != null) {
+            destinationHospitalLoc = LatLng(hLat, hLng)
+            displaySelectedHospitalMarker()
+            lastKnownLocation?.let { drawRouteLine(it, destinationHospitalLoc!!, "antar") }
+        }
+
+        val status = doc.getString("status") ?: "SEARCHING"
+        if (status == "SEARCHING") {
+            showSearchingDriverDialog()
+            startSearchTimer()
+        }
+
+        listenDriverResponse(bookingId)
     }
 
     private fun loadHospitalData() {
