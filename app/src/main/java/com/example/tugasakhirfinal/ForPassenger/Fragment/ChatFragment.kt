@@ -13,6 +13,7 @@ import com.example.tugasakhirfinal.ForPassenger.ChatPassengerActivity
 import com.example.tugasakhirfinal.Model.PassengerChatHistory
 import com.example.tugasakhirfinal.databinding.FragmentChatBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
@@ -75,14 +76,18 @@ class ChatFragment : Fragment() {
                     return@addSnapshotListener
                 }
 
-                if (snapshot != null && !snapshot.isEmpty) {
-                    chatHistoryList.clear()
+                chatHistoryList.clear()
 
+                if (snapshot != null) {
                     // Diurutkan di client (bukan .orderBy di query) supaya tidak butuh composite
-                    // index Firestore. Riwayat pesanan terbaru ditaruh paling atas.
-                    val sortedDocs = snapshot.documents.sortedByDescending { it.getTimestamp("createdAt") }
+                    // index Firestore. Riwayat pesanan terbaru ditaruh paling atas. Booking yang
+                    // sudah "completed" lebih dari 3 hari disembunyikan dari daftar (data tetap
+                    // ada di Firestore, cuma tidak ditampilkan lagi).
+                    val visibleDocs = snapshot.documents
+                        .filter { isVisibleInHistory(it) }
+                        .sortedByDescending { it.getTimestamp("createdAt") }
 
-                    for (doc in sortedDocs) {
+                    for (doc in visibleDocs) {
                         val bookingId = doc.id
                         val hospitalName = doc.getString("hospitalName") ?: "Rumah Sakit"
                         val status = doc.getString("status") ?: ""
@@ -97,14 +102,22 @@ class ChatFragment : Fragment() {
                         fetchLastMessage(bookingId, historyItem)
                         chatHistoryList.add(historyItem)
                     }
-
-                    // Tampilkan RecyclerView dan sembunyikan Teks Kosong (jika ada id tvEmptyChat di XML)
-                    binding.rvPassengerChatList.visibility = View.VISIBLE
-                    chatAdapter.updateData(chatHistoryList)
-                } else {
-                    binding.rvPassengerChatList.visibility = View.GONE
                 }
+
+                binding.rvPassengerChatList.visibility = if (chatHistoryList.isNotEmpty()) View.VISIBLE else View.GONE
+                chatAdapter.updateData(chatHistoryList)
             }
+    }
+
+    // Booking yang belum "completed" selalu tampil. Yang sudah completed disembunyikan begitu
+    // lewat 3 hari dari completedAt (fallback ke createdAt untuk data lama sebelum field ini ada).
+    private fun isVisibleInHistory(doc: DocumentSnapshot): Boolean {
+        val status = doc.getString("status") ?: ""
+        if (!status.equals("completed", ignoreCase = true)) return true
+
+        val completedAt = doc.getTimestamp("completedAt") ?: doc.getTimestamp("createdAt") ?: return true
+        val threeDaysAgo = java.util.Calendar.getInstance().apply { add(java.util.Calendar.DAY_OF_YEAR, -3) }.time
+        return completedAt.toDate().after(threeDaysAgo)
     }
 
     private fun fetchLastMessage(bookingId: String, historyItem: PassengerChatHistory) {

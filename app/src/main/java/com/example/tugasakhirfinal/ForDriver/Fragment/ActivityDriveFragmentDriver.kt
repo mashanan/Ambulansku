@@ -523,7 +523,14 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
     private fun selesaikanTugas() {
         currentBookingId?.let { id ->
             binding.btnSelesai.isEnabled = false
-            db.collection("bookings").document(id).update("status", "completed")
+            // completedAt dicatat supaya riwayat chat bisa disembunyikan otomatis 3 hari
+            // setelah trip ini selesai (lihat filter di ChatFragment.kt/ChatFragmentDriver.kt).
+            db.collection("bookings").document(id).update(
+                mapOf(
+                    "status" to "completed",
+                    "completedAt" to com.google.firebase.Timestamp.now()
+                )
+            )
                 .addOnSuccessListener {
                     Toast.makeText(requireContext(), "Tugas Selesai! Kembali online.", Toast.LENGTH_LONG).show()
                     showTripNotification("Perjalanan Selesai", "Tugas selesai. Anda kembali online.")

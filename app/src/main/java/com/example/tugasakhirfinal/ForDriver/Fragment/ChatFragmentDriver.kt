@@ -13,6 +13,7 @@ import com.example.tugasakhirfinal.ForDriver.Chat.ChatDriverActivity
 import com.example.tugasakhirfinal.Model.PassengerChatHistory
 import com.example.tugasakhirfinal.databinding.FragmentChatDriverBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
@@ -74,14 +75,18 @@ class ChatFragmentDriver : Fragment() {
                     return@addSnapshotListener
                 }
 
-                if (snapshot != null && !snapshot.isEmpty) {
-                    chatHistoryList.clear()
+                chatHistoryList.clear()
 
+                if (snapshot != null) {
                     // Diurutkan di client (bukan .orderBy di query) supaya tidak butuh composite
-                    // index Firestore. Riwayat pesanan terbaru ditaruh paling atas.
-                    val sortedDocs = snapshot.documents.sortedByDescending { it.getTimestamp("createdAt") }
+                    // index Firestore. Riwayat pesanan terbaru ditaruh paling atas. Booking yang
+                    // sudah "completed" lebih dari 3 hari disembunyikan dari daftar (data tetap
+                    // ada di Firestore, cuma tidak ditampilkan lagi).
+                    val visibleDocs = snapshot.documents
+                        .filter { isVisibleInHistory(it) }
+                        .sortedByDescending { it.getTimestamp("createdAt") }
 
-                    for (doc in sortedDocs) {
+                    for (doc in visibleDocs) {
                         val bookingId = doc.id
                         val passengerName = doc.getString("passengerName") ?: "Pasien Ambulans"
                         val hospitalName = doc.getString("hospitalName") ?: "Rumah Sakit"
@@ -97,15 +102,28 @@ class ChatFragmentDriver : Fragment() {
                         fetchLastMessage(bookingId, historyItem)
                         chatHistoryList.add(historyItem)
                     }
+                }
 
+                if (chatHistoryList.isNotEmpty()) {
                     binding.tvEmptyChatDriver.visibility = View.GONE
                     binding.rvDriverChatList.visibility = View.VISIBLE
-                    driverChatAdapter.updateData(chatHistoryList)
                 } else {
                     binding.tvEmptyChatDriver.visibility = View.VISIBLE
                     binding.rvDriverChatList.visibility = View.GONE
                 }
+                driverChatAdapter.updateData(chatHistoryList)
             }
+    }
+
+    // Booking yang belum "completed" selalu tampil. Yang sudah completed disembunyikan begitu
+    // lewat 3 hari dari completedAt (fallback ke createdAt untuk data lama sebelum field ini ada).
+    private fun isVisibleInHistory(doc: DocumentSnapshot): Boolean {
+        val status = doc.getString("status") ?: ""
+        if (!status.equals("completed", ignoreCase = true)) return true
+
+        val completedAt = doc.getTimestamp("completedAt") ?: doc.getTimestamp("createdAt") ?: return true
+        val threeDaysAgo = java.util.Calendar.getInstance().apply { add(java.util.Calendar.DAY_OF_YEAR, -3) }.time
+        return completedAt.toDate().after(threeDaysAgo)
     }
 
     private fun fetchLastMessage(bookingId: String, historyItem: PassengerChatHistory) {
