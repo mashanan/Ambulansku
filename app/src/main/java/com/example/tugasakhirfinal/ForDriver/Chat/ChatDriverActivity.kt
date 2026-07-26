@@ -20,6 +20,12 @@ import com.google.firebase.firestore.Query
 
 class ChatDriverActivity : AppCompatActivity() {
 
+    companion object {
+        // Dipakai layar lain (mis. ActivityDriveFragmentDriver) untuk tahu apakah chat booking
+        // tertentu SEDANG dilihat driver, supaya tidak perlu tampilkan notifikasi untuk itu.
+        var openBookingId: String? = null
+    }
+
     private lateinit var rvChat: RecyclerView
     private lateinit var etMessage: EditText
     private lateinit var btnSend: ImageView
@@ -180,6 +186,16 @@ class ChatDriverActivity : AppCompatActivity() {
                     }
                 }
             }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        openBookingId = bookingId
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (openBookingId == bookingId) openBookingId = null
     }
 
     override fun onDestroy() {

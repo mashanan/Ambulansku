@@ -1,6 +1,9 @@
 package com.example.tugasakhirfinal.ForDriver.Fragment
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -14,6 +17,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.Person
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
@@ -31,6 +37,10 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
+
+    companion object {
+        private const val CHAT_CHANNEL_ID = "chat_message_channel"
+    }
 
     private var _binding: FragmentDriveDriverBinding? = null
     private val binding get() = _binding!!
@@ -363,7 +373,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         return poly
     }
 
-    // 🚀 Fungsi untuk menghitung badge notifikasi
+    // 🚀 Fungsi untuk menghitung badge notifikasi + tampilkan notifikasi gaya WhatsApp
     private fun listenUnreadMessages(bookingId: String) {
         val currentUserId = auth.currentUser?.uid ?: return
         unreadListener?.remove()
@@ -373,25 +383,74 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
             .whereEqualTo("isRead", false) // Hanya filter pesan yang belum dibaca
             .addSnapshotListener { snapshot, e ->
                 if (e != null || snapshot == null) return@addSnapshotListener
+                if (_binding == null) return@addSnapshotListener
 
-                var unreadCount = 0
-                // Filter senderId manual di Kotlin
-                for (doc in snapshot.documents) {
-                    val senderId = doc.getString("senderId")
-                    if (senderId != currentUserId) {
-                        unreadCount++
-                    }
-                }
+                // Diurutkan di client (bukan .orderBy di query) supaya tidak butuh composite index Firestore.
+                val unreadFromPassenger = snapshot.documents
+                    .filter { it.getString("senderId") != currentUserId }
+                    .sortedBy { it.getTimestamp("timestamp") }
 
-                if (_binding != null) {
-                    if (unreadCount > 0) {
-                        binding.tvUnreadBadge.text = unreadCount.toString()
-                        binding.tvUnreadBadge.visibility = View.VISIBLE
-                    } else {
-                        binding.tvUnreadBadge.visibility = View.GONE
-                    }
+                if (unreadFromPassenger.isNotEmpty()) {
+                    binding.tvUnreadBadge.text = unreadFromPassenger.size.toString()
+                    binding.tvUnreadBadge.visibility = View.VISIBLE
+                    showChatNotification(bookingId, unreadFromPassenger)
+                } else {
+                    binding.tvUnreadBadge.visibility = View.GONE
+                    cancelChatNotification(bookingId)
                 }
             }
+    }
+
+    // Notifikasi gaya WhatsApp: pesan-pesan yang belum dibaca ditumpuk (terbaru di bawah),
+    // pesan panjang dipotong. Tidak ditampilkan kalau driver memang sedang buka chat ini.
+    private fun showChatNotification(bookingId: String, unreadMessages: List<DocumentSnapshot>) {
+        if (_binding == null) return
+        if (com.example.tugasakhirfinal.ForDriver.Chat.ChatDriverActivity.openBookingId == bookingId) return
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
+
+        createChatNotificationChannel()
+
+        val passengerName = binding.tvPassengerName.text?.toString()
+            ?.takeIf { it.isNotBlank() && it != "Nama Penumpang" } ?: "Penumpang"
+        val sender = Person.Builder().setName(passengerName).build()
+
+        val messagingStyle = NotificationCompat.MessagingStyle(Person.Builder().setName("Anda").build())
+        for (doc in unreadMessages.takeLast(5)) {
+            val text = doc.getString("message") ?: continue
+            val truncated = if (text.length > 100) text.take(100) + "..." else text
+            val timeMillis = doc.getTimestamp("timestamp")?.toDate()?.time ?: System.currentTimeMillis()
+            messagingStyle.addMessage(truncated, timeMillis, sender)
+        }
+
+        val chatIntent = Intent(requireContext(), com.example.tugasakhirfinal.ForDriver.Chat.ChatDriverActivity::class.java).apply {
+            putExtra("BOOKING_ID", bookingId)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            requireContext(), bookingId.hashCode(), chatIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(requireContext(), CHAT_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setStyle(messagingStyle)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        NotificationManagerCompat.from(requireContext()).notify(bookingId.hashCode(), notification)
+    }
+
+    private fun cancelChatNotification(bookingId: String) {
+        NotificationManagerCompat.from(requireContext()).cancel(bookingId.hashCode())
+    }
+
+    private fun createChatNotificationChannel() {
+        val manager = requireContext().getSystemService(NotificationManager::class.java) ?: return
+        val channel = NotificationChannel(CHAT_CHANNEL_ID, "Pesan Chat", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "Notifikasi pesan chat baru selama pesanan aktif"
+        }
+        manager.createNotificationChannel(channel)
     }
 
     private fun setupChatButton(bookingId: String) {
@@ -399,7 +458,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         listenUnreadMessages(bookingId) // 🚀 Aktifkan listener badge notifikasi
 
         binding.btnChatPassenger?.setOnClickListener {
-            val intent = Intent(requireContext(), com.example.tugasakhirfinal.ForPassenger.ChatPassengerActivity::class.java)
+            val intent = Intent(requireContext(), com.example.tugasakhirfinal.ForDriver.Chat.ChatDriverActivity::class.java)
             intent.putExtra("BOOKING_ID", bookingId)
             startActivity(intent)
         }
@@ -443,6 +502,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         roadOverlay?.remove()
         targetMarker?.remove()
         targetLocation = null
+        currentBookingId?.let { cancelChatNotification(it) }
         currentBookingId = null
         isRouteZoomed = false
         lastFetchedPassengerId = null
