@@ -131,6 +131,11 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                         val statusStr = if (currentMode == "jemput") "Menjemput Pasien" else "Menuju RS"
                         binding.tvCurrentStatus.text = statusStr
                         binding.tvEstimationInfo.text = "Sisa Jarak: ${String.format("%.1f", results[0]/1000)} km"
+
+                        // 🚀 Kamera tetap disesuaikan tiap update lokasi (bukan cuma sekali di awal),
+                        // supaya driver & tujuan selalu terlihat utuh di peta walau jaraknya berubah
+                        // seiring driver bergerak. Directions API TIDAK dipanggil ulang di sini (hemat kuota).
+                        fitCameraToRoute(currentPos, target)
                     }
                 }
             }
@@ -264,17 +269,11 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                     binding.tvCurrentStatus.text = statusStr
                     binding.tvEstimationInfo.text = "Estimasi: $durationText ($distanceText)"
 
-                    if (!isRouteZoomed) {
-                        val boundsBuilder = LatLngBounds.Builder().include(start).include(end)
-                        for (point in path) boundsBuilder.include(point)
-
-                        try {
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 150))
-                            isRouteZoomed = true
-                        } catch (e: Exception) {
-                            Log.e("ZOOM_ERROR", "Error bounds maps: ${e.message}")
-                        }
-                    }
+                    // isRouteZoomed cuma menahan supaya Directions API tidak dipanggil ulang tiap 3 detik
+                    // (boros kuota) — kamera sendiri tetap disesuaikan tiap update lewat fitCameraToRoute()
+                    // di setupLocationUpdates(), bukan cuma sekali di sini.
+                    isRouteZoomed = true
+                    fitCameraToRoute(start, end, path)
                 } else {
                     roadOverlay = mMap.addPolyline(PolylineOptions().add(start, end).width(10f).color(lineColor).pattern(listOf(Dash(20f), Gap(10f))))
                     val results = FloatArray(1)
@@ -282,8 +281,23 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                     val statusStr = if (mode == "jemput") "Menjemput Pasien" else "Menuju RS"
                     binding.tvCurrentStatus.text = statusStr
                     binding.tvEstimationInfo.text = "Sisa Jarak: ${String.format("%.1f", results[0]/1000)} km"
+                    fitCameraToRoute(start, end)
                 }
             }
+        }
+    }
+
+    // Sesuaikan kamera supaya kedua titik (dan rute di antaranya, kalau ada) selalu terlihat utuh,
+    // bukan cuma sekali di awal. Dipanggil setiap ada update lokasi baru, bukan hanya saat rute
+    // pertama kali digambar via Directions API.
+    private fun fitCameraToRoute(start: LatLng, end: LatLng, path: List<LatLng> = emptyList()) {
+        if (_binding == null) return
+        try {
+            val boundsBuilder = LatLngBounds.Builder().include(start).include(end)
+            for (point in path) boundsBuilder.include(point)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 150))
+        } catch (e: Exception) {
+            Log.e("ZOOM_ERROR", "Error bounds maps: ${e.message}")
         }
     }
 
