@@ -240,6 +240,23 @@ class ProfileFragment : Fragment() {
         return FileProvider.getUriForFile(requireContext(), FILE_PROVIDER_AUTHORITY, photoFile)
     }
 
+    // Foto dari kamera/galeri bisa jauh lebih besar dari resolusi asli kamera (mis. 4000x3000px),
+    // padahal cuma ditampilkan sebagai foto profil bulat kecil. Diperkecil dulu supaya upload
+    // jauh lebih cepat & hemat kuota, tanpa memangkas dimensi kalau memang sudah kecil.
+    private fun resizeBitmap(bitmap: Bitmap, maxDimension: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        if (width <= maxDimension && height <= maxDimension) return bitmap
+
+        val ratio = width.toFloat() / height.toFloat()
+        val (newWidth, newHeight) = if (width >= height) {
+            maxDimension to (maxDimension / ratio).toInt()
+        } else {
+            (maxDimension * ratio).toInt() to maxDimension
+        }
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+    }
+
     private fun uploadProfileImage(uri: Uri) {
         val userId = firebaseAuth.currentUser?.uid ?: return
         try {
@@ -256,12 +273,13 @@ class ProfileFragment : Fragment() {
                 ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
             }
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            bitmap = resizeBitmap(bitmap, 800)
 
             progressDialog.setMessage("Mengunggah foto...")
             progressDialog.show()
 
             val baos = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos)
 
             val storageRef = storage.reference.child("profile_images/$userId.jpg")
             storageRef.putBytes(baos.toByteArray())
