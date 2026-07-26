@@ -109,10 +109,10 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- CardView Kiri untuk melihat list rumah sakit -->
+    <!-- CardView Kiri untuk melihat list rumah sakit (disamakan dgn fragment_drive_activity_main.xml) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardMiniLeft"
-        android:layout_width="0dp"
+        android:layout_width="175dp"
         android:layout_height="100dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
@@ -126,12 +126,9 @@
         app:layout_constraintEnd_toStartOf="@id/cardMiniRight"
         app:layout_constraintWidth_percent="0.45">
 
-        <LinearLayout
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="left|bottom"
-            android:padding="10dp">
+            android:layout_height="match_parent">
 
             <!-- Gambar di kanan atas -->
             <ImageView
@@ -139,8 +136,8 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:layout_gravity="top|end"
-                android:layout_margin="5dp"
-                android:contentDescription="Icon Tentang Kami"
+                android:layout_margin="15dp"
+                android:contentDescription="Icon Rumah Sakit"
                 android:src="@drawable/ic_address" />
 
             <!-- Teks di kiri bawah -->
@@ -149,15 +146,15 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|start"
                 android:layout_margin="5dp"
-                android:text="Rumah Sakit Terdekat"
+                android:text="Pilih Rumah Sakit"
                 android:textStyle="bold"
                 android:textSize="14sp" />
 
-        </LinearLayout>
+        </FrameLayout>
     </androidx.cardview.widget.CardView>
 
 
-    <!-- CardView Kanan untuk melihat mobil ambulans yang tersedia-->
+    <!-- CardView Kanan untuk memanggil ambulans (disamakan dgn fragment_drive_activity_main.xml) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardMiniRight"
         android:layout_width="175dp"
@@ -171,7 +168,8 @@
         android:foreground="?attr/selectableItemBackground"
         app:layout_constraintTop_toBottomOf="@id/cardMenu"
         app:layout_constraintStart_toEndOf="@id/cardMiniLeft"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.45">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -184,7 +182,7 @@
                 android:layout_height="50dp"
                 android:layout_gravity="top|end"
                 android:layout_margin="10dp"
-                android:contentDescription="Icon Tentang Kami"
+                android:contentDescription="Icon Ambulans"
                 android:src="@drawable/ic_small_car" />
 
             <!-- Teks di kiri bawah -->

@@ -68,6 +68,7 @@
         <!-- 🛠️ DIBETULKAN: ActivityDrive sesuaikan package subfolder ForPassenger -->
         <activity android:name=".ForPassenger.ActivityDrive" android:exported="false" />
         <activity android:name=".ForPassenger.HospitalListActivity" android:exported="false" />
+        <activity android:name=".ForPassenger.FirstAid.PertolonganPertamaActivity" android:exported="false" />
 
         <!-- 🛠️ DITAMBAHKAN: ChatPassengerActivity terdaftar resmi -->
         <activity android:name=".ForPassenger.ChatPassengerActivity" android:exported="false" />

@@ -11,6 +11,8 @@ import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.tugasakhirfinal.ForPassenger.ActivityDrive
+import com.example.tugasakhirfinal.ForPassenger.FirstAid.PertolonganPertamaActivity
+import com.example.tugasakhirfinal.ForPassenger.HospitalListActivity
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.FragmentHomeBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -38,6 +40,18 @@ class HomeFragment : Fragment() {
 
         binding.cardMiniRight.setOnClickListener {
             val intent = Intent(requireContext(), ActivityDrive::class.java)
+            startActivity(intent)
+        }
+
+        // Sebelumnya kartu ini belum ada listener sama sekali (tidak berfungsi saat ditekan) -
+        // disamakan dengan ActivityDriveFragment (fragment Layanan) yang sudah benar.
+        binding.cardMiniLeft.setOnClickListener {
+            val intent = Intent(requireContext(), HospitalListActivity::class.java)
+            startActivity(intent)
+        }
+
+        binding.cardMenu.setOnClickListener {
+            val intent = Intent(requireContext(), PertolonganPertamaActivity::class.java)
             startActivity(intent)
         }
 
