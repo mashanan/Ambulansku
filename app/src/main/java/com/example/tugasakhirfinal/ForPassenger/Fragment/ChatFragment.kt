@@ -78,7 +78,11 @@ class ChatFragment : Fragment() {
                 if (snapshot != null && !snapshot.isEmpty) {
                     chatHistoryList.clear()
 
-                    for (doc in snapshot.documents) {
+                    // Diurutkan di client (bukan .orderBy di query) supaya tidak butuh composite
+                    // index Firestore. Riwayat pesanan terbaru ditaruh paling atas.
+                    val sortedDocs = snapshot.documents.sortedByDescending { it.getTimestamp("createdAt") }
+
+                    for (doc in sortedDocs) {
                         val bookingId = doc.id
                         val hospitalName = doc.getString("hospitalName") ?: "Rumah Sakit"
                         val status = doc.getString("status") ?: ""
