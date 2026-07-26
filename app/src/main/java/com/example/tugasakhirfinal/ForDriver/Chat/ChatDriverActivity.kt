@@ -18,7 +18,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -212,16 +211,15 @@ class ChatDriverActivity : AppCompatActivity() {
         latestCapturedUri?.let { outState.putParcelable("latestCapturedUri", it) }
     }
 
-    // ImageView TANPA ukuran eksplisit berukuran 0 sebelum gambarnya kelar dimuat, jadi dialog-nya
-    // cuma keliatan kosong isi tombol Tutup - dikasih ukuran tetap + background hitam supaya area
-    // fotonya selalu terlihat, dan listener biar kalau memang gagal load, ada pesan jelas.
+    // Viewer foto full-screen (bukan popup kecil) - tombol tutup berbentuk X ditumpuk di pojok
+    // kanan atas foto, latar hitam penuh layar supaya foto terlihat sejelas mungkin.
     private fun showImageDialog(url: String) {
-        val sizePx = (280 * resources.displayMetrics.density).toInt()
-        val imageView = ImageView(this).apply {
-            layoutParams = android.view.ViewGroup.LayoutParams(sizePx, sizePx)
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            setBackgroundColor(android.graphics.Color.BLACK)
-        }
+        val dialog = android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        dialog.setContentView(R.layout.dialog_full_image)
+
+        val ivFullImage = dialog.findViewById<ImageView>(R.id.ivFullImage)
+        val btnClose = dialog.findViewById<ImageView>(R.id.btnCloseFullImage)
+
         Glide.with(this)
             .load(url)
             .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
@@ -243,11 +241,10 @@ class ChatDriverActivity : AppCompatActivity() {
                     isFirstResource: Boolean
                 ): Boolean = false
             })
-            .into(imageView)
-        AlertDialog.Builder(this)
-            .setView(imageView)
-            .setPositiveButton("Tutup", null)
-            .show()
+            .into(ivFullImage)
+
+        btnClose.setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
     // Foto chat diperkecil dulu (sama seperti foto profil) supaya upload cepat & hemat kuota -
