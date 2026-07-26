@@ -45,9 +45,11 @@ class ManageHospitalActivity : AppCompatActivity() {
         }
 
         rvHospitalList.layoutManager = LinearLayoutManager(this)
-        hospitalAdapter = HospitalAdminAdapter(fullHospitalList) { hospital ->
-            confirmDeleteHospital(hospital)
-        }
+        hospitalAdapter = HospitalAdminAdapter(
+            fullHospitalList,
+            onEditClick = { hospital -> openEditHospital(hospital) },
+            onDeleteClick = { hospital -> confirmDeleteHospital(hospital) }
+        )
         rvHospitalList.adapter = hospitalAdapter
 
         etSearchHospital.addTextChangedListener(object : TextWatcher {
@@ -100,6 +102,19 @@ class ManageHospitalActivity : AppCompatActivity() {
                 }
                 hospitalAdapter.updateList(fullHospitalList)
             }
+    }
+
+    private fun openEditHospital(hospital: Hospital) {
+        val intent = Intent(this, AddEditHospitalActivity::class.java).apply {
+            putExtra(AddEditHospitalActivity.EXTRA_ID, hospital.id)
+            putExtra(AddEditHospitalActivity.EXTRA_NAME, hospital.nama)
+            putExtra(AddEditHospitalActivity.EXTRA_ADDRESS, hospital.alamat)
+            putExtra(AddEditHospitalActivity.EXTRA_PHONE, hospital.telepon)
+            putExtra(AddEditHospitalActivity.EXTRA_IGD_STATUS, hospital.igdStatus)
+            putExtra(AddEditHospitalActivity.EXTRA_LAT, hospital.latitude)
+            putExtra(AddEditHospitalActivity.EXTRA_LNG, hospital.longitude)
+        }
+        startActivity(intent)
     }
 
     private fun confirmDeleteHospital(hospital: Hospital) {
