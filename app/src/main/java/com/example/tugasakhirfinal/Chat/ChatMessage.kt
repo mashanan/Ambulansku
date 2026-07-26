@@ -8,6 +8,7 @@ data class ChatMessage(
     var senderId: String = "",
     var senderRole: String = "",
     var message: String = "",
+    var imageUrl: String = "",
     var timestamp: Timestamp? = null,
 
     // Paksa Firestore membaca dan menulis dengan nama "isRead" persis

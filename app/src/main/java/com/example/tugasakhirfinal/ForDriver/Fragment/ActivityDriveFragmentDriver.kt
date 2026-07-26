@@ -424,7 +424,10 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
 
         val messagingStyle = NotificationCompat.MessagingStyle(Person.Builder().setName("Anda").build())
         for (doc in unreadMessages.takeLast(5)) {
-            val text = doc.getString("message") ?: continue
+            val rawMessage = doc.getString("message") ?: ""
+            val imageUrl = doc.getString("imageUrl") ?: ""
+            if (rawMessage.isEmpty() && imageUrl.isEmpty()) continue
+            val text = if (rawMessage.isEmpty() && imageUrl.isNotEmpty()) "📷 Foto" else rawMessage
             val truncated = if (text.length > 100) text.take(100) + "..." else text
             val timeMillis = doc.getTimestamp("timestamp")?.toDate()?.time ?: System.currentTimeMillis()
             messagingStyle.addMessage(truncated, timeMillis, sender)

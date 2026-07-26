@@ -131,7 +131,9 @@ class ChatFragment : Fragment() {
                 if (_binding == null) return@addOnSuccessListener
                 if (!query.isEmpty) {
                     val lastMsgDoc = query.documents[0]
-                    historyItem.lastMessage = lastMsgDoc.getString("message") ?: ""
+                    val rawMessage = lastMsgDoc.getString("message") ?: ""
+                    val imageUrl = lastMsgDoc.getString("imageUrl") ?: ""
+                    historyItem.lastMessage = if (rawMessage.isEmpty() && imageUrl.isNotEmpty()) "📷 Foto" else rawMessage
                     chatAdapter.notifyDataSetChanged()
                 }
             }

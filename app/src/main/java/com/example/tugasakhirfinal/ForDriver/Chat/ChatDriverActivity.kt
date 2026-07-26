@@ -1,6 +1,11 @@
 package com.example.tugasakhirfinal.ForDriver.Chat
 
+import android.app.ProgressDialog
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -8,6 +13,8 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,7 +28,9 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.google.firebase.storage.FirebaseStorage
 import de.hdodenhof.circleimageview.CircleImageView
+import java.io.ByteArrayOutputStream
 
 class ChatDriverActivity : AppCompatActivity() {
 
@@ -35,6 +44,7 @@ class ChatDriverActivity : AppCompatActivity() {
     private lateinit var etMessage: EditText
     private lateinit var btnSend: ImageView
     private lateinit var btnBack: ImageView
+    private lateinit var btnAttachPhoto: ImageView
     private lateinit var ivContactPhoto: CircleImageView
     private lateinit var tvContactName: TextView
     private lateinit var tvContactInfo: TextView
@@ -45,6 +55,7 @@ class ChatDriverActivity : AppCompatActivity() {
     private val messageList = ArrayList<ChatMessage>()
 
     private val firestore = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance("gs://tugasakhirfinal-9e73d.firebasestorage.app")
     private val auth = FirebaseAuth.getInstance()
     private val currentDriverId = auth.currentUser?.uid ?: ""
     private var bookingId: String = ""
@@ -56,6 +67,13 @@ class ChatDriverActivity : AppCompatActivity() {
     private var chip2: Chip? = null
     private var chip3: Chip? = null
     private var chip4: Chip? = null
+
+    private val progressDialog by lazy {
+        ProgressDialog(this).apply {
+            setMessage("Mengirim foto...")
+            setCancelable(false)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,6 +90,7 @@ class ChatDriverActivity : AppCompatActivity() {
         rvChat = findViewById(R.id.rvPassengerChat)
         etMessage = findViewById(R.id.etChatMessage)
         btnSend = findViewById(R.id.btnSendPassengerChat)
+        btnAttachPhoto = findViewById(R.id.btnAttachPhoto)
         ivContactPhoto = findViewById(R.id.ivContactPhoto)
         tvContactName = findViewById(R.id.tvDriverName)
         tvContactInfo = findViewById(R.id.tvDriverStatus)
@@ -87,11 +106,19 @@ class ChatDriverActivity : AppCompatActivity() {
             }
         }
 
+        btnAttachPhoto.setOnClickListener {
+            if (isChatLocked) {
+                Toast.makeText(this, "Sesi chat telah berakhir", Toast.LENGTH_SHORT).show()
+            } else {
+                galleryLauncher.launch("image/*")
+            }
+        }
+
         val layoutManager = LinearLayoutManager(this)
         layoutManager.stackFromEnd = true
         rvChat.layoutManager = layoutManager
 
-        chatAdapter = ChatAdapter(messageList, currentDriverId)
+        chatAdapter = ChatAdapter(messageList, currentDriverId, onImageClick = { url -> showImageDialog(url) })
         rvChat.adapter = chatAdapter
 
         btnSend.setOnClickListener {
@@ -105,6 +132,118 @@ class ChatDriverActivity : AppCompatActivity() {
         checkBookingStatusForChat() // 🚀 Cek apakah tugas sudah selesai / terkunci
         listenChatMessages()
         fetchPassengerContactInfo()
+    }
+
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { uploadChatImage(it) }
+    }
+
+    private fun showImageDialog(url: String) {
+        val imageView = ImageView(this).apply { adjustViewBounds = true }
+        Glide.with(this).load(url).into(imageView)
+        AlertDialog.Builder(this)
+            .setView(imageView)
+            .setPositiveButton("Tutup", null)
+            .show()
+    }
+
+    // Foto chat diperkecil dulu (sama seperti foto profil) supaya upload cepat & hemat kuota -
+    // decode langsung ukuran kecil via inSampleSize, bukan decode penuh baru di-resize belakangan.
+    private fun uploadChatImage(uri: Uri) {
+        if (isChatLocked) {
+            Toast.makeText(this, "Sesi chat telah berakhir", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (currentDriverId.isEmpty() || bookingId.isEmpty()) {
+            Toast.makeText(this, "Sesi driver tidak valid", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            var bitmap = decodeSampledBitmapFromUri(uri, 800)
+            if (bitmap == null) {
+                Toast.makeText(this, "Gagal memproses foto", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val ei = ExifInterface(contentResolver.openInputStream(uri)!!)
+            val orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            val matrix = Matrix()
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            }
+            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            bitmap = resizeBitmap(bitmap, 800)
+
+            progressDialog.show()
+
+            val baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos)
+
+            val fileName = "${System.currentTimeMillis()}.jpg"
+            val storageRef = storage.reference.child("chat_images/$bookingId/$fileName")
+            storageRef.putBytes(baos.toByteArray())
+                .addOnSuccessListener {
+                    storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                        val messageData = hashMapOf(
+                            "senderId" to currentDriverId,
+                            "senderRole" to "DRIVER",
+                            "message" to "",
+                            "imageUrl" to downloadUri.toString(),
+                            "timestamp" to FieldValue.serverTimestamp(),
+                            "isRead" to false
+                        )
+                        firestore.collection("bookings").document(bookingId).collection("messages")
+                            .add(messageData)
+                            .addOnSuccessListener { progressDialog.dismiss() }
+                            .addOnFailureListener { e ->
+                                progressDialog.dismiss()
+                                Toast.makeText(this, "Gagal mengirim foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    progressDialog.dismiss()
+                    Toast.makeText(this, "Gagal unggah foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        } catch (e: Exception) {
+            progressDialog.dismiss()
+            Log.e("DriverChat", e.message.toString())
+            Toast.makeText(this, "Gagal memproses foto: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun decodeSampledBitmapFromUri(uri: Uri, reqSize: Int): Bitmap? {
+        val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        val boundsStream = contentResolver.openInputStream(uri) ?: return null
+        boundsStream.use { BitmapFactory.decodeStream(it, null, boundsOptions) }
+
+        var inSampleSize = 1
+        var halfWidth = boundsOptions.outWidth / 2
+        var halfHeight = boundsOptions.outHeight / 2
+        while (halfWidth / inSampleSize >= reqSize && halfHeight / inSampleSize >= reqSize) {
+            inSampleSize *= 2
+        }
+
+        val decodeOptions = BitmapFactory.Options().apply { this.inSampleSize = inSampleSize }
+        val decodeStream = contentResolver.openInputStream(uri) ?: return null
+        return decodeStream.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
+    }
+
+    private fun resizeBitmap(bitmap: Bitmap, maxDimension: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        if (width <= maxDimension && height <= maxDimension) return bitmap
+
+        val ratio = width.toFloat() / height.toFloat()
+        val (newWidth, newHeight) = if (width >= height) {
+            maxDimension to (maxDimension / ratio).toInt()
+        } else {
+            (maxDimension * ratio).toInt() to maxDimension
+        }
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
     }
 
     // Ambil data kontak passenger (nama, foto, no. tlp) supaya driver tetap bisa menghubungi
@@ -150,6 +289,8 @@ class ChatDriverActivity : AppCompatActivity() {
                     etMessage.hint = "Sesi chat telah berakhir"
                     btnSend.isEnabled = false
                     btnSend.alpha = 0.5f
+                    btnAttachPhoto.isEnabled = false
+                    btnAttachPhoto.alpha = 0.5f
                     lockQuickChatChips()
                 }
             }
