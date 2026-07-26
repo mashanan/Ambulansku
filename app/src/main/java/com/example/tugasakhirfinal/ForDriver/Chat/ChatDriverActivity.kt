@@ -212,9 +212,38 @@ class ChatDriverActivity : AppCompatActivity() {
         latestCapturedUri?.let { outState.putParcelable("latestCapturedUri", it) }
     }
 
+    // ImageView TANPA ukuran eksplisit berukuran 0 sebelum gambarnya kelar dimuat, jadi dialog-nya
+    // cuma keliatan kosong isi tombol Tutup - dikasih ukuran tetap + background hitam supaya area
+    // fotonya selalu terlihat, dan listener biar kalau memang gagal load, ada pesan jelas.
     private fun showImageDialog(url: String) {
-        val imageView = ImageView(this).apply { adjustViewBounds = true }
-        Glide.with(this).load(url).into(imageView)
+        val sizePx = (280 * resources.displayMetrics.density).toInt()
+        val imageView = ImageView(this).apply {
+            layoutParams = android.view.ViewGroup.LayoutParams(sizePx, sizePx)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            setBackgroundColor(android.graphics.Color.BLACK)
+        }
+        Glide.with(this)
+            .load(url)
+            .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                override fun onLoadFailed(
+                    e: com.bumptech.glide.load.engine.GlideException?,
+                    model: Any?,
+                    target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    Log.e("DriverChat", "Gagal memuat foto $url: ${e?.message}", e)
+                    Toast.makeText(this@ChatDriverActivity, "Gagal memuat foto: ${e?.rootCauses?.firstOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    return false
+                }
+                override fun onResourceReady(
+                    resource: android.graphics.drawable.Drawable,
+                    model: Any,
+                    target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                    dataSource: com.bumptech.glide.load.DataSource,
+                    isFirstResource: Boolean
+                ): Boolean = false
+            })
+            .into(imageView)
         AlertDialog.Builder(this)
             .setView(imageView)
             .setPositiveButton("Tutup", null)

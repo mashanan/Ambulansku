@@ -1,6 +1,7 @@
 package com.example.tugasakhirfinal.ForAdmin
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -119,11 +120,38 @@ class ApproveDriverActivity : AppCompatActivity() {
             .show()
     }
 
+    // ImageView TANPA ukuran eksplisit berukuran 0 sebelum gambarnya kelar dimuat, jadi dialog-nya
+    // cuma keliatan kosong isi tombol Tutup - dikasih ukuran tetap + background hitam supaya area
+    // fotonya selalu terlihat, dan listener biar kalau memang gagal load, ada pesan jelas.
     private fun showPhotoDialog(url: String) {
+        val sizePx = (280 * resources.displayMetrics.density).toInt()
         val imageView = ImageView(this).apply {
-            adjustViewBounds = true
+            layoutParams = android.view.ViewGroup.LayoutParams(sizePx, sizePx)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            setBackgroundColor(android.graphics.Color.BLACK)
         }
-        Glide.with(this).load(url).into(imageView)
+        Glide.with(this)
+            .load(url)
+            .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                override fun onLoadFailed(
+                    e: com.bumptech.glide.load.engine.GlideException?,
+                    model: Any?,
+                    target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    Log.e("ApproveDriver", "Gagal memuat foto $url: ${e?.message}", e)
+                    Toast.makeText(this@ApproveDriverActivity, "Gagal memuat foto: ${e?.rootCauses?.firstOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    return false
+                }
+                override fun onResourceReady(
+                    resource: android.graphics.drawable.Drawable,
+                    model: Any,
+                    target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                    dataSource: com.bumptech.glide.load.DataSource,
+                    isFirstResource: Boolean
+                ): Boolean = false
+            })
+            .into(imageView)
 
         AlertDialog.Builder(this)
             .setView(imageView)
