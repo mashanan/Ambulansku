@@ -55,7 +55,20 @@ class HomeFragment : Fragment() {
             startActivity(intent)
         }
 
+        binding.textView2.text = getGreeting()
+
         return binding.root
+    }
+
+    // Sapaan sesuai jam device saat app dibuka, menggantikan teks statis "Welcome to app".
+    private fun getGreeting(): String {
+        val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+        return when (hour) {
+            in 0..10 -> "Selamat Pagi,"
+            in 11..14 -> "Selamat Siang,"
+            in 15..17 -> "Selamat Sore,"
+            else -> "Selamat Malam,"
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

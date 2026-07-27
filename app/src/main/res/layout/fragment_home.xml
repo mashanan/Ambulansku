@@ -10,12 +10,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <!-- Teks Welcome to app -->
+    <!-- Sapaan sesuai jam, di-set dari HomeFragment.kt (getGreeting()); teks di sini cuma fallback -->
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome to app,"
+        android:text="Selamat Datang,"
         android:textColor="@color/black"
         android:textSize="30sp"
         android:textStyle="bold"

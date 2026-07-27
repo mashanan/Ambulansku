@@ -18,22 +18,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Search Bar -->
-    <EditText
-        android:id="@+id/search_bar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Cari Lokasi..."
-        android:padding="12dp"
-        android:elevation="8dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="30dp"
-        android:background="@drawable/search_view_bg"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <!-- 💬 Tombol Chat (Melayang di kanan bawah peta) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnChatDriver"
