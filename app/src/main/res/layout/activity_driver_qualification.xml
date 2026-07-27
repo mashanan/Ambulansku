@@ -12,6 +12,7 @@
         android:padding="24dp">
 
         <TextView
+            android:id="@+id/tvFormTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Lengkapi Data Kualifikasi Driver"
@@ -20,6 +21,7 @@
             android:layout_marginBottom="4dp" />
 
         <TextView
+            android:id="@+id/tvFormSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Data ini akan diperiksa Admin sebelum akun Anda disetujui untuk mengemudi."

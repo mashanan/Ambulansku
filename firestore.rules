@@ -22,17 +22,23 @@ service cloud.firestore {
       allow create: if isOwner(userId) &&
         request.resource.data.role in ["passenger", "driver"];
 
-      // Update: pemilik boleh edit profil sendiri, TAPI role/isActive/isApproved
-      // tidak bisa diubah sendiri - hanya Admin yang boleh.
+      // Update: pemilik boleh edit profil sendiri, TAPI role/isActive tidak bisa diubah
+      // sendiri - hanya Admin yang boleh.
       // isApproved cuma ada di dokumen Driver (Passenger tidak pernah punya field ini) -
       // akses lewat .get(key, default) supaya TIDAK error saat field-nya tidak ada sama
       // sekali di kedua sisi (request & resource). Akses langsung (.isApproved) akan error
       // dan bikin seluruh allow update ini gagal/ditolak untuk dokumen Passenger.
+      // Pengecualian isApproved: driver BOLEH menurunkan status sendiri (true->false) saat
+      // mengedit data kualifikasi (submit ulang untuk verifikasi Admin), TAPI tidak boleh
+      // menaikkan sendiri (false->true - itu cuma hak Admin lewat isAdmin()).
       allow update: if (
           isOwner(userId) &&
           request.resource.data.role == resource.data.role &&
           request.resource.data.get('isActive', null) == resource.data.get('isActive', null) &&
-          request.resource.data.get('isApproved', null) == resource.data.get('isApproved', null)
+          (
+            request.resource.data.get('isApproved', null) == resource.data.get('isApproved', null) ||
+            (resource.data.get('isApproved', null) == true && request.resource.data.get('isApproved', null) == false)
+          )
         ) || isAdmin();
 
       allow delete: if isOwner(userId) || isAdmin();

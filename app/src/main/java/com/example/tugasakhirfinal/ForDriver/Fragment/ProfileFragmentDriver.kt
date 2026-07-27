@@ -120,6 +120,8 @@ class ProfileFragmentDriver : Fragment() {
                     binding.alamat.text = alamat
                     loadProfileImage(imageUrl, imageVersion)
 
+                    bindQualificationInfo(doc)
+
                     sharedPreferences.edit().apply {
                         putString("name_$userId", name)
                         putString("phone_$userId", phone)
@@ -130,6 +132,30 @@ class ProfileFragmentDriver : Fragment() {
                     }
                 }
             }
+    }
+
+    // Ringkasan info kualifikasi (No. SIM, No. Plat/STNK) + badge status verifikasi Admin -
+    // datanya gratis dari fetch dokumen user yang sudah ada di loadProfileFromFirestore(),
+    // tidak perlu request Firestore terpisah.
+    private fun bindQualificationInfo(doc: com.google.firebase.firestore.DocumentSnapshot) {
+        if (_binding == null) return
+
+        val licenseNumber = doc.getString("licenseNumber") ?: "-"
+        val plateNumber = doc.getString("ambulancePlateNumber") ?: "-"
+        val isApproved = doc.getBoolean("isApproved") ?: false
+
+        binding.tvQualLicenseNumber.text = "No. SIM: $licenseNumber"
+        binding.tvQualPlateNumber.text = "No. Plat / STNK: $plateNumber"
+
+        if (isApproved) {
+            binding.tvQualificationStatus.text = "✓ Terverifikasi"
+            binding.tvQualificationStatus.setTextColor(android.graphics.Color.parseColor("#2E7D32"))
+            binding.tvQualificationStatus.setBackgroundColor(android.graphics.Color.parseColor("#E8F5E9"))
+        } else {
+            binding.tvQualificationStatus.text = "⏳ Menunggu Verifikasi Admin"
+            binding.tvQualificationStatus.setTextColor(android.graphics.Color.parseColor("#E65100"))
+            binding.tvQualificationStatus.setBackgroundColor(android.graphics.Color.parseColor("#FFF3E0"))
+        }
     }
 
     // Cache key Glide pakai "version" (profileImageUpdatedAt) supaya cache normal tetap kepakai
@@ -167,6 +193,11 @@ class ProfileFragmentDriver : Fragment() {
         }
         binding.deleteAccountButton.setOnClickListener {
             showDeleteConfirmStep1()
+        }
+        binding.btnEditQualification.setOnClickListener {
+            val intent = Intent(requireContext(), com.example.tugasakhirfinal.ForDriver.Welcome.DriverQualificationActivity::class.java)
+            intent.putExtra(com.example.tugasakhirfinal.ForDriver.Welcome.DriverQualificationActivity.EXTRA_EDIT_MODE, true)
+            startActivity(intent)
         }
     }
 

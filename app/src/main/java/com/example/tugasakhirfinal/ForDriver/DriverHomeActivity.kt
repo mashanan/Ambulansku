@@ -30,6 +30,11 @@ class DriverHomeActivity : AppCompatActivity() {
     private val auth = FirebaseAuth.getInstance()
     private var accountStatusListener: ListenerRegistration? = null
 
+    // Cache dari listenToAccountStatus() - dipakai gerbang switchOnline supaya driver yang
+    // sedang menunggu verifikasi ulang Admin (isApproved=false, mis. baru saja edit data
+    // kualifikasi) tidak bisa online/menerima pesanan sementara.
+    private var isApprovedCache = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDriverHomeBinding.inflate(layoutInflater)
@@ -72,6 +77,11 @@ class DriverHomeActivity : AppCompatActivity() {
         // pesanan baru walau app di-background. Lihat DriverOnlineService.kt.
         binding.switchOnline.setOnCheckedChangeListener { _, checked ->
             if (checked) {
+                if (!isApprovedCache) {
+                    Toast.makeText(this, "Akun Anda menunggu verifikasi ulang Admin, tidak bisa online sementara.", Toast.LENGTH_LONG).show()
+                    binding.switchOnline.isChecked = false
+                    return@setOnCheckedChangeListener
+                }
                 requestOnlinePermissionsIfNeeded()
                 ContextCompat.startForegroundService(this, Intent(this, DriverOnlineService::class.java))
                 binding.statusText.text = "Status: Online (Siap Menerima Pesanan)"
@@ -139,6 +149,9 @@ class DriverHomeActivity : AppCompatActivity() {
 
     // 🛠️ Pantau real-time dokumen sendiri — kalau Admin menonaktifkan akun ini SAAT sedang
     // aktif dipakai, hentikan dulu DriverOnlineService (kalau sedang Online) lalu paksa logout.
+    // Juga pantau isApproved: kalau turun jadi false (mis. driver baru saja edit data
+    // kualifikasi & menunggu verifikasi ulang) SAAT sedang online, paksa offline - TAPI beda
+    // dari isActive=false, ini BUKAN sign-out penuh, driver tetap boleh pakai app.
     private fun listenToAccountStatus() {
         val uid = auth.currentUser?.uid ?: return
         accountStatusListener?.remove()
@@ -154,6 +167,16 @@ class DriverHomeActivity : AppCompatActivity() {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     })
                     finish()
+                    return@addSnapshotListener
+                }
+
+                val isApproved = snapshot?.getBoolean("isApproved") ?: true
+                isApprovedCache = isApproved
+                if (!isApproved && binding.switchOnline.isChecked) {
+                    // Set isChecked=false memicu listener switch di atas (cabang else: stopService
+                    // + update statusText), jadi tidak perlu duplikasi logika itu di sini.
+                    binding.switchOnline.isChecked = false
+                    Toast.makeText(this, "Akun Anda menunggu verifikasi ulang Admin. Anda tidak bisa online sementara.", Toast.LENGTH_LONG).show()
                 }
             }
     }
