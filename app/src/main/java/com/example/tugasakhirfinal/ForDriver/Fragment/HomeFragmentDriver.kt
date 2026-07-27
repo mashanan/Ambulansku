@@ -54,6 +54,21 @@ class HomeFragmentDriver : Fragment() {
 
         setupRecyclerView()
         listenToDriverStatusAndLocation()
+        loadDriverTripStats()
+    }
+
+    // Total trip yang sudah diselesaikan driver ini - dibaca sekali saat Home dibuka (bukan
+    // listener baru), murni informasional, tidak menyentuh alur booking/status sama sekali.
+    private fun loadDriverTripStats() {
+        val uid = auth.currentUser?.uid ?: return
+        db.collection("bookings")
+            .whereEqualTo("driverId", uid)
+            .whereEqualTo("status", "completed")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (_binding == null) return@addOnSuccessListener
+                binding.tvDriverTripCount.text = snapshot.size().toString()
+            }
     }
 
     private fun setupRecyclerView() {
