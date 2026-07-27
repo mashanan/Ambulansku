@@ -59,6 +59,7 @@ class ChatPassengerActivity : AppCompatActivity() {
     private lateinit var tvContactName: TextView
     private lateinit var tvContactInfo: TextView
     private lateinit var btnCallContact: ImageView
+    private lateinit var tvHistoryExpiryNotice: TextView
     private var driverPhoneNumber: String = ""
 
     private lateinit var chatAdapter: ChatAdapter
@@ -108,6 +109,7 @@ class ChatPassengerActivity : AppCompatActivity() {
         tvContactName = findViewById(R.id.tvDriverName)
         tvContactInfo = findViewById(R.id.tvDriverStatus)
         btnCallContact = findViewById(R.id.btnCallContact)
+        tvHistoryExpiryNotice = findViewById(R.id.tvHistoryExpiryNotice)
 
         btnBack.setOnClickListener { finish() }
 
@@ -395,6 +397,22 @@ class ChatPassengerActivity : AppCompatActivity() {
                     btnAttachPhoto.isEnabled = false
                     btnAttachPhoto.alpha = 0.5f
                     lockQuickChatChips()
+                }
+
+                // Kalau trip sudah completed, kasih tahu kapan riwayat chat ini bakal disembunyikan
+                // dari tampilan (H+3 sejak completedAt) - hitungannya harus persis sama dengan
+                // isVisibleInHistory() di ChatFragment.kt supaya tanggalnya tidak menyesatkan.
+                if (status == "completed") {
+                    val completedAt = snapshot.getTimestamp("completedAt") ?: snapshot.getTimestamp("createdAt")
+                    if (completedAt != null) {
+                        val hideDate = java.util.Calendar.getInstance().apply {
+                            time = completedAt.toDate()
+                            add(java.util.Calendar.DAY_OF_YEAR, 3)
+                        }.time
+                        val formatter = java.text.SimpleDateFormat("d MMMM yyyy", java.util.Locale("id", "ID"))
+                        tvHistoryExpiryNotice.text = "Riwayat chat ini akan disembunyikan otomatis pada ${formatter.format(hideDate)}"
+                        tvHistoryExpiryNotice.visibility = android.view.View.VISIBLE
+                    }
                 }
             }
     }

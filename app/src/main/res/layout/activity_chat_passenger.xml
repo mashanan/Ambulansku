@@ -70,12 +70,25 @@
             app:tint="@color/white" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tvHistoryExpiryNotice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layoutHeader"
+        android:background="#FFF3E0"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="Riwayat chat ini akan disembunyikan pada ..."
+        android:textColor="#E65100"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvPassengerChat"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/layoutBottomInput"
-        android:layout_below="@id/layoutHeader"
+        android:layout_below="@id/tvHistoryExpiryNotice"
         android:padding="12dp"
         android:clipToPadding="false" />
 
