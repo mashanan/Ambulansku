@@ -102,7 +102,6 @@ class ProfileFragmentDriver : Fragment() {
         // lama menunggu request Firestore, sama seperti pola di ProfileFragment (Passenger).
         binding.textNama.text = sharedPreferences.getString("name_$userId", "Driver Baru")
         binding.noTlp.text = sharedPreferences.getString("phone_$userId", "Atur Nomor")
-        binding.alamat.text = sharedPreferences.getString("alamat_$userId", "Atur Lokasi")
         loadProfileImage(sharedPreferences.getString("img_$userId", null), sharedPreferences.getLong("imgVersion_$userId", 0L))
 
         // 2. Ambil data terbaru dari Firestore di belakang layar, lalu update UI + cache
@@ -111,13 +110,11 @@ class ProfileFragmentDriver : Fragment() {
                 if (_binding != null && isAdded) {
                     val name = doc.getString("nama") ?: "Driver Baru"
                     val phone = doc.getString("phoneNumber") ?: "Atur Nomor"
-                    val alamat = doc.getString("alamat") ?: "Atur Lokasi"
                     val imageUrl = doc.getString("profileImageUrl")
                     val imageVersion = doc.getLong("profileImageUpdatedAt") ?: 0L
 
                     binding.textNama.text = name
                     binding.noTlp.text = phone
-                    binding.alamat.text = alamat
                     loadProfileImage(imageUrl, imageVersion)
 
                     bindQualificationInfo(doc)
@@ -125,7 +122,6 @@ class ProfileFragmentDriver : Fragment() {
                     sharedPreferences.edit().apply {
                         putString("name_$userId", name)
                         putString("phone_$userId", phone)
-                        putString("alamat_$userId", alamat)
                         putString("img_$userId", imageUrl)
                         putLong("imgVersion_$userId", imageVersion)
                         apply()

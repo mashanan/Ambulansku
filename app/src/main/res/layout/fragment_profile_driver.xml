@@ -51,7 +51,6 @@
             android:id="@+id/frameNoTlp"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginBottom="15dp"
             android:background="@drawable/bg_frame">
             <TextView
                 android:id="@+id/noTlp"
@@ -59,21 +58,6 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="Nomor Telepon"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
-        </FrameLayout>
-
-        <FrameLayout
-            android:id="@+id/frameAlamat"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="@drawable/bg_frame">
-            <TextView
-                android:id="@+id/alamat"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Unit / Lokasi"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
         </FrameLayout>
