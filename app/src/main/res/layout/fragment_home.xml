@@ -68,47 +68,12 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
         android:layout_marginTop="40dp"
-        android:text="Saran Kami"
+        android:text="Yang Anda Butuhkan"
         android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/barrierProfile" />
-
-    <!-- penjelasan singkat tentang apps -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardMenu"
-        android:layout_width="0dp"
-        android:layout_height="120dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="16dp"
-        android:clickable="true"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="6dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4">
-
-        <!-- Konten di dalam kotak (bisa TextView, Icon, dst) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="15dp"
-            android:gravity="left"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pertologan Pertama"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
     <!-- CardView Kiri untuk melihat list rumah sakit (disamakan dgn fragment_drive_activity_main.xml) -->
     <androidx.cardview.widget.CardView
@@ -116,13 +81,13 @@
         android:layout_width="175dp"
         android:layout_height="100dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
         android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
-        app:layout_constraintTop_toBottomOf="@id/cardMenu"
+        app:layout_constraintTop_toBottomOf="@id/textView4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/cardMiniRight"
         app:layout_constraintWidth_percent="0.45">
@@ -161,13 +126,13 @@
         android:layout_width="175dp"
         android:layout_height="100dp"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="20dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
         android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
-        app:layout_constraintTop_toBottomOf="@id/cardMenu"
+        app:layout_constraintTop_toBottomOf="@id/textView4"
         app:layout_constraintStart_toEndOf="@id/cardMiniLeft"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintWidth_percent="0.45">
@@ -198,6 +163,41 @@
         </FrameLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- penjelasan singkat tentang apps -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardMenu"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="16dp"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="6dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardMiniLeft">
+
+        <!-- Konten di dalam kotak (bisa TextView, Icon, dst) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="15dp"
+            android:gravity="left"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pertologan Pertama"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
     <!-- Kartu trip terakhir - hanya muncul kalau passenger sudah pernah punya trip completed -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardLastTrip"
@@ -211,7 +211,7 @@
         app:cardElevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardMiniLeft">
+        app:layout_constraintTop_toBottomOf="@id/cardMenu">
 
         <LinearLayout
             android:layout_width="match_parent"
