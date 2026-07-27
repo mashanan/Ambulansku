@@ -1,28 +1,42 @@
 package com.example.tugasakhirfinal.ForDriver.Welcome
 
+import android.Manifest
 import android.app.ProgressDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.view.Gravity
 import android.view.View
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.widget.addTextChangedListener
 import com.bumptech.glide.Glide
 import com.example.tugasakhirfinal.ForDriver.DriverOnlineService
+import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.ActivityDriverQualificationBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
+
+private const val FILE_PROVIDER_AUTHORITY = "com.example.tugasakhirfinal.fileprovider"
 
 // Diisi driver setelah akun dibuat (SignUpActivityDriver), sebelum verifikasi email - JUGA
 // dipakai untuk EDIT data kualifikasi dari ProfileFragmentDriver (lihat EXTRA_EDIT_MODE).
@@ -50,6 +64,15 @@ class DriverQualificationActivity : AppCompatActivity() {
     private var medicalCertUri: Uri? = null
     private val ambulancePhotoUris = ArrayList<Uri>()
 
+    // Slot foto yang sedang dipilih ("license"/"stnk"/"ambulance"/"aed"/"medical") - dipakai
+    // bersama oleh SATU dialog galeri/kamera generik untuk semua slot foto, supaya tidak perlu
+    // duplikasi launcher & dialog 5x. latestCapturedUri nullable + dipulihkan dari
+    // savedInstanceState (bukan lateinit) - kalau OS mematikan proses app selagi aplikasi kamera
+    // terbuka, Activity ini dibuat ulang dari nol dan lateinit var akan crash saat hasil kamera
+    // kembali (pola yang sama dipakai fix crash kamera di Profile/Chat).
+    private var activePhotoTarget: String? = null
+    private var latestCapturedUri: Uri? = null
+
     // Mode edit: foto yang SUDAH ADA di Firestore, dipakai lagi apa adanya kalau driver tidak
     // pilih foto baru di slot itu - supaya edit kecil (mis. benerin nomor plat) tidak memaksa
     // upload ulang semua dokumen.
@@ -66,17 +89,19 @@ class DriverQualificationActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         isEditMode = intent.getBooleanExtra(EXTRA_EDIT_MODE, false)
+        activePhotoTarget = savedInstanceState?.getString("activePhotoTarget")
+        latestCapturedUri = savedInstanceState?.getParcelable("latestCapturedUri")
 
         progressDialog = ProgressDialog(this).apply {
             setMessage("Mengunggah data...")
             setCancelable(false)
         }
 
-        binding.btnPickLicensePhoto.setOnClickListener { pickLicenseLauncher.launch("image/*") }
-        binding.btnPickStnkPhoto.setOnClickListener { pickStnkLauncher.launch("image/*") }
-        binding.btnAddAmbulancePhoto.setOnClickListener { pickAmbulanceLauncher.launch("image/*") }
-        binding.btnPickAedCert.setOnClickListener { pickAedLauncher.launch("image/*") }
-        binding.btnPickMedicalCert.setOnClickListener { pickMedicalLauncher.launch("image/*") }
+        binding.btnPickLicensePhoto.setOnClickListener { checkCameraPermissionThenShowOptions("license") }
+        binding.btnPickStnkPhoto.setOnClickListener { checkCameraPermissionThenShowOptions("stnk") }
+        binding.btnAddAmbulancePhoto.setOnClickListener { checkCameraPermissionThenShowOptions("ambulance") }
+        binding.btnPickAedCert.setOnClickListener { checkCameraPermissionThenShowOptions("aed") }
+        binding.btnPickMedicalCert.setOnClickListener { checkCameraPermissionThenShowOptions("medical") }
         binding.btnSubmit.setOnClickListener { submitQualification() }
 
         binding.etLicenseNumber.addTextChangedListener { validateForm() }
@@ -129,44 +154,105 @@ class DriverQualificationActivity : AppCompatActivity() {
             }
     }
 
-    private val pickLicenseLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            licensePhotoUri = it
-            binding.imgLicensePreview.setImageURI(it)
-            validateForm()
+    // --- PILIH SUMBER FOTO (GALERI / KAMERA) --- satu dialog generik dipakai bersama kelima
+    // slot foto, dibedakan lewat activePhotoTarget. Reuse pola yang sama dipakai ganti foto
+    // profil & kirim foto chat.
+    private fun checkCameraPermissionThenShowOptions(target: String) {
+        activePhotoTarget = target
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
+        } else {
+            showPhotoOptionsDialog()
         }
     }
 
-    private val pickStnkLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            stnkPhotoUri = it
-            binding.imgStnkPreview.setImageURI(it)
-            validateForm()
+    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        if (permissions[Manifest.permission.CAMERA] == true) showPhotoOptionsDialog()
+    }
+
+    private fun showPhotoOptionsDialog() {
+        val dialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.activity_edit_foto_profile, null)
+        view.findViewById<TextView>(R.id.editProfileTitle).text = "Pilih Foto Dokumen"
+
+        view.findViewById<Button>(R.id.selectImageButton).setOnClickListener {
+            galleryLauncher.launch("image/*")
+            dialog.dismiss()
+        }
+        view.findViewById<Button>(R.id.captureImageButton).setOnClickListener {
+            openCamera()
+            dialog.dismiss()
+        }
+        view.findViewById<Button>(R.id.cancelButton).setOnClickListener { dialog.dismiss() }
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        val target = activePhotoTarget
+        if (uri != null && target != null) handlePickedPhoto(target, uri)
+    }
+
+    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        val uri = latestCapturedUri
+        val target = activePhotoTarget
+        if (success && uri != null && target != null) {
+            handlePickedPhoto(target, uri)
+        } else if (success) {
+            Toast.makeText(this, "Sesi pengambilan foto berakhir, coba lagi", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private val pickAedLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            aedCertUri = it
-            binding.imgAedPreview.visibility = View.VISIBLE
-            binding.imgAedPreview.setImageURI(it)
+    private fun openCamera() {
+        try {
+            val uri = getNewImageUri()
+            latestCapturedUri = uri
+            cameraLauncher.launch(uri)
+        } catch (e: IOException) {
+            Log.e("DriverQualification", e.message.toString())
         }
     }
 
-    private val pickMedicalLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            medicalCertUri = it
-            binding.imgMedicalPreview.visibility = View.VISIBLE
-            binding.imgMedicalPreview.setImageURI(it)
+    private fun getNewImageUri(): Uri {
+        val photoFile = File.createTempFile("IMG_QUAL_", ".jpg", getExternalFilesDir(Environment.DIRECTORY_PICTURES))
+        return FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, photoFile)
+    }
+
+    // Salurkan hasil foto (dari galeri ATAU kamera, keduanya berujung ke sini) ke slot yang tepat.
+    private fun handlePickedPhoto(target: String, uri: Uri) {
+        when (target) {
+            "license" -> {
+                licensePhotoUri = uri
+                binding.imgLicensePreview.setImageURI(uri)
+                validateForm()
+            }
+            "stnk" -> {
+                stnkPhotoUri = uri
+                binding.imgStnkPreview.setImageURI(uri)
+                validateForm()
+            }
+            "aed" -> {
+                aedCertUri = uri
+                binding.imgAedPreview.visibility = View.VISIBLE
+                binding.imgAedPreview.setImageURI(uri)
+            }
+            "medical" -> {
+                medicalCertUri = uri
+                binding.imgMedicalPreview.visibility = View.VISIBLE
+                binding.imgMedicalPreview.setImageURI(uri)
+            }
+            "ambulance" -> {
+                ambulancePhotoUris.add(uri)
+                renderAmbulanceThumbnails()
+                validateForm()
+            }
         }
     }
 
-    private val pickAmbulanceLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            ambulancePhotoUris.add(it)
-            renderAmbulanceThumbnails()
-            validateForm()
-        }
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        activePhotoTarget?.let { outState.putString("activePhotoTarget", it) }
+        latestCapturedUri?.let { outState.putParcelable("latestCapturedUri", it) }
     }
 
     // Render thumbnail foto ambulans: foto LAMA (remote, mode edit) ditampilkan lebih dulu
