@@ -198,55 +198,6 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Kartu trip terakhir - hanya muncul kalau passenger sudah pernah punya trip completed -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardLastTrip"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:visibility="gone"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardMenu">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Trip Terakhir Anda"
-                android:textColor="#757575"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tvLastTripHospital"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="-"
-                android:textColor="@color/black"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvLastTripDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="-"
-                android:textColor="#9E9E9E"
-                android:textSize="12sp" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
     <!-- Tentang Kami: informasi singkat tentang aplikasi -->
     <TextView
         android:id="@+id/textView5"
@@ -259,7 +210,7 @@
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardLastTrip" />
+        app:layout_constraintTop_toBottomOf="@id/cardMenu" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardAboutUs"

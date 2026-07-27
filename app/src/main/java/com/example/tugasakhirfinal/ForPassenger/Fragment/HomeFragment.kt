@@ -79,43 +79,6 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         loadUserData()
-        loadLastTrip()
-    }
-
-    // Kartu "Trip Terakhir Anda" - hanya tampil kalau passenger sudah pernah punya trip completed.
-    // Diurutkan di client (bukan .orderBy di query) supaya tidak butuh composite index Firestore,
-    // pola yang sama dipakai di seluruh app ini.
-    private fun loadLastTrip() {
-        val uid = firebaseAuth.currentUser?.uid ?: return
-        firestore.collection("bookings")
-            .whereEqualTo("passengerId", uid)
-            .whereEqualTo("status", "completed")
-            .get()
-            .addOnSuccessListener { snapshot ->
-                if (_binding == null) return@addOnSuccessListener
-
-                val lastDoc = snapshot.documents
-                    .sortedByDescending { it.getTimestamp("completedAt") ?: it.getTimestamp("createdAt") }
-                    .firstOrNull()
-
-                if (lastDoc == null) {
-                    binding.cardLastTrip.visibility = View.GONE
-                    return@addOnSuccessListener
-                }
-
-                val hospitalName = lastDoc.getString("hospitalName") ?: "Rumah Sakit"
-                val completedAt = lastDoc.getTimestamp("completedAt") ?: lastDoc.getTimestamp("createdAt")
-                val dateText = completedAt?.let {
-                    java.text.SimpleDateFormat("d MMMM yyyy", java.util.Locale("id", "ID")).format(it.toDate())
-                } ?: "-"
-
-                binding.tvLastTripHospital.text = hospitalName
-                binding.tvLastTripDate.text = dateText
-                binding.cardLastTrip.visibility = View.VISIBLE
-            }
-            .addOnFailureListener {
-                if (_binding != null) binding.cardLastTrip.visibility = View.GONE
-            }
     }
 
     private fun loadUserData() {
