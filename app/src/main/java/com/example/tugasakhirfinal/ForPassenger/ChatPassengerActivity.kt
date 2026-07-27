@@ -19,6 +19,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -503,6 +504,12 @@ class ChatPassengerActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         openBookingId = bookingId
+
+        // Notifikasi chat sebelumnya cuma dibatalkan lewat listener di ActivityDrive (layar peta)
+        // - kalau chat dibuka lewat tab Chat (bukan dari layar peta), listener itu tidak aktif jadi
+        // notifikasi tidak pernah hilang meski pesannya sudah terbaca. Dibatalkan langsung di sini
+        // supaya selalu hilang begitu chat ini dibuka, dari jalur manapun.
+        NotificationManagerCompat.from(this).cancel(bookingId.hashCode())
     }
 
     override fun onPause() {
