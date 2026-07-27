@@ -196,6 +196,97 @@
                     android:textSize="13sp"
                     android:layout_marginTop="2dp" />
 
+                <!-- 🚑 Stepper progres perjalanan: pembacaan visual dari status booking yang
+                     sudah dilacak listenDriverResponse(), bukan sumber data baru. -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <View
+                            android:id="@+id/stepCircle1"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:background="@drawable/bg_step_circle" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Dijemput"
+                            android:textColor="#757575"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/stepConnector1"
+                        android:layout_width="0dp"
+                        android:layout_height="3dp"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="4dp"
+                        android:layout_marginBottom="14dp"
+                        android:background="#E0E0E0" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <View
+                            android:id="@+id/stepCircle2"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:background="@drawable/bg_step_circle" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Menuju RS"
+                            android:textColor="#757575"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/stepConnector2"
+                        android:layout_width="0dp"
+                        android:layout_height="3dp"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="4dp"
+                        android:layout_marginBottom="14dp"
+                        android:background="#E0E0E0" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <View
+                            android:id="@+id/stepCircle3"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:background="@drawable/bg_step_circle" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Selesai"
+                            android:textColor="#757575"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

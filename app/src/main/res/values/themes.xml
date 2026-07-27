@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.TugasAkhirFinal" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+    <!-- colorPrimary/Accent/Secondary sebelumnya tidak pernah di-override, jadi semua komponen
+         Material tak berstyle (Button polos yg auto-inflate jadi MaterialButton, Switch,
+         CheckBox, ProgressBar, dll) otomatis pakai palet ungu bawaan Material Components alih-alih
+         tema merah-putih aplikasi ini. -->
+    <style name="Theme.TugasAkhirFinal" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/pink_main</item>
+        <item name="colorPrimaryDark">@color/pink_main</item>
+        <item name="colorAccent">@color/pink_main</item>
+        <item name="colorSecondary">@color/pink_main</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnSecondary">@color/white</item>
+    </style>
 
     <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowFullscreen">true</item>

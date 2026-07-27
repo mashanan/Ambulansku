@@ -92,7 +92,7 @@
                 android:layout_height="52dp"
                 android:text="Simpan Alamat"
                 android:textAllCaps="false"
-                android:backgroundTint="#039BE5"
+                android:backgroundTint="@color/pink_main"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
 

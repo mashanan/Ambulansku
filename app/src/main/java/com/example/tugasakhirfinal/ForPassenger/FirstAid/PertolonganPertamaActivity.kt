@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,7 +15,7 @@ import com.google.firebase.firestore.Query
 class PertolonganPertamaActivity : AppCompatActivity() {
 
     private lateinit var rvFirstAid: RecyclerView
-    private lateinit var tvEmptyFirstAid: TextView
+    private lateinit var layoutEmptyFirstAid: View
     private lateinit var firstAidAdapter: FirstAidAdapter
 
     private val firestore = FirebaseFirestore.getInstance()
@@ -30,7 +29,7 @@ class PertolonganPertamaActivity : AppCompatActivity() {
 
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
 
-        tvEmptyFirstAid = findViewById(R.id.tvEmptyFirstAid)
+        layoutEmptyFirstAid = findViewById(R.id.layoutEmptyFirstAid)
         rvFirstAid = findViewById(R.id.rvFirstAid)
         rvFirstAid.layoutManager = LinearLayoutManager(this)
         firstAidAdapter = FirstAidAdapter(fullList)
@@ -75,7 +74,7 @@ class PertolonganPertamaActivity : AppCompatActivity() {
             }
         }
         firstAidAdapter.updateList(filtered)
-        tvEmptyFirstAid.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+        layoutEmptyFirstAid.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
         rvFirstAid.visibility = if (filtered.isEmpty()) View.GONE else View.VISIBLE
     }
 }

@@ -35,17 +35,34 @@
         tools:listitem="@layout/item_passenger_chat" />
 
     <!-- Tampilan Jika Riwayat Chat Masih Kosong -->
-    <TextView
-        android:id="@+id/tvEmptyChat"
+    <LinearLayout
+        android:id="@+id/layoutEmptyChat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Belum ada riwayat percakapan"
-        android:textColor="#757575"
-        android:textSize="14sp"
+        android:gravity="center"
+        android:orientation="vertical"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="8dp"
+            android:alpha="0.5"
+            android:contentDescription="Kosong"
+            android:src="@android:drawable/ic_menu_info_details"
+            app:tint="#BDBDBD" />
+
+        <TextView
+            android:id="@+id/tvEmptyChat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Belum ada riwayat percakapan"
+            android:textColor="#757575"
+            android:textSize="14sp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

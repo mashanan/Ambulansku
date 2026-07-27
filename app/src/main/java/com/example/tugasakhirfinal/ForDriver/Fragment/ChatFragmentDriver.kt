@@ -105,10 +105,10 @@ class ChatFragmentDriver : Fragment() {
                 }
 
                 if (chatHistoryList.isNotEmpty()) {
-                    binding.tvEmptyChatDriver.visibility = View.GONE
+                    binding.layoutEmptyChatDriver.visibility = View.GONE
                     binding.rvDriverChatList.visibility = View.VISIBLE
                 } else {
-                    binding.tvEmptyChatDriver.visibility = View.VISIBLE
+                    binding.layoutEmptyChatDriver.visibility = View.VISIBLE
                     binding.rvDriverChatList.visibility = View.GONE
                 }
                 driverChatAdapter.updateData(chatHistoryList)

@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -17,7 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 class ApproveDriverActivity : AppCompatActivity() {
 
     private lateinit var rvPendingDrivers: RecyclerView
-    private lateinit var tvEmptyPending: TextView
+    private lateinit var layoutEmptyPending: View
     private lateinit var driverAdapter: PendingDriverAdapter
     private val pendingList = ArrayList<PendingDriverItem>()
 
@@ -30,7 +29,7 @@ class ApproveDriverActivity : AppCompatActivity() {
 
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
 
-        tvEmptyPending = findViewById(R.id.tvEmptyPending)
+        layoutEmptyPending = findViewById(R.id.layoutEmptyPending)
         rvPendingDrivers = findViewById(R.id.rvPendingDrivers)
         rvPendingDrivers.layoutManager = LinearLayoutManager(this)
         driverAdapter = PendingDriverAdapter(
@@ -84,7 +83,7 @@ class ApproveDriverActivity : AppCompatActivity() {
                     }
                 }
                 driverAdapter.updateList(pendingList)
-                tvEmptyPending.visibility = if (pendingList.isEmpty()) View.VISIBLE else View.GONE
+                layoutEmptyPending.visibility = if (pendingList.isEmpty()) View.VISIBLE else View.GONE
             }
     }
 

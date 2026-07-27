@@ -104,7 +104,10 @@ class ChatFragment : Fragment() {
                     }
                 }
 
+                // layoutEmptyChat sebelumnya tidak pernah di-toggle sama sekali (bug lama) - kalau
+                // riwayat kosong, layar cuma blank tanpa pesan apapun ke user.
                 binding.rvPassengerChatList.visibility = if (chatHistoryList.isNotEmpty()) View.VISIBLE else View.GONE
+                binding.layoutEmptyChat.visibility = if (chatHistoryList.isNotEmpty()) View.GONE else View.VISIBLE
                 chatAdapter.updateData(chatHistoryList)
             }
     }

@@ -122,10 +122,10 @@ class HomeFragmentDriver : Fragment() {
                             bookingList.add(booking)
                         }
                     }
-                    binding.tvEmpty.visibility = View.GONE
+                    binding.layoutEmpty.visibility = View.GONE
                 } else {
                     binding.tvEmpty.text = "Belum ada pesanan masuk..."
-                    binding.tvEmpty.visibility = View.VISIBLE
+                    binding.layoutEmpty.visibility = View.VISIBLE
                 }
                 applyDistanceSortingAndRefresh()
             }
@@ -175,7 +175,7 @@ class HomeFragmentDriver : Fragment() {
         bookingAdapter.notifyDataSetChanged()
 
         binding.tvEmpty.text = "Anda sedang Offline/Sibuk. Aktifkan mode Online untuk mencari pesanan."
-        binding.tvEmpty.visibility = View.VISIBLE
+        binding.layoutEmpty.visibility = View.VISIBLE
     }
 
     private fun terimaPesanan(booking: Booking) {

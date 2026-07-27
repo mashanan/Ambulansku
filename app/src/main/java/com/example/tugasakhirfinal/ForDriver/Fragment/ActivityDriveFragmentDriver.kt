@@ -206,6 +206,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                         hasNotifiedArrival = false
                     }
                     currentMode = "jemput"
+                    updateTripStepper(1)
 
                     val geo = doc.getGeoPoint("pickupLocation")
                     geo?.let {
@@ -216,6 +217,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                 } else if (status == "picked_up") {
                     if (currentMode != "antar") isRouteZoomed = false
                     currentMode = "antar"
+                    updateTripStepper(2)
 
                     val lat = doc.getDouble("hospitalLat") ?: 0.0
                     val lng = doc.getDouble("hospitalLng") ?: 0.0
@@ -535,6 +537,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                 )
             )
                 .addOnSuccessListener {
+                    updateTripStepper(3)
                     Toast.makeText(requireContext(), "Tugas Selesai! Kembali online.", Toast.LENGTH_LONG).show()
                     showTripNotification("Perjalanan Selesai", "Tugas selesai. Anda kembali online.")
                     resetToStandbyMode()
@@ -551,6 +554,32 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                         Log.e("ALUR_PINTAR", "Gagal auto-online: ${e.message}")
                     }
                 }
+        }
+    }
+
+    // Tandai tahap aktif (pink), tahap yang sudah lewat (hijau), tahap yang belum (abu-abu).
+    // stage: 1=Jemput, 2=Menuju RS, 3=Selesai.
+    private fun updateTripStepper(activeStage: Int) {
+        if (_binding == null) return
+        val green = Color.parseColor("#2E7D32")
+        val gray = Color.parseColor("#E0E0E0")
+        val pink = ContextCompat.getColor(requireContext(), R.color.pink_main)
+
+        val circles = listOf(binding.stepCircle1, binding.stepCircle2, binding.stepCircle3)
+        for ((index, circle) in circles.withIndex()) {
+            val stageNum = index + 1
+            val color = when {
+                stageNum < activeStage -> green
+                stageNum == activeStage -> pink
+                else -> gray
+            }
+            circle.backgroundTintList = android.content.res.ColorStateList.valueOf(color)
+        }
+
+        val connectors = listOf(binding.stepConnector1, binding.stepConnector2)
+        for ((index, connector) in connectors.withIndex()) {
+            val stageNum = index + 1
+            connector.setBackgroundColor(if (stageNum < activeStage) green else gray)
         }
     }
 

@@ -529,6 +529,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     binding.layoutDriverOnTheWay.visibility = View.VISIBLE
                     binding.tvDriverStatus.text = "Ambulans Sedang Menuju Lokasi Anda"
                     setupChatButton(bookingId)
+                    updateTripStepper(1)
 
                     if (driverId.isNotEmpty() && driverId != trackedDriverId) {
                         trackedDriverId = driverId
@@ -539,6 +540,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                 else if (status == "picked_up") {
                     currentBookingStatus = "picked_up"
                     binding.tvDriverStatus.text = "Mengantar Pasien ke Rumah Sakit"
+                    updateTripStepper(2)
 
                     val startLoc = lastKnownDriverLocation ?: lastKnownLocation
                     if (startLoc != null && destinationHospitalLoc != null) {
@@ -556,6 +558,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     }
                 }
                 else if (status == "completed") {
+                    updateTripStepper(3)
                     if (lastNotifiedStatus != "completed") {
                         lastNotifiedStatus = "completed"
                         showTripNotification("Sudah Sampai di Rumah Sakit", "Ambulans telah tiba di rumah sakit tujuan. Semoga lekas sembuh.")
@@ -565,6 +568,31 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     finish()
                 }
             }
+    }
+
+    // Tandai tahap aktif (pink), tahap yang sudah lewat (hijau), tahap yang belum (abu-abu).
+    // stage: 1=Dijemput, 2=Menuju RS, 3=Selesai.
+    private fun updateTripStepper(activeStage: Int) {
+        val green = android.graphics.Color.parseColor("#2E7D32")
+        val gray = android.graphics.Color.parseColor("#E0E0E0")
+        val pink = ContextCompat.getColor(this, R.color.pink_main)
+
+        val circles = listOf(binding.stepCircle1, binding.stepCircle2, binding.stepCircle3)
+        for ((index, circle) in circles.withIndex()) {
+            val stageNum = index + 1
+            val color = when {
+                stageNum < activeStage -> green
+                stageNum == activeStage -> pink
+                else -> gray
+            }
+            circle.backgroundTintList = android.content.res.ColorStateList.valueOf(color)
+        }
+
+        val connectors = listOf(binding.stepConnector1, binding.stepConnector2)
+        for ((index, connector) in connectors.withIndex()) {
+            val stageNum = index + 1
+            connector.setBackgroundColor(if (stageNum < activeStage) green else gray)
+        }
     }
 
     // Ambil sekali (bukan tiap update lokasi) profil driver yang menerima pesanan, supaya
