@@ -15,7 +15,9 @@ An Android native utility application designed to streamline emergency data hand
 *   **Build Tool:** Gradle (Groovy DSL)
 
 ## 📸 Screenshots
-*(TIPS UNTUK ANDA: Letakkan 3-4 gambar screenshot aplikasi di sini. Pilih halaman Login, halaman Dashboard Utama, dan satu halaman form input data. Jangan sertakan screenshot halaman map/peta)*
+<img width="746" height="1600" alt="image" src="https://github.com/user-attachments/assets/e01a4c21-aa8a-4b52-a44c-b8c5b8638bd4" />
+<img width="746" height="1600" alt="image" src="https://github.com/user-attachments/assets/c3c99dcc-cb9b-4080-a7c6-47f61c129e8a" />
+<img width="746" height="1600" alt="image" src="https://github.com/user-attachments/assets/78e9cd70-5fcb-4e29-8527-f453c6fa0f64" />
 
 ## 💡 Technical Highlights
 As a developer with an Information Systems background, my primary focus in this project was the backend logic and data structure. The integration between the Android client and Firebase is optimized to handle asynchronous requests smoothly, preventing UI freezes and ensuring a reliable user experience.
