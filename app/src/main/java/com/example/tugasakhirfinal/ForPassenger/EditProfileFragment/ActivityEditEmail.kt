@@ -34,7 +34,7 @@ class ActivityEditEmail : AppCompatActivity() {
         firestore = FirebaseFirestore.getInstance()
 
         progressDialog = ProgressDialog(this)
-        progressDialog.setTitle("Mohon Tunggu")
+        progressDialog.setTitle("Please Wait")
         progressDialog.setCancelable(false)
 
         val editTextEmail: EditText = findViewById(R.id.editTextEmail)
@@ -46,7 +46,7 @@ class ActivityEditEmail : AppCompatActivity() {
         editTextEmail.isEnabled = false // Email lama dibuat read-only karena input email baru ada di dialog
 
         // Mengubah teks tombol menjadi "Ganti Email"
-        saveEmailButton.text = "Ganti Email"
+        saveEmailButton.text = "Change Email"
 
         // Klik tombol langsung memunculkan pop-up
         saveEmailButton.setOnClickListener {
@@ -68,7 +68,7 @@ class ActivityEditEmail : AppCompatActivity() {
         val etConfirmPass = dialogView.findViewById<TextInputEditText>(R.id.etConfirmNewPassword)
 
         builder.setView(dialogView)
-        builder.setPositiveButton("Proses") { dialog, _ ->
+        builder.setPositiveButton("Continue") { dialog, _ ->
             val oldPass = etOldPass.text.toString().trim()
             val newEmail = etNewEmail.text.toString().trim()
             val newPass = etNewPass.text.toString().trim()
@@ -76,28 +76,28 @@ class ActivityEditEmail : AppCompatActivity() {
 
             // Validasi Password Lama & Email Baru
             if (oldPass.isEmpty()) {
-                Toast.makeText(this, "Password saat ini wajib diisi", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Current password is required", Toast.LENGTH_SHORT).show()
                 return@setPositiveButton
             }
 
             if (newEmail.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) {
-                Toast.makeText(this, "Email baru tidak valid", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "New email is invalid", Toast.LENGTH_SHORT).show()
                 return@setPositiveButton
             }
 
             if (newEmail.equals(currentEmail, ignoreCase = true)) {
-                Toast.makeText(this, "Email baru tidak boleh sama dengan email saat ini", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "New email cannot be the same as the current email", Toast.LENGTH_SHORT).show()
                 return@setPositiveButton
             }
 
             // Validasi Password Baru jika diisi
             if (newPass.isNotEmpty()) {
                 if (newPass.length < 6) {
-                    Toast.makeText(this, "Password baru minimal 6 karakter", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "New password must be at least 6 characters", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 if (newPass != confirmPass) {
-                    Toast.makeText(this, "Konfirmasi password tidak cocok", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Password confirmation does not match", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
             }
@@ -105,12 +105,12 @@ class ActivityEditEmail : AppCompatActivity() {
             reAuthenticateAndProcess(oldPass, newEmail, newPass)
             dialog.dismiss()
         }
-        builder.setNegativeButton("Batal") { d, _ -> d.cancel() }
+        builder.setNegativeButton("Cancel") { d, _ -> d.cancel() }
         builder.show()
     }
 
     private fun reAuthenticateAndProcess(oldPass: String, newEmail: String, newPass: String) {
-        progressDialog.setMessage("Memverifikasi password saat ini...")
+        progressDialog.setMessage("Verifying current password...")
         progressDialog.show()
 
         val user = firebaseAuth.currentUser
@@ -121,7 +121,7 @@ class ActivityEditEmail : AppCompatActivity() {
                 processEmailAndPasswordChange(user, newEmail, newPass)
             } else {
                 progressDialog.dismiss()
-                Toast.makeText(this, "Password saat ini salah!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Current password is incorrect!", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -129,13 +129,13 @@ class ActivityEditEmail : AppCompatActivity() {
     private fun processEmailAndPasswordChange(user: FirebaseUser, newEmail: String, newPass: String) {
         // 1. Jika ada password baru, perbarui password terlebih dahulu
         if (newPass.isNotEmpty()) {
-            progressDialog.setMessage("Memperbarui password...")
+            progressDialog.setMessage("Updating password...")
             user.updatePassword(newPass).addOnCompleteListener { passTask ->
                 if (passTask.isSuccessful) {
                     sendVerificationToNewEmail(user, newEmail)
                 } else {
                     progressDialog.dismiss()
-                    Toast.makeText(this, "Gagal ganti password: ${passTask.exception?.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Failed to change password: ${passTask.exception?.message}", Toast.LENGTH_LONG).show()
                 }
             }
         } else {
@@ -144,7 +144,7 @@ class ActivityEditEmail : AppCompatActivity() {
     }
 
     private fun sendVerificationToNewEmail(user: FirebaseUser, newEmail: String) {
-        progressDialog.setMessage("Mengirim konfirmasi ke email baru...")
+        progressDialog.setMessage("Sending confirmation to new email...")
 
         // Menggunakan verifyBeforeUpdateEmail agar perubahan resmi terjadi setelah link diklik oleh user
         user.verifyBeforeUpdateEmail(newEmail).addOnCompleteListener { task ->
@@ -155,27 +155,27 @@ class ActivityEditEmail : AppCompatActivity() {
 
                 Toast.makeText(
                     this,
-                    "Link konfirmasi telah dikirim ke $newEmail. Silakan cek inbox dan verifikasi sebelum login kembali.",
+                    "A confirmation link has been sent to $newEmail. Please check your inbox and verify before logging in again.",
                     Toast.LENGTH_LONG
                 ).show()
 
                 startCooldownTimer()
                 logoutAndReset()
             } else {
-                Toast.makeText(this, "Gagal mengirim konfirmasi: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Failed to send confirmation: ${task.exception?.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
 
     private fun showResetConfirmationDialog() {
         AlertDialog.Builder(this).apply {
-            setTitle("Konfirmasi Reset Password")
-            setMessage("Apakah Anda yakin ingin mereset password Anda?")
-            setPositiveButton("Iya") { dialog, _ ->
+            setTitle("Confirm Password Reset")
+            setMessage("Are you sure you want to reset your password?")
+            setPositiveButton("Yes") { dialog, _ ->
                 sendResetPassword()
                 dialog.dismiss()
             }
-            setNegativeButton("Tidak") { dialog, _ ->
+            setNegativeButton("No") { dialog, _ ->
                 dialog.dismiss()
             }
             setCancelable(true)
@@ -185,21 +185,21 @@ class ActivityEditEmail : AppCompatActivity() {
 
     private fun sendResetPassword() {
         if (currentEmail.isNotEmpty()) {
-            progressDialog.setMessage("Mengirim email reset...")
+            progressDialog.setMessage("Sending reset email...")
             progressDialog.show()
 
             firebaseAuth.sendPasswordResetEmail(currentEmail)
                 .addOnCompleteListener { task ->
                     progressDialog.dismiss()
                     if (task.isSuccessful) {
-                        Toast.makeText(this, "Link reset password telah dikirim ke $currentEmail. Silakan login kembali.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "A password reset link has been sent to $currentEmail. Please log in again.", Toast.LENGTH_LONG).show()
                         logoutAndReset()
                     } else {
-                        Toast.makeText(this, "Gagal: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "Failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                     }
                 }
         } else {
-            Toast.makeText(this, "Email tidak terdeteksi", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Email not detected", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -209,12 +209,12 @@ class ActivityEditEmail : AppCompatActivity() {
 
         object : CountDownTimer(60000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
-                saveButton.text = "Tunggu (${millisUntilFinished / 1000}s)"
+                saveButton.text = "Wait (${millisUntilFinished / 1000}s)"
             }
 
             override fun onFinish() {
                 saveButton.isEnabled = true
-                saveButton.text = "Ganti Email"
+                saveButton.text = "Change Email"
             }
         }.start()
     }

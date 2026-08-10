@@ -15,7 +15,7 @@
             android:id="@+id/tvFormTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Lengkapi Data Kualifikasi Driver"
+            android:text="Complete Driver Qualification Data"
             android:textSize="20sp"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
@@ -24,7 +24,7 @@
             android:id="@+id/tvFormSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Data ini akan diperiksa Admin sebelum akun Anda disetujui untuk mengemudi."
+            android:text="This data will be reviewed by the Admin before your account is approved to drive."
             android:textColor="#757575"
             android:textSize="13sp"
             android:layout_marginBottom="20dp" />
@@ -33,7 +33,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Standar 1: Legalitas &amp; Lisensi Lalu Lintas"
+            android:text="Standard 1: Legal Documents &amp; Traffic License"
             android:textColor="#D32F2F"
             android:textSize="15sp"
             android:textStyle="bold"
@@ -42,7 +42,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Nomor SIM A"
+            android:hint="Driver's License Number (SIM A)"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="12dp">
             <com.google.android.material.textfield.TextInputEditText
@@ -54,7 +54,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Foto SIM A (wajib)"
+            android:text="Driver's License Photo (required)"
             android:textStyle="bold"
             android:layout_marginBottom="6dp" />
 
@@ -65,19 +65,19 @@
             android:background="#EEEEEE"
             android:scaleType="centerCrop"
             android:layout_marginBottom="8dp"
-            android:contentDescription="Preview Foto SIM" />
+            android:contentDescription="Driver's License Photo Preview" />
 
         <Button
             android:id="@+id/btnPickLicensePhoto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pilih Foto SIM"
+            android:text="Choose License Photo"
             android:layout_marginBottom="20dp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Nomor Plat / STNK"
+            android:hint="Plate Number / Vehicle Registration"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="12dp">
             <com.google.android.material.textfield.TextInputEditText
@@ -89,7 +89,30 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Foto STNK (wajib)"
+            android:text="Ambulance Category"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <Spinner
+            android:id="@+id/spinnerAmbulanceCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Penjelasan kategori yang sedang dipilih - diperbarui otomatis saat pilihan berubah -->
+        <TextView
+            android:id="@+id/tvAmbulanceCategoryDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="20dp"
+            android:text=""
+            android:textColor="#757575"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vehicle Registration Photo (required)"
             android:textStyle="bold"
             android:layout_marginBottom="6dp" />
 
@@ -100,19 +123,19 @@
             android:background="#EEEEEE"
             android:scaleType="centerCrop"
             android:layout_marginBottom="8dp"
-            android:contentDescription="Preview Foto STNK" />
+            android:contentDescription="Vehicle Registration Photo Preview" />
 
         <Button
             android:id="@+id/btnPickStnkPhoto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pilih Foto STNK"
+            android:text="Choose Registration Photo"
             android:layout_marginBottom="20dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Foto Kondisi Ambulans (wajib, minimal 1)"
+            android:text="Ambulance Condition Photos (required, at least 1)"
             android:textStyle="bold"
             android:layout_marginBottom="6dp" />
 
@@ -133,13 +156,13 @@
             android:id="@+id/btnAddAmbulancePhoto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tambah Foto Ambulans"
+            android:text="Add Ambulance Photo"
             android:layout_marginBottom="20dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sertifikat Ambulance Emergency Driving (opsional)"
+            android:text="Ambulance Emergency Driving Certificate (optional)"
             android:textStyle="bold"
             android:layout_marginBottom="6dp" />
 
@@ -150,14 +173,14 @@
             android:background="#EEEEEE"
             android:scaleType="centerCrop"
             android:layout_marginBottom="8dp"
-            android:contentDescription="Preview Sertifikat AED"
+            android:contentDescription="AED Certificate Preview"
             android:visibility="gone" />
 
         <Button
             android:id="@+id/btnPickAedCert"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pilih Foto Sertifikat AED (opsional)"
+            android:text="Choose AED Certificate Photo (optional)"
             android:layout_marginBottom="24dp" />
 
         <View
@@ -170,7 +193,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Standar 2: Kompetensi Medis Dasar"
+            android:text="Standard 2: Basic Medical Competency"
             android:textColor="#D32F2F"
             android:textSize="15sp"
             android:textStyle="bold"
@@ -179,7 +202,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sertifikat BTLS atau BHD (opsional)"
+            android:text="BTLS or BHD Certificate (optional)"
             android:textStyle="bold"
             android:layout_marginBottom="6dp" />
 
@@ -190,14 +213,14 @@
             android:background="#EEEEEE"
             android:scaleType="centerCrop"
             android:layout_marginBottom="8dp"
-            android:contentDescription="Preview Sertifikat BTLS/BHD"
+            android:contentDescription="BTLS/BHD Certificate Preview"
             android:visibility="gone" />
 
         <Button
             android:id="@+id/btnPickMedicalCert"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pilih Foto Sertifikat BTLS/BHD (opsional)"
+            android:text="Choose BTLS/BHD Certificate Photo (optional)"
             android:layout_marginBottom="24dp" />
 
         <View
@@ -210,7 +233,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Standar 3: Etika &amp; Protokol Operasional (SOP)"
+            android:text="Standard 3: Ethics &amp; Operational Protocol (SOP)"
             android:textColor="#D32F2F"
             android:textSize="15sp"
             android:textStyle="bold"
@@ -219,7 +242,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Centang semua pernyataan berikut untuk melanjutkan pendaftaran."
+            android:text="Check all the following statements to continue your registration."
             android:textColor="#757575"
             android:textSize="12sp"
             android:layout_marginBottom="8dp" />
@@ -228,28 +251,28 @@
             android:id="@+id/cbSopSirine"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Saya memahami etika dan peraturan penggunaan sirine"
+            android:text="I understand the ethics and regulations for siren use"
             android:layout_marginBottom="4dp" />
 
         <CheckBox
             android:id="@+id/cbSopEquipment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Saya menguasai penggunaan alat utama ambulans (tabung oksigen, kelistrikan/inverter, kebersihan unit)"
+            android:text="I am proficient in using the ambulance's main equipment (oxygen tank, electrical/inverter system, unit cleanliness)"
             android:layout_marginBottom="4dp" />
 
         <CheckBox
             android:id="@+id/cbSopApd"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Saya mengerti cara penggunaan Alat Pelindung Diri (APD) dasar (sarung tangan lateks, masker medis, sepatu keselamatan)"
+            android:text="I understand how to use basic Personal Protective Equipment (PPE) (latex gloves, medical mask, safety shoes)"
             android:layout_marginBottom="4dp" />
 
         <CheckBox
             android:id="@+id/cbSopHealthCheck"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Saya telah lolos tes kesehatan berkala (bebas narkoba, pendengaran baik, penglihatan baik)"
+            android:text="I have passed regular health checks (drug-free, good hearing, good eyesight)"
             android:layout_marginBottom="24dp" />
 
         <Button
@@ -258,7 +281,7 @@
             android:layout_height="wrap_content"
             android:backgroundTint="#D32F2F"
             android:textColor="@android:color/white"
-            android:text="Kirim untuk Verifikasi"
+            android:text="Submit for Verification"
             android:textAllCaps="false"
             android:enabled="false"
             android:alpha="0.5"

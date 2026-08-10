@@ -42,7 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Nama Driver"
+                android:text="Driver Name"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
         </FrameLayout>
@@ -57,7 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Nomor Telepon"
+                android:text="Phone Number"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
         </FrameLayout>
@@ -83,7 +83,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Info Kelayakan Driver"
+                android:text="Driver Eligibility Info"
                 android:textStyle="bold"
                 android:textSize="15sp" />
 
@@ -94,7 +94,7 @@
                 android:layout_marginTop="8dp"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"
-                android:text="Memuat status..."
+                android:text="Loading status..."
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -103,7 +103,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="No. SIM: -"
+                android:text="License No.: -"
                 android:textColor="#616161"
                 android:textSize="13sp" />
 
@@ -112,7 +112,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="No. Plat / STNK: -"
+                android:text="Plate / Registration No.: -"
                 android:textColor="#616161"
                 android:textSize="13sp" />
 
@@ -124,7 +124,7 @@
                 android:background="@drawable/rounded_button"
                 android:backgroundTint="@color/pink_main"
                 android:padding="10dp"
-                android:text="Edit Data Kualifikasi"
+                android:text="Edit Qualification Data"
                 android:textAllCaps="false"
                 android:textColor="@color/white" />
         </LinearLayout>
@@ -138,7 +138,7 @@
         android:layout_marginTop="20dp"
         android:background="@drawable/rounded_button"
         android:backgroundTint="@color/pink_button"
-        android:text="Hapus Akun"
+        android:text="Delete Account"
         android:textColor="@color/white"
         android:textStyle="bold"
         android:textAllCaps="false"

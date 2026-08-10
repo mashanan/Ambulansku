@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Kelola Rumah Sakit"
+            android:text="Manage Hospitals"
             android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -53,7 +53,7 @@
             android:background="@null"
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="12dp"
-            android:hint="Cari rumah sakit..."
+            android:hint="Search hospitals..."
             android:inputType="text"
             android:paddingHorizontal="16dp"
             android:textSize="14sp" />
@@ -76,7 +76,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
-        android:contentDescription="Tambah Rumah Sakit"
+        android:contentDescription="Add Hospital"
         android:src="@android:drawable/ic_input_add"
         app:backgroundTint="@color/pink_main"
         app:layout_constraintBottom_toBottomOf="parent"

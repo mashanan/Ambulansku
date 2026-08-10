@@ -25,7 +25,7 @@
             android:id="@+id/switchOnline"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Aktifkan jika ingin menerima pesanan" />
+            android:text="Turn on to receive bookings" />
     </LinearLayout>
 
     <FrameLayout

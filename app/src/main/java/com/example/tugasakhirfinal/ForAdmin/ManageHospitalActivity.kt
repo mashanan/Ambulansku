@@ -12,10 +12,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.tugasakhirfinal.ForPassenger.Hospital
+import com.example.tugasakhirfinal.ForPassenger.DriveFragment.Hospital
 import com.example.tugasakhirfinal.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 class ManageHospitalActivity : AppCompatActivity() {
 
@@ -28,6 +29,7 @@ class ManageHospitalActivity : AppCompatActivity() {
     private val fullHospitalList = ArrayList<Hospital>()
 
     private val firestore = FirebaseFirestore.getInstance()
+    private var hospitalsListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,21 +70,26 @@ class ManageHospitalActivity : AppCompatActivity() {
         loadHospitalsFromFirestore()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        hospitalsListener?.remove()
+    }
+
     private fun loadHospitalsFromFirestore() {
-        firestore.collection("hospitals")
+        hospitalsListener?.remove()
+        hospitalsListener = firestore.collection("hospitals")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Toast.makeText(this, "Gagal memuat data RS: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to load hospital data: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
                 }
 
                 fullHospitalList.clear()
                 if (snapshot != null && !snapshot.isEmpty) {
                     for (doc in snapshot.documents) {
-                        val nama = doc.getString("nama") ?: "Tanpa Nama"
+                        val nama = doc.getString("nama") ?: "Untitled"
                         val alamat = doc.getString("alamat") ?: "-"
                         val telepon = doc.getString("telepon") ?: "-"
-                        val igdStatus = doc.getString("igdStatus") ?: doc.getString("IGD status") ?: "Tersedia"
 
                         val geoPoint = doc.getGeoPoint("lokasi")
                         val lat = geoPoint?.latitude ?: 0.0
@@ -93,7 +100,6 @@ class ManageHospitalActivity : AppCompatActivity() {
                             nama = nama,
                             alamat = alamat,
                             telepon = telepon,
-                            igdStatus = igdStatus,
                             latitude = lat,
                             longitude = lng
                         )
@@ -110,7 +116,6 @@ class ManageHospitalActivity : AppCompatActivity() {
             putExtra(AddEditHospitalActivity.EXTRA_NAME, hospital.nama)
             putExtra(AddEditHospitalActivity.EXTRA_ADDRESS, hospital.alamat)
             putExtra(AddEditHospitalActivity.EXTRA_PHONE, hospital.telepon)
-            putExtra(AddEditHospitalActivity.EXTRA_IGD_STATUS, hospital.igdStatus)
             putExtra(AddEditHospitalActivity.EXTRA_LAT, hospital.latitude)
             putExtra(AddEditHospitalActivity.EXTRA_LNG, hospital.longitude)
         }
@@ -119,18 +124,18 @@ class ManageHospitalActivity : AppCompatActivity() {
 
     private fun confirmDeleteHospital(hospital: Hospital) {
         AlertDialog.Builder(this)
-            .setTitle("Hapus Rumah Sakit?")
-            .setMessage("Hapus \"${hospital.nama}\" dari daftar rumah sakit?")
-            .setPositiveButton("Hapus") { _, _ ->
+            .setTitle("Delete Hospital?")
+            .setMessage("Delete \"${hospital.nama}\" from the hospital list?")
+            .setPositiveButton("Delete") { _, _ ->
                 firestore.collection("hospitals").document(hospital.id).delete()
                     .addOnSuccessListener {
-                        Toast.makeText(this, "Rumah sakit dihapus", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Hospital deleted", Toast.LENGTH_SHORT).show()
                     }
                     .addOnFailureListener { e ->
-                        Toast.makeText(this, "Gagal menghapus: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Failed to delete: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 

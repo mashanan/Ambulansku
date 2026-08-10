@@ -30,9 +30,9 @@ class FirstAidAdminAdapter(
 
     override fun onBindViewHolder(holder: FirstAidAdminViewHolder, position: Int) {
         val condition = conditionList[position]
-        holder.tvTitle.text = condition.title.ifEmpty { "Tanpa Nama" }
+        holder.tvTitle.text = condition.title.ifEmpty { "Untitled" }
         holder.tvSymptoms.text = condition.symptoms.ifEmpty { "-" }
-        holder.tvStepCount.text = "${condition.steps.size} langkah pertolongan"
+        holder.tvStepCount.text = "${condition.steps.size} first aid steps"
 
         holder.btnEdit.setOnClickListener { onEditClick(condition) }
         holder.btnDelete.setOnClickListener { onDeleteClick(condition) }

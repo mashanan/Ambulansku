@@ -1,9 +1,7 @@
 package com.example.tugasakhirfinal.ForAdmin
 
 import android.os.Bundle
-import android.widget.ArrayAdapter
 import android.widget.ImageView
-import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -35,7 +33,6 @@ class AddEditHospitalActivity : AppCompatActivity(), OnMapReadyCallback {
         const val EXTRA_NAME = "HOSPITAL_NAME"
         const val EXTRA_ADDRESS = "HOSPITAL_ADDRESS"
         const val EXTRA_PHONE = "HOSPITAL_PHONE"
-        const val EXTRA_IGD_STATUS = "HOSPITAL_IGD_STATUS"
         const val EXTRA_LAT = "HOSPITAL_LAT"
         const val EXTRA_LNG = "HOSPITAL_LNG"
     }
@@ -49,23 +46,15 @@ class AddEditHospitalActivity : AppCompatActivity(), OnMapReadyCallback {
 
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
 
-        val spinner = findViewById<Spinner>(R.id.spinnerIgdStatus)
-        val statusOptions = listOf("Tersedia", "Ramai", "Penuh")
-        spinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, statusOptions)
-
         val saveButton = findViewById<AppCompatButton>(R.id.btnSaveHospital)
 
         if (editingHospitalId != null) {
-            findViewById<TextView>(R.id.tvFormTitle).text = "Edit Rumah Sakit"
-            saveButton.text = "Simpan Perubahan"
+            findViewById<TextView>(R.id.tvFormTitle).text = "Edit Hospital"
+            saveButton.text = "Save Changes"
 
             findViewById<TextInputEditText>(R.id.etHospitalName).setText(intent.getStringExtra(EXTRA_NAME))
             findViewById<TextInputEditText>(R.id.etHospitalAddress).setText(intent.getStringExtra(EXTRA_ADDRESS))
             findViewById<TextInputEditText>(R.id.etHospitalPhone).setText(intent.getStringExtra(EXTRA_PHONE))
-
-            val currentStatus = intent.getStringExtra(EXTRA_IGD_STATUS)
-            val statusIndex = statusOptions.indexOf(currentStatus)
-            if (statusIndex >= 0) spinner.setSelection(statusIndex)
 
             val lat = intent.getDoubleExtra(EXTRA_LAT, 0.0)
             val lng = intent.getDoubleExtra(EXTRA_LNG, 0.0)
@@ -86,7 +75,7 @@ class AddEditHospitalActivity : AppCompatActivity(), OnMapReadyCallback {
         val existingLatLng = selectedLatLng
         if (existingLatLng != null) {
             // Sedang edit & sudah punya koordinat lama — tampilkan langsung markernya.
-            mMap.addMarker(MarkerOptions().position(existingLatLng).title("Lokasi Rumah Sakit"))
+            mMap.addMarker(MarkerOptions().position(existingLatLng).title("Hospital Location"))
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(existingLatLng, 15f))
         } else {
             // Default kamera ke Surabaya, mengikuti cakupan data rumah sakit yang sudah ada.
@@ -97,7 +86,7 @@ class AddEditHospitalActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.setOnMapClickListener { latLng ->
             selectedLatLng = latLng
             mMap.clear()
-            mMap.addMarker(MarkerOptions().position(latLng).title("Lokasi Rumah Sakit"))
+            mMap.addMarker(MarkerOptions().position(latLng).title("Hospital Location"))
         }
     }
 
@@ -105,15 +94,14 @@ class AddEditHospitalActivity : AppCompatActivity(), OnMapReadyCallback {
         val nama = findViewById<TextInputEditText>(R.id.etHospitalName).text.toString().trim()
         val alamat = findViewById<TextInputEditText>(R.id.etHospitalAddress).text.toString().trim()
         val telepon = findViewById<TextInputEditText>(R.id.etHospitalPhone).text.toString().trim()
-        val igdStatus = findViewById<Spinner>(R.id.spinnerIgdStatus).selectedItem.toString()
         val latLng = selectedLatLng
 
         if (nama.isEmpty() || alamat.isEmpty() || telepon.isEmpty()) {
-            Toast.makeText(this, "Semua kolom wajib diisi", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show()
             return
         }
         if (latLng == null) {
-            Toast.makeText(this, "Ketuk peta untuk memilih lokasi rumah sakit", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Tap the map to select the hospital location", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -121,7 +109,6 @@ class AddEditHospitalActivity : AppCompatActivity(), OnMapReadyCallback {
             "nama" to nama,
             "alamat" to alamat,
             "telepon" to telepon,
-            "igdStatus" to igdStatus,
             "lokasi" to GeoPoint(latLng.latitude, latLng.longitude)
         )
 
@@ -133,11 +120,11 @@ class AddEditHospitalActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         task.addOnSuccessListener {
-            val message = if (hospitalId != null) "Rumah sakit berhasil diperbarui" else "Rumah sakit berhasil ditambahkan"
+            val message = if (hospitalId != null) "Hospital updated successfully" else "Hospital added successfully"
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             finish()
         }.addOnFailureListener { e ->
-            Toast.makeText(this, "Gagal menyimpan: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Failed to save: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 }

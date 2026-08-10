@@ -1,56 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 🗺️ Google Map -->
+    <!-- 🗺️ Google Map - selalu penuh layar, tidak lagi tertutup permanen oleh panel info -->
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 💬 Tombol Chat (Melayang di kanan bawah peta) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btnChatPassenger"
+    <!-- 💬 Tombol Chat - posisi tetap di kanan atas peta, tidak ikut naik-turun bersama
+         panel bawah supaya selalu gampang dijangkau apa pun posisi panel-nya -->
+    <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/bottomLayout"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:src="@android:drawable/ic_dialog_email"
-        android:visibility="gone"
-        app:backgroundTint="#0084FF"
-        app:tint="@android:color/white"
-        android:contentDescription="Chat Penumpang" />
+        android:layout_gravity="top|end"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp">
 
-    <!-- 🔴 Angka Notif Merah (Badge) untuk Driver -->
-    <TextView
-        android:id="@+id/tvUnreadBadge"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
-        android:layout_alignTop="@id/btnChatPassenger"
-        android:layout_alignEnd="@id/btnChatPassenger"
-        android:background="@drawable/bg_badge_red"
-        android:gravity="center"
-        android:text="1"
-        android:textColor="@android:color/white"
-        android:textSize="10sp"
-        android:textStyle="bold"
-        android:elevation="10dp"
-        android:visibility="gone" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnChatPassenger"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_dialog_email"
+            android:visibility="gone"
+            app:backgroundTint="#0084FF"
+            app:tint="@android:color/white"
+            android:contentDescription="Passenger Chat" />
 
-    <!-- 📋 Info Jarak & Tombol Selesai (Di bagian paling bawah) -->
-    <androidx.cardview.widget.CardView
+        <!-- 🔴 Angka Notif Merah (Badge) untuk Driver -->
+        <TextView
+            android:id="@+id/tvUnreadBadge"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="top|end"
+            android:background="@drawable/bg_badge_red"
+            android:gravity="center"
+            android:text="1"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:elevation="10dp"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- 📋 Panel Info Jarak & Tombol Selesai - sekarang bottom sheet yang bisa ditarik turun
+         (mengecil, cuma sisakan handle + status pesanan saat ini, memaksimalkan tampilan peta)
+         atau ditarik naik (tampil penuh) kapan saja oleh driver. Sengaja TIDAK hideable penuh
+         supaya selalu ada handle tersisa untuk ditarik kembali. -->
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/bottomLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="10dp">
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_peekHeight="72dp"
+        app:behavior_fitToContents="true"
+        app:cardElevation="10dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.BottomSheetTop">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -58,11 +66,20 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!-- Pegangan drag -->
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_drag_handle" />
+
+            <!-- Status pesanan saat ini - satu-satunya yang tetap terlihat saat panel dikecilkan -->
             <TextView
                 android:id="@+id/tvCurrentStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Siap menerima pesanan..."
+                android:text="Ready to accept bookings..."
                 android:textAlignment="center"
                 android:textColor="#D32F2F"
                 android:textSize="16sp"
@@ -106,7 +123,7 @@
                         android:id="@+id/tvPassengerName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Nama Penumpang"
+                        android:text="Passenger Name"
                         android:textColor="@android:color/black"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -126,7 +143,7 @@
                     android:layout_height="36dp"
                     android:background="@drawable/rounded_button"
                     android:backgroundTint="#2E7D32"
-                    android:contentDescription="Telepon Penumpang"
+                    android:contentDescription="Call Passenger"
                     android:padding="8dp"
                     android:src="@android:drawable/ic_menu_call"
                     app:tint="@color/white" />
@@ -157,7 +174,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Jemput"
+                        android:text="Pickup"
                         android:textColor="#757575"
                         android:textSize="10sp" />
                 </LinearLayout>
@@ -187,7 +204,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Menuju RS"
+                        android:text="To Hospital"
                         android:textColor="#757575"
                         android:textSize="10sp" />
                 </LinearLayout>
@@ -217,7 +234,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Selesai"
+                        android:text="Done"
                         android:textColor="#757575"
                         android:textSize="10sp" />
                 </LinearLayout>
@@ -228,13 +245,45 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Konfirmasi Jemput"
+                android:text="Confirm Pickup"
                 android:backgroundTint="#D32F2F"
                 android:textColor="@android:color/white"
                 android:padding="12dp"
                 android:textAllCaps="false"
                 android:visibility="gone" />
 
+            <!-- Hanya muncul saat mode "antar" (sudah menjemput pasien, menuju RS) - driver
+                 dianggap punya kapabilitas menilai kegawatdaruratan pasien & bisa mengalihkan
+                 tujuan ke RS lain yang fasilitasnya lebih lengkap kalau kondisinya mendesak. -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnGantiRumahSakit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_button"
+                android:backgroundTint="@color/pink_pale"
+                android:text="Change to Another Hospital (Emergency)"
+                android:textAllCaps="false"
+                android:textColor="@color/pink_main"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <!-- Sengaja dibuat teks polos (bukan tombol merah besar) supaya tidak gampang
+                 tersenggol tidak sengaja - dipakai HANYA untuk keadaan darurat di tengah
+                 perjalanan (kecelakaan, ban bocor, dll), butuh 2x konfirmasi sebelum benar-benar
+                 membatalkan (lihat ActivityDriveFragmentDriver.kt). -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnBatalkanPesanan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@android:color/transparent"
+                android:text="Cancel Booking (Emergency)"
+                android:textAllCaps="false"
+                android:textColor="#D32F2F"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
-</RelativeLayout>
+    </com.google.android.material.card.MaterialCardView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

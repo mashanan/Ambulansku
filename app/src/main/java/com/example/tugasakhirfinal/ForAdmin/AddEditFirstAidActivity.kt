@@ -37,8 +37,8 @@ class AddEditFirstAidActivity : AppCompatActivity() {
         val saveButton = findViewById<AppCompatButton>(R.id.btnSaveFirstAid)
 
         if (editingId != null) {
-            findViewById<TextView>(R.id.tvFormTitle).text = "Edit Pertolongan Pertama"
-            saveButton.text = "Simpan Perubahan"
+            findViewById<TextView>(R.id.tvFormTitle).text = "Edit First Aid"
+            saveButton.text = "Save Changes"
 
             findViewById<TextInputEditText>(R.id.etConditionTitle).setText(intent.getStringExtra(EXTRA_TITLE))
             findViewById<TextInputEditText>(R.id.etConditionSymptoms).setText(intent.getStringExtra(EXTRA_SYMPTOMS))
@@ -55,11 +55,11 @@ class AddEditFirstAidActivity : AppCompatActivity() {
         val steps = stepsRaw.split("\n").map { it.trim() }.filter { it.isNotEmpty() }
 
         if (title.isEmpty() || symptoms.isEmpty()) {
-            Toast.makeText(this, "Nama kondisi dan gejala wajib diisi", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Condition name and symptoms are required", Toast.LENGTH_SHORT).show()
             return
         }
         if (steps.isEmpty()) {
-            Toast.makeText(this, "Minimal 1 langkah pertolongan pertama wajib diisi", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "At least 1 first aid step is required", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -78,11 +78,11 @@ class AddEditFirstAidActivity : AppCompatActivity() {
         }
 
         task.addOnSuccessListener {
-            val message = if (id != null) "Berhasil diperbarui" else "Berhasil ditambahkan"
+            val message = if (id != null) "Updated successfully" else "Added successfully"
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             finish()
         }.addOnFailureListener { e ->
-            Toast.makeText(this, "Gagal menyimpan: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Failed to save: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 }

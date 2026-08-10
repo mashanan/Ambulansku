@@ -32,9 +32,14 @@ class ActivityEditNoTlp : AppCompatActivity() {
         val saveButton = findViewById<Button>(R.id.saveButton)
         val btnBack = findViewById<ImageView>(R.id.btnBack)
 
-        // Mengambil nomor telepon lama yang dikirim dari ProfileFragment
-        val currentNoTlp = intent.getStringExtra("current_no_tlp")
-        editTextNoTlp.setText(currentNoTlp)
+        // Mengambil nomor telepon lama yang dikirim dari ProfileFragment. Field SENGAJA
+        // dikosongkan (bukan di-setText) dan nilai saat ini ditaruh sebagai hint - supaya user
+        // bisa langsung ketik nomor baru tanpa perlu hapus teks lama dulu. Placeholder default
+        // dari sign up ("Masukkan Nomor Telepon Anda" untuk passenger, "Belum diisi" untuk driver
+        // - ActivityEditNoTlp ini dipakai kedua role) juga otomatis jadi hint biasa.
+        val currentNoTlp = intent.getStringExtra("current_no_tlp") ?: ""
+        val isPlaceholderNoTlp = currentNoTlp.isBlank() || currentNoTlp == "Enter Your Phone Number" || currentNoTlp == "Belum diisi"
+        editTextNoTlp.hint = if (isPlaceholderNoTlp) "Enter Your Phone Number" else currentNoTlp
 
         // 🚩 LOGIKA TOMBOL BACK
         btnBack.setOnClickListener {
@@ -42,17 +47,21 @@ class ActivityEditNoTlp : AppCompatActivity() {
             // atau cukup gunakan finish()
         }
         saveButton.setOnClickListener {
-            val newNoTlp = editTextNoTlp.text.toString().trim()
+            val typedNoTlp = editTextNoTlp.text.toString().trim()
+            // Dibiarkan kosong = user tidak mau mengubah nomor - pakai nilai lama (kalau memang
+            // sudah nomor asli, bukan placeholder) supaya tidak perlu ketik ulang cuma untuk
+            // menutup layar ini.
+            val newNoTlp = typedNoTlp.ifEmpty { if (!isPlaceholderNoTlp) currentNoTlp else "" }
 
             // 1. Validasi Input
             if (newNoTlp.isEmpty() || !newNoTlp.matches(Regex("^[0-9]+$"))) {
-                Toast.makeText(this, "Nomor telepon tidak valid!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Invalid phone number!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val userId = firebaseAuth.currentUser?.uid
             if (userId == null) {
-                Toast.makeText(this, "User belum login.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "User is not logged in.", Toast.LENGTH_SHORT).show()
                 Log.e("ActivityEditNoTlp", "userId null")
                 return@setOnClickListener
             }
@@ -73,14 +82,14 @@ class ActivityEditNoTlp : AppCompatActivity() {
                     setResult(RESULT_OK, resultIntent)
 
                     // 4. Tampilkan Toast dan tutup Activity
-                    Toast.makeText(this, "Nomor telepon berhasil diperbarui!", Toast.LENGTH_SHORT).show()
-                    Log.d("ActivityEditNoTlp", "Nomor telepon baru berhasil disimpan di Firestore dan dikirim kembali.")
+                    Toast.makeText(this, "Phone number updated successfully!", Toast.LENGTH_SHORT).show()
+                    Log.d("ActivityEditNoTlp", "New phone number saved to Firestore and returned successfully.")
                     finish()
                 }
                 .addOnFailureListener { e ->
                     // 5. Penanganan Kegagalan
-                    Log.e("ActivityEditNoTlp", "Gagal simpan nomor telepon", e)
-                    Toast.makeText(this, "Gagal menyimpan nomor telepon. Cek koneksi atau izin.", Toast.LENGTH_SHORT).show()
+                    Log.e("ActivityEditNoTlp", "Failed to save phone number", e)
+                    Toast.makeText(this, "Failed to save phone number. Check your connection or permissions.", Toast.LENGTH_SHORT).show()
                 }
         }
     }

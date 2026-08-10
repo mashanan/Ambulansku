@@ -25,8 +25,8 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.tugasakhirfinal.Adapter.ChatAdapter
-import com.example.tugasakhirfinal.Model.ChatMessage
+import com.example.tugasakhirfinal.Chat.ChatAdapter
+import com.example.tugasakhirfinal.Chat.ChatMessage
 import com.example.tugasakhirfinal.R
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
@@ -84,7 +84,7 @@ class ChatPassengerActivity : AppCompatActivity() {
 
     private val progressDialog by lazy {
         ProgressDialog(this).apply {
-            setMessage("Mengirim foto...")
+            setMessage("Sending photo...")
             setCancelable(false)
         }
     }
@@ -96,7 +96,7 @@ class ChatPassengerActivity : AppCompatActivity() {
 
         bookingId = intent.getStringExtra("BOOKING_ID") ?: ""
         if (bookingId.isEmpty()) {
-            Toast.makeText(this, "Sesi chat tidak valid!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Invalid chat session!", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -118,13 +118,13 @@ class ChatPassengerActivity : AppCompatActivity() {
             if (driverPhoneNumber.isNotEmpty()) {
                 startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$driverPhoneNumber")))
             } else {
-                Toast.makeText(this, "Nomor telepon driver tidak tersedia", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Driver phone number is not available", Toast.LENGTH_SHORT).show()
             }
         }
 
         btnAttachPhoto.setOnClickListener {
             if (isChatLocked) {
-                Toast.makeText(this, "Sesi chat telah berakhir", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "This chat session has ended", Toast.LENGTH_SHORT).show()
             } else {
                 checkCameraPermissionThenShowOptions()
             }
@@ -166,7 +166,7 @@ class ChatPassengerActivity : AppCompatActivity() {
     private fun showPhotoOptionsDialog() {
         val dialog = BottomSheetDialog(this)
         val view = layoutInflater.inflate(R.layout.activity_edit_foto_profile, null)
-        view.findViewById<TextView>(R.id.editProfileTitle).text = "Kirim Foto"
+        view.findViewById<TextView>(R.id.editProfileTitle).text = "Send Photo"
 
         view.findViewById<Button>(R.id.selectImageButton).setOnClickListener {
             galleryLauncher.launch("image/*")
@@ -190,7 +190,7 @@ class ChatPassengerActivity : AppCompatActivity() {
         if (success && uri != null) {
             uploadChatImage(uri)
         } else if (success) {
-            Toast.makeText(this, "Sesi pengambilan foto berakhir, coba lagi", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Photo capture session expired, please try again", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -232,8 +232,8 @@ class ChatPassengerActivity : AppCompatActivity() {
                     target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
                     isFirstResource: Boolean
                 ): Boolean {
-                    Log.e("PassengerChat", "Gagal memuat foto $url: ${e?.message}", e)
-                    Toast.makeText(this@ChatPassengerActivity, "Gagal memuat foto: ${e?.rootCauses?.firstOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    Log.e("PassengerChat", "Failed to load photo $url: ${e?.message}", e)
+                    Toast.makeText(this@ChatPassengerActivity, "Failed to load photo: ${e?.rootCauses?.firstOrNull()?.message}", Toast.LENGTH_SHORT).show()
                     return false
                 }
                 override fun onResourceReady(
@@ -254,18 +254,18 @@ class ChatPassengerActivity : AppCompatActivity() {
     // decode langsung ukuran kecil via inSampleSize, bukan decode penuh baru di-resize belakangan.
     private fun uploadChatImage(uri: Uri) {
         if (isChatLocked) {
-            Toast.makeText(this, "Sesi chat telah berakhir", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "This chat session has ended", Toast.LENGTH_SHORT).show()
             return
         }
         if (currentUserId.isEmpty() || bookingId.isEmpty()) {
-            Toast.makeText(this, "Sesi tidak valid, mohon login ulang", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Invalid session, please log in again", Toast.LENGTH_SHORT).show()
             return
         }
 
         try {
             var bitmap = decodeSampledBitmapFromUri(uri, 800)
             if (bitmap == null) {
-                Toast.makeText(this, "Gagal memproses foto", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to process photo", Toast.LENGTH_SHORT).show()
                 return
             }
 
@@ -303,18 +303,18 @@ class ChatPassengerActivity : AppCompatActivity() {
                             .addOnSuccessListener { progressDialog.dismiss() }
                             .addOnFailureListener { e ->
                                 progressDialog.dismiss()
-                                Toast.makeText(this, "Gagal mengirim foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, "Failed to send photo: ${e.message}", Toast.LENGTH_SHORT).show()
                             }
                     }
                 }
                 .addOnFailureListener { e ->
                     progressDialog.dismiss()
-                    Toast.makeText(this, "Gagal unggah foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to upload photo: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         } catch (e: Exception) {
             progressDialog.dismiss()
             Log.e("PassengerChat", e.message.toString())
-            Toast.makeText(this, "Gagal memproses foto: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Failed to process photo: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -359,13 +359,13 @@ class ChatPassengerActivity : AppCompatActivity() {
                     .addOnSuccessListener { userDoc ->
                         if (!userDoc.exists()) return@addOnSuccessListener
 
-                        val name = userDoc.getString("nama") ?: "Driver Ambulans"
+                        val name = userDoc.getString("nama") ?: "Ambulance Driver"
                         val plate = userDoc.getString("ambulancePlateNumber") ?: "-"
                         val phone = userDoc.getString("phoneNumber") ?: ""
                         val photoUrl = userDoc.getString("profileImageUrl") ?: ""
 
                         tvContactName.text = name
-                        tvContactInfo.text = "Plat: $plate  •  $phone"
+                        tvContactInfo.text = "Plate: $plate  •  $phone"
                         driverPhoneNumber = phone
                         btnCallContact.visibility = if (phone.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
 
@@ -385,14 +385,15 @@ class ChatPassengerActivity : AppCompatActivity() {
 
                 val status = snapshot.getString("status") ?: ""
                 val expiresAt = snapshot.getTimestamp("expiresAt")
+                val isCancelled = status.equals("CANCELLED", ignoreCase = true)
 
-                // Cek apakah status sudah selesai ATAU sudah melewati batas 3 hari (expiresAt)
+                // Cek apakah status sudah selesai/dibatalkan ATAU sudah melewati batas 3 hari (expiresAt)
                 val isExpired = expiresAt != null && expiresAt.toDate().before(java.util.Date())
 
-                if (status == "completed" || isExpired) {
+                if (status == "completed" || isCancelled || isExpired) {
                     isChatLocked = true
                     etMessage.isEnabled = false
-                    etMessage.hint = "Sesi chat telah berakhir"
+                    etMessage.hint = if (isCancelled) "This booking has been cancelled" else "This chat session has ended"
                     btnSend.isEnabled = false
                     btnSend.alpha = 0.5f
                     btnAttachPhoto.isEnabled = false
@@ -400,18 +401,22 @@ class ChatPassengerActivity : AppCompatActivity() {
                     lockQuickChatChips()
                 }
 
-                // Kalau trip sudah completed, kasih tahu kapan riwayat chat ini bakal disembunyikan
-                // dari tampilan (H+3 sejak completedAt) - hitungannya harus persis sama dengan
-                // isVisibleInHistory() di ChatFragment.kt supaya tanggalnya tidak menyesatkan.
-                if (status == "completed") {
-                    val completedAt = snapshot.getTimestamp("completedAt") ?: snapshot.getTimestamp("createdAt")
-                    if (completedAt != null) {
+                // Kalau trip sudah completed/dibatalkan, kasih tahu kapan riwayat chat ini bakal
+                // disembunyikan dari tampilan (H+3 sejak completedAt/cancelledAt) - hitungannya
+                // harus persis sama dengan isVisibleInHistory() di ChatFragment.kt supaya
+                // tanggalnya tidak menyesatkan.
+                if (status == "completed" || isCancelled) {
+                    val referenceTime = snapshot.getTimestamp("completedAt")
+                        ?: snapshot.getTimestamp("cancelledAt")
+                        ?: snapshot.getTimestamp("createdAt")
+                    if (referenceTime != null) {
                         val hideDate = java.util.Calendar.getInstance().apply {
-                            time = completedAt.toDate()
+                            time = referenceTime.toDate()
                             add(java.util.Calendar.DAY_OF_YEAR, 3)
                         }.time
                         val formatter = java.text.SimpleDateFormat("d MMMM yyyy", java.util.Locale("id", "ID"))
-                        tvHistoryExpiryNotice.text = "Riwayat chat ini akan disembunyikan otomatis pada ${formatter.format(hideDate)}"
+                        val prefix = if (isCancelled) "This booking was cancelled by the driver. This chat history" else "This chat history"
+                        tvHistoryExpiryNotice.text = "$prefix will be automatically hidden on ${formatter.format(hideDate)}"
                         tvHistoryExpiryNotice.visibility = android.view.View.VISIBLE
                     }
                 }
@@ -439,12 +444,12 @@ class ChatPassengerActivity : AppCompatActivity() {
 
     private fun sendMessage(text: String) {
         if (isChatLocked) {
-            Toast.makeText(this, "Sesi chat telah berakhir", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "This chat session has ended", Toast.LENGTH_SHORT).show()
             return
         }
 
         if (currentUserId.isEmpty() || bookingId.isEmpty()) {
-            Toast.makeText(this, "Sesi tidak valid, mohon login ulang", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Invalid session, please log in again", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -464,8 +469,8 @@ class ChatPassengerActivity : AppCompatActivity() {
                 etMessage.setText("")
             }
             .addOnFailureListener { e ->
-                Log.e("CHAT_ERROR", "Gagal mengirim pesan: ${e.message}", e)
-                Toast.makeText(this, "Gagal mengirim pesan: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                Log.e("CHAT_ERROR", "Failed to send message: ${e.message}", e)
+                Toast.makeText(this, "Failed to send message: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
     }
 

@@ -58,7 +58,7 @@ class ActivityEditAlamat : AppCompatActivity() {
             .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Toast.makeText(this, "Gagal memuat data: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to load data: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
                 }
 
@@ -80,12 +80,12 @@ class ActivityEditAlamat : AppCompatActivity() {
 
     private fun confirmDeleteAddress(address: Address) {
         AlertDialog.Builder(this)
-            .setTitle("Hapus Alamat")
-            .setMessage("Apakah Anda yakin ingin menghapus alamat '${address.label}'?")
-            .setPositiveButton("Hapus") { _, _ ->
+            .setTitle("Delete Address")
+            .setMessage("Are you sure you want to delete the address '${address.label}'?")
+            .setPositiveButton("Delete") { _, _ ->
                 deleteAddressFromFirestore(address)
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -96,10 +96,10 @@ class ActivityEditAlamat : AppCompatActivity() {
             .collection("addresses").document(address.id)
             .delete()
             .addOnSuccessListener {
-                Toast.makeText(this, "Alamat '${address.label}' berhasil dihapus", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Address '${address.label}' deleted successfully", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Gagal menghapus alamat: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to delete address: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -120,10 +120,10 @@ class ActivityEditAlamat : AppCompatActivity() {
 
         batch.commit()
             .addOnSuccessListener {
-                Toast.makeText(this, "${selectedAddress.label} dijadikan Alamat Utama!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "${selectedAddress.label} set as Primary Address!", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Gagal mengubah alamat utama: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to change primary address: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -135,8 +135,8 @@ class ActivityEditAlamat : AppCompatActivity() {
             .collection("addresses").document(address.id)
             .update("isFavorite", newStatus)
             .addOnSuccessListener {
-                val statusText = if (newStatus) "ditambahkan ke favorit" else "dihapus dari favorit"
-                Toast.makeText(this, "Alamat $statusText", Toast.LENGTH_SHORT).show()
+                val statusText = if (newStatus) "added to favorites" else "removed from favorites"
+                Toast.makeText(this, "Address $statusText", Toast.LENGTH_SHORT).show()
             }
     }
 

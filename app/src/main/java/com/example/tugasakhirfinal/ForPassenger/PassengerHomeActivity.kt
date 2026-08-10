@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.example.tugasakhirfinal.DeviceSession
 import com.example.tugasakhirfinal.ForPassenger.Fragment.ChatFragment
 import com.example.tugasakhirfinal.ForPassenger.Fragment.ActivityDriveFragment
 import com.example.tugasakhirfinal.ForPassenger.Fragment.HomeFragment
@@ -77,8 +78,8 @@ class PassengerHomeActivity : AppCompatActivity() {
                 val currentName = doc.getString("nama") ?: ""
                 val currentNoTlp = doc.getString("phoneNumber") ?: ""
 
-                val isNameEmpty = currentName.isBlank() || currentName == "Masukkan Nama Anda"
-                val isPhoneEmpty = currentNoTlp.isBlank() || currentNoTlp == "Masukkan Nomor Telepon Anda"
+                val isNameEmpty = currentName.isBlank() || currentName == "Enter Your Name"
+                val isPhoneEmpty = currentNoTlp.isBlank() || currentNoTlp == "Enter Your Phone Number"
 
                 if (isNameEmpty || isPhoneEmpty) {
                     showIncompleteProfileDialog()
@@ -89,9 +90,9 @@ class PassengerHomeActivity : AppCompatActivity() {
     // Fungsi untuk menampilkan dialog jika profil belum lengkap
     private fun showIncompleteProfileDialog() {
         AlertDialog.Builder(this)
-            .setTitle("Lengkapi Profil Anda")
-            .setMessage("Nama dan nomor telepon Anda masih kosong. Silakan buka halaman Profil untuk melengkapi data Anda.")
-            .setPositiveButton("Buka Profil") { _, _ ->
+            .setTitle("Complete Your Profile")
+            .setMessage("Your name and phone number are still empty. Please open the Profile page to complete your details.")
+            .setPositiveButton("Open Profile") { _, _ ->
                 // Pindah ke ProfileFragment
                 loadFragment(ProfileFragment())
                 // Ubah menu BottomNavigationView ke item "akun"
@@ -102,23 +103,38 @@ class PassengerHomeActivity : AppCompatActivity() {
     }
 
     // 🛠️ Pantau real-time dokumen sendiri — kalau Admin menonaktifkan akun ini SAAT sedang
-    // aktif dipakai, langsung paksa logout (tidak perlu tutup-buka app dulu).
+    // aktif dipakai, langsung paksa logout (tidak perlu tutup-buka app dulu). Juga memantau
+    // activeSessionId: kalau akun ini login lagi di device LAIN, field itu akan ditimpa device
+    // baru tsb, dan device ini (yang lama) langsung dipaksa logout begitu terdeteksi -
+    // menegakkan aturan 1 akun cuma boleh aktif di 1 device.
     private fun listenToAccountStatus() {
         val uid = firebaseAuth.currentUser?.uid ?: return
         accountStatusListener?.remove()
         accountStatusListener = firestore.collection("users").document(uid)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
+
+                val remoteSessionId = snapshot?.getString("activeSessionId")
+                val localSessionId = DeviceSession.getSessionId(this)
+                if (remoteSessionId != null && remoteSessionId != localSessionId) {
+                    forceLogout("Your account has logged in on another device.")
+                    return@addSnapshotListener
+                }
+
                 val isActive = snapshot?.getBoolean("isActive") ?: true
                 if (!isActive) {
-                    Toast.makeText(this, "Akun Anda dinonaktifkan oleh admin.", Toast.LENGTH_LONG).show()
-                    firebaseAuth.signOut()
-                    startActivity(Intent(this, RoleSelectionActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    })
-                    finish()
+                    forceLogout("Your account has been deactivated by an admin.")
                 }
             }
+    }
+
+    private fun forceLogout(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        firebaseAuth.signOut()
+        startActivity(Intent(this, RoleSelectionActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        finish()
     }
 
     override fun onDestroy() {

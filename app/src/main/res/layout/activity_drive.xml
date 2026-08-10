@@ -1,65 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ForPassenger.ActivityDrive">
+    tools:context=".ForPassenger.DriveFragment.ActivityDrive">
 
-    <!-- Google Maps Fragment -->
+    <!-- Google Maps Fragment - selalu penuh layar, tidak lagi tertutup permanen oleh panel info -->
     <fragment
         android:id="@+id/mapview"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:layout_height="match_parent" />
 
-    <!-- 💬 Tombol Chat (Melayang di kanan bawah peta) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btnChatDriver"
+    <!-- 💬 Tombol Chat - posisi tetap di kanan atas peta, tidak ikut naik-turun bersama
+         panel bawah supaya selalu gampang dijangkau apa pun posisi panel-nya -->
+    <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:src="@android:drawable/ic_dialog_email"
-        android:visibility="gone"
-        app:backgroundTint="#0084FF"
-        app:tint="@android:color/white"
-        android:contentDescription="Chat Driver"
-        app:layout_constraintBottom_toTopOf="@id/cardOrderInfo"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:layout_gravity="top|end"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp">
 
-    <!-- 🔴 Angka Notif Merah (Badge) untuk Passenger -->
-    <TextView
-        android:id="@+id/tvUnreadBadge"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
-        android:background="@drawable/bg_badge_red"
-        android:gravity="center"
-        android:text="1"
-        android:textColor="@android:color/white"
-        android:textSize="10sp"
-        android:textStyle="bold"
-        android:elevation="10dp"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="@id/btnChatDriver"
-        app:layout_constraintEnd_toEndOf="@id/btnChatDriver" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnChatDriver"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_dialog_email"
+            android:visibility="gone"
+            app:backgroundTint="#0084FF"
+            app:tint="@android:color/white"
+            android:contentDescription="Chat Driver" />
 
-    <!-- Card Informasi Pemesanan & Penjemputan -->
-    <androidx.cardview.widget.CardView
+        <!-- 🔴 Angka Notif Merah (Badge) untuk Passenger -->
+        <TextView
+            android:id="@+id/tvUnreadBadge"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="top|end"
+            android:background="@drawable/bg_badge_red"
+            android:gravity="center"
+            android:text="1"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:elevation="10dp"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Panel Informasi Pemesanan & Penjemputan, sekarang bottom sheet yang bisa ditarik turun
+         (mengecil, cuma sisakan handle + judul, memaksimalkan tampilan peta) atau ditarik naik
+         (tampil penuh) kapan saja oleh user. Sengaja TIDAK hideable penuh (behavior_hideable
+         di-omit/false) supaya selalu ada handle tersisa untuk ditarik kembali - kalau
+         disembunyikan total, user tidak akan punya cara menariknya lagi. -->
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardOrderInfo"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="16dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_peekHeight="84dp"
+        app:behavior_fitToContents="true"
         app:cardElevation="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.BottomSheetTop">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -67,11 +70,19 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!-- Pegangan drag -->
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_drag_handle" />
+
             <TextView
                 android:id="@+id/tvDestinationTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Rumah Sakit Terdekat"
+                android:text="Nearest Hospital"
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:textColor="@android:color/black" />
@@ -80,16 +91,28 @@
                 android:id="@+id/tvDestinationAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mendeteksi lokasi RS..."
+                android:text="Detecting hospital location..."
                 android:textSize="14sp"
                 android:layout_marginTop="4dp" />
+
+            <!-- Jarak & estimasi waktu tempuh dari Directions API, ditampilkan selalu terlihat
+                 di atas tombol (beda dari tvEstimationInfo yang cuma tampil setelah pesanan diterima driver) -->
+            <TextView
+                android:id="@+id/tvDestinationEstimation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Calculating distance &amp; travel time..."
+                android:textColor="@color/pink_main"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <Button
                 android:id="@+id/btnPesanAmbulans"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Panggil Ambulans Sekarang"
+                android:text="Call Ambulance Now"
                 android:backgroundTint="#D32F2F"
                 android:textColor="@android:color/white"
                 android:padding="12dp"
@@ -136,7 +159,7 @@
                             android:id="@+id/tvDriverName"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Nama Driver"
+                            android:text="Driver Name"
                             android:textColor="@android:color/black"
                             android:textSize="15sp"
                             android:textStyle="bold" />
@@ -145,7 +168,7 @@
                             android:id="@+id/tvDriverPlate"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Plat: -"
+                            android:text="Plate: -"
                             android:textColor="#757575"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -156,7 +179,7 @@
                         android:layout_height="36dp"
                         android:background="@drawable/rounded_button"
                         android:backgroundTint="#2E7D32"
-                        android:contentDescription="Telepon Driver"
+                        android:contentDescription="Call Driver"
                         android:padding="8dp"
                         android:src="@android:drawable/ic_menu_call"
                         app:tint="@color/white" />
@@ -166,7 +189,7 @@
                     android:id="@+id/tvDriverStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ambulans Sedang Menuju Lokasi Anda"
+                    android:text="Ambulance Is Heading to Your Location"
                     android:textColor="#D32F2F"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -175,7 +198,7 @@
                     android:id="@+id/tvEstimationInfo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Estimasi waktu tiba: Menghitung..."
+                    android:text="Estimated arrival: Calculating..."
                     android:textColor="#757575"
                     android:textSize="13sp"
                     android:layout_marginTop="2dp" />
@@ -205,7 +228,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Dijemput"
+                            android:text="Picked Up"
                             android:textColor="#757575"
                             android:textSize="10sp" />
                     </LinearLayout>
@@ -235,7 +258,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Menuju RS"
+                            android:text="En Route"
                             android:textColor="#757575"
                             android:textSize="10sp" />
                     </LinearLayout>
@@ -265,7 +288,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Selesai"
+                            android:text="Completed"
                             android:textColor="#757575"
                             android:textSize="10sp" />
                     </LinearLayout>
@@ -273,5 +296,5 @@
 
             </LinearLayout>
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

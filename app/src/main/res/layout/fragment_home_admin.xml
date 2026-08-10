@@ -17,7 +17,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="Panel Admin"
+        android:text="Admin Panel"
         android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -61,7 +61,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Pengguna Aktif"
+                    android:text="Active Users"
                     android:textColor="#757575"
                     android:textSize="11sp"
                     android:gravity="center" />
@@ -92,7 +92,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Driver Menunggu"
+                    android:text="Pending Drivers"
                     android:textColor="#757575"
                     android:textSize="11sp"
                     android:gravity="center" />
@@ -123,7 +123,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Rumah Sakit"
+                    android:text="Hospitals"
                     android:textColor="#757575"
                     android:textSize="11sp"
                     android:gravity="center" />
@@ -154,7 +154,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginEnd="16dp"
-                android:contentDescription="Kelola Rumah Sakit"
+                android:contentDescription="Manage Hospitals"
                 android:src="@drawable/ic_hospital" />
 
             <LinearLayout
@@ -166,7 +166,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Kelola Rumah Sakit"
+                    android:text="Manage Hospitals"
                     android:textSize="17sp"
                     android:textStyle="bold" />
 
@@ -174,7 +174,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Tambah atau hapus daftar rumah sakit"
+                    android:text="Add or remove hospitals from the list"
                     android:textColor="#757575"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -203,7 +203,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginEnd="16dp"
-                android:contentDescription="Kelola Pengguna"
+                android:contentDescription="Manage Users"
                 android:src="@drawable/ic_botnav_akun"
                 app:tint="@color/pink_main" />
 
@@ -216,7 +216,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Kelola Pengguna"
+                    android:text="Manage Users"
                     android:textSize="17sp"
                     android:textStyle="bold" />
 
@@ -224,7 +224,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Nonaktifkan / aktifkan akun Passenger &amp; Driver"
+                    android:text="Deactivate / reactivate Passenger &amp; Driver accounts"
                     android:textColor="#757575"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -273,7 +273,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Tinjau dan setujui driver baru"
+                    android:text="Review and approve new drivers"
                     android:textColor="#757575"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -303,7 +303,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginEnd="16dp"
-                android:contentDescription="Kelola Pertolongan Pertama"
+                android:contentDescription="Manage First Aid"
                 android:src="@drawable/ic_notification"
                 app:tint="@color/pink_main" />
 
@@ -316,7 +316,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Kelola Pertolongan Pertama"
+                    android:text="Manage First Aid"
                     android:textSize="17sp"
                     android:textStyle="bold" />
 
@@ -324,7 +324,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Tambah, edit, atau hapus daftar kondisi gawat darurat"
+                    android:text="Add, edit, or remove emergency condition entries"
                     android:textColor="#757575"
                     android:textSize="13sp" />
             </LinearLayout>

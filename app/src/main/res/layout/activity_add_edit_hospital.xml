@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Tambah Rumah Sakit"
+            android:text="Add Hospital"
             android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -55,7 +55,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:hint="Nama Rumah Sakit">
+                android:hint="Hospital Name">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etHospitalName"
@@ -68,7 +68,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:hint="Alamat">
+                android:hint="Address">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etHospitalAddress"
@@ -81,7 +81,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:hint="Nomor Telepon">
+                android:hint="Phone Number">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etHospitalPhone"
@@ -89,18 +89,6 @@
                     android:layout_height="wrap_content"
                     android:inputType="phone" />
             </com.google.android.material.textfield.TextInputLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:text="Status IGD"
-                android:textStyle="bold" />
-
-            <Spinner
-                android:id="@+id/spinnerIgdStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
 
         </LinearLayout>
     </ScrollView>
@@ -112,7 +100,7 @@
         android:background="#FFF3E0"
         android:gravity="center"
         android:padding="8dp"
-        android:text="Ketuk peta untuk memilih lokasi rumah sakit"
+        android:text="Tap the map to select the hospital location"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -134,7 +122,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:background="@drawable/rounded_button"
-        android:text="Simpan Rumah Sakit"
+        android:text="Save Hospital"
         android:textAllCaps="false"
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"

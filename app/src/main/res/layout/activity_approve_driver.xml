@@ -51,7 +51,7 @@
             android:layout_height="56dp"
             android:layout_marginBottom="8dp"
             android:alpha="0.5"
-            android:contentDescription="Kosong"
+            android:contentDescription="Empty"
             android:src="@android:drawable/ic_menu_info_details"
             app:tint="#BDBDBD" />
 
@@ -59,7 +59,7 @@
             android:id="@+id/tvEmptyPending"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tidak ada driver yang menunggu persetujuan."
+            android:text="No drivers waiting for approval."
             android:textColor="#757575" />
     </LinearLayout>
 

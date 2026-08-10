@@ -41,7 +41,7 @@ class AddressAdapter(
 
         if (currentItem.note.isNotEmpty()) {
             holder.tvNote.visibility = View.VISIBLE
-            holder.tvNote.text = "Patokan: ${currentItem.note}"
+            holder.tvNote.text = "Landmark: ${currentItem.note}"
         } else {
             holder.tvNote.visibility = View.GONE
         }

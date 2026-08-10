@@ -10,13 +10,15 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.tugasakhirfinal.Adapter.BookingAdapter
-import com.example.tugasakhirfinal.Model.Booking
+import com.example.tugasakhirfinal.ForDriver.BookingAdapter
+import com.example.tugasakhirfinal.ForDriver.Booking
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.FragmentHomeDriverBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -40,6 +42,10 @@ class HomeFragmentDriver : Fragment() {
     // Variabel UI dari Activity Induk
     private var switchOnline: SwitchCompat? = null
     private var statusText: TextView? = null
+
+    // Kategori ambulans driver ini (didaftarkan saat kualifikasi) - dipakai memfilter supaya
+    // cuma pesanan dengan kategori yang sama yang ditampilkan/diteruskan ke driver ini.
+    private var driverAmbulanceCategory: String = "Ambulans Biasa"
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeDriverBinding.inflate(inflater, container, false)
@@ -98,10 +104,13 @@ class HomeFragmentDriver : Fragment() {
                 if (_binding == null || e != null) return@addSnapshotListener
 
                 driverLocation = snapshot?.getGeoPoint("lokasi")
+                val newCategory = snapshot?.getString("ambulanceCategory") ?: "Ambulans Biasa"
+                val categoryChanged = newCategory != driverAmbulanceCategory
+                driverAmbulanceCategory = newCategory
                 val isOnline = (snapshot?.getString("status") ?: "offline").equals("online", ignoreCase = true)
 
-                if (isOnline && bookingListener == null) {
-                    binding.tvEmpty.text = "Mencari pesanan ambulans..."
+                if (isOnline && (bookingListener == null || categoryChanged)) {
+                    binding.tvEmpty.text = "Searching for ambulance bookings..."
                     listenToBookings()
                 } else if (!isOnline && bookingListener != null) {
                     stopListening()
@@ -117,6 +126,7 @@ class HomeFragmentDriver : Fragment() {
 
         bookingListener = db.collection("bookings")
             .whereEqualTo("status", "SEARCHING")
+            .whereEqualTo("ambulanceCategory", driverAmbulanceCategory)
             .addSnapshotListener { snapshots, e ->
                 if (_binding == null) return@addSnapshotListener
                 if (e != null) {
@@ -125,10 +135,19 @@ class HomeFragmentDriver : Fragment() {
                 }
 
                 bookingList.clear()
-                if (snapshots != null && !snapshots.isEmpty) {
+                // Booking SEARCHING yang sudah lewat batas 3 hari (expiresAt) dianggap basi/
+                // ditinggalkan passenger - disaring di client supaya tidak nyangkut selamanya
+                // di daftar pesanan masuk (tidak ada job/Cloud Function yang membersihkannya).
+                val now = Timestamp.now()
+                val activeDocs = snapshots?.documents?.filter { doc ->
+                    val expiresAt = doc.getTimestamp("expiresAt")
+                    expiresAt == null || expiresAt > now
+                } ?: emptyList()
+
+                if (activeDocs.isNotEmpty()) {
                     // Urutan awal berdasar createdAt; nanti disempurnakan ke jarak terdekat oleh
                     // applyDistanceSortingAndRefresh() begitu lokasi driver sudah/tetap tersedia.
-                    val sortedDocs = snapshots.documents.sortedBy { it.getTimestamp("createdAt") }
+                    val sortedDocs = activeDocs.sortedBy { it.getTimestamp("createdAt") }
 
                     for (doc in sortedDocs) {
                         val booking = doc.toObject(Booking::class.java)
@@ -139,7 +158,7 @@ class HomeFragmentDriver : Fragment() {
                     }
                     binding.layoutEmpty.visibility = View.GONE
                 } else {
-                    binding.tvEmpty.text = "Belum ada pesanan masuk..."
+                    binding.tvEmpty.text = "No bookings yet..."
                     binding.layoutEmpty.visibility = View.VISIBLE
                 }
                 applyDistanceSortingAndRefresh()
@@ -189,7 +208,7 @@ class HomeFragmentDriver : Fragment() {
         bookingList.clear()
         bookingAdapter.notifyDataSetChanged()
 
-        binding.tvEmpty.text = "Anda sedang Offline/Sibuk. Aktifkan mode Online untuk mencari pesanan."
+        binding.tvEmpty.text = "You're currently Offline/Busy. Turn on Online mode to search for bookings."
         binding.layoutEmpty.visibility = View.VISIBLE
     }
 
@@ -198,23 +217,34 @@ class HomeFragmentDriver : Fragment() {
         if (booking.bookingId.isEmpty()) return
 
         val progressDialog = ProgressDialog(requireContext())
-        progressDialog.setMessage("Menerima pesanan...")
+        progressDialog.setMessage("Accepting booking...")
         progressDialog.setCancelable(false)
         progressDialog.show()
 
-        db.collection("bookings").document(booking.bookingId)
-            .update(
-                "status", "accepted",
-                "driverId", driverUid
-            )
+        val bookingRef = db.collection("bookings").document(booking.bookingId)
+
+        // Transaksi supaya cuma driver PERTAMA yang berhasil kalau ada 2 driver menekan "Terima"
+        // hampir bersamaan pada booking yang sama - baca ulang status di detik terakhir di dalam
+        // transaksi, tolak kalau ternyata sudah bukan SEARCHING lagi (sudah diambil driver lain
+        // atau dibatalkan), bukan sekadar menimpa .update() begitu saja.
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(bookingRef)
+            if (snapshot.getString("status") != "SEARCHING") {
+                throw FirebaseFirestoreException(
+                    "Booking is no longer available",
+                    FirebaseFirestoreException.Code.ABORTED
+                )
+            }
+            transaction.update(bookingRef, mapOf("status" to "accepted", "driverId" to driverUid))
+        }
             .addOnSuccessListener {
                 if (isAdded) {
                     progressDialog.dismiss()
-                    Toast.makeText(requireContext(), "Pesanan diterima!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Booking accepted!", Toast.LENGTH_SHORT).show()
 
                     // 🚀 ALUR PINTAR: Otomatis matikan online karena sedang bertugas
                     switchOnline?.isChecked = false
-                    statusText?.text = "Status: Menjemput Pasien"
+                    statusText?.text = "Status: Picking Up Patient"
 
                     navigateToDriveTab()
                 }
@@ -222,7 +252,12 @@ class HomeFragmentDriver : Fragment() {
             .addOnFailureListener { e ->
                 if (isAdded) {
                     progressDialog.dismiss()
-                    Toast.makeText(requireContext(), "Gagal: ${e.message}", Toast.LENGTH_SHORT).show()
+                    val message = if (e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.ABORTED) {
+                        "Booking has already been taken by another driver."
+                    } else {
+                        "Failed: ${e.message}"
+                    }
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                 }
             }
     }

@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.tugasakhirfinal.ForPassenger.Hospital
+import com.example.tugasakhirfinal.ForPassenger.DriveFragment.Hospital
 import com.example.tugasakhirfinal.R
 
 class HospitalAdminAdapter(
@@ -19,7 +19,6 @@ class HospitalAdminAdapter(
         val tvName: TextView = itemView.findViewById(R.id.tvHospitalName)
         val tvAddress: TextView = itemView.findViewById(R.id.tvHospitalAddress)
         val tvPhone: TextView = itemView.findViewById(R.id.tvHospitalPhone)
-        val tvIgdStatus: TextView = itemView.findViewById(R.id.tvIgdStatus)
         val tvMissingLocation: TextView = itemView.findViewById(R.id.tvMissingLocation)
         val btnEdit: Button = itemView.findViewById(R.id.btnEditHospital)
         val btnDelete: Button = itemView.findViewById(R.id.btnDeleteHospital)
@@ -32,10 +31,9 @@ class HospitalAdminAdapter(
 
     override fun onBindViewHolder(holder: HospitalAdminViewHolder, position: Int) {
         val hospital = hospitalList[position]
-        holder.tvName.text = hospital.nama.ifEmpty { "Tanpa Nama" }
+        holder.tvName.text = hospital.nama.ifEmpty { "Untitled" }
         holder.tvAddress.text = hospital.alamat.ifEmpty { "-" }
         holder.tvPhone.text = hospital.telepon.ifEmpty { "-" }
-        holder.tvIgdStatus.text = "IGD ${hospital.igdStatus}"
 
         val hasLocation = hospital.getLatLng() != null
         holder.tvMissingLocation.visibility = if (hasLocation) View.GONE else View.VISIBLE

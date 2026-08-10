@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.tugasakhirfinal.R
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 class ApproveDriverActivity : AppCompatActivity() {
 
@@ -21,6 +22,7 @@ class ApproveDriverActivity : AppCompatActivity() {
     private val pendingList = ArrayList<PendingDriverItem>()
 
     private val firestore = FirebaseFirestore.getInstance()
+    private var pendingDriversListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,16 +45,22 @@ class ApproveDriverActivity : AppCompatActivity() {
         loadPendingDrivers()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        pendingDriversListener?.remove()
+    }
+
     private fun loadPendingDrivers() {
         // Query hanya berdasar role="driver" (bukan sekaligus isApproved==false) supaya akun driver
         // lama yang belum punya field isApproved sama sekali (dibuat sebelum fitur ini ada) tetap
         // ikut tersaring & muncul di sini, bukan hilang begitu saja. Filter isApproved dilakukan
         // di client agar mencakup baik isApproved==false maupun field yang belum ada (null).
-        firestore.collection("users")
+        pendingDriversListener?.remove()
+        pendingDriversListener = firestore.collection("users")
             .whereEqualTo("role", "driver")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Toast.makeText(this, "Gagal memuat data: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to load data: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
                 }
 
@@ -69,6 +77,7 @@ class ApproveDriverActivity : AppCompatActivity() {
                                 email = doc.getString("email") ?: "",
                                 licenseNumber = doc.getString("licenseNumber") ?: "",
                                 ambulancePlateNumber = doc.getString("ambulancePlateNumber") ?: "",
+                                ambulanceCategory = doc.getString("ambulanceCategory") ?: "Ambulans Biasa",
                                 licensePhotoUrl = doc.getString("licensePhotoUrl") ?: "",
                                 stnkPhotoUrl = doc.getString("stnkPhotoUrl") ?: "",
                                 ambulancePhotoUrls = doc.get("ambulancePhotoUrls") as? List<String> ?: emptyList(),
@@ -91,31 +100,31 @@ class ApproveDriverActivity : AppCompatActivity() {
         firestore.collection("users").document(driver.uid)
             .update("isApproved", true)
             .addOnSuccessListener {
-                Toast.makeText(this, "Driver ${driver.nama} disetujui", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Driver ${driver.nama} approved", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Gagal menyetujui: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to approve: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
     private fun confirmRejectDriver(driver: PendingDriverItem) {
         AlertDialog.Builder(this)
-            .setTitle("Tolak Driver?")
+            .setTitle("Reject Driver?")
             .setMessage(
-                "Akun \"${driver.nama}\" akan dinonaktifkan dan tidak bisa mengemudi. " +
-                    "Bisa diaktifkan lagi nanti lewat Kelola Pengguna."
+                "The account \"${driver.nama}\" will be deactivated and won't be able to drive. " +
+                    "It can be reactivated later from Manage Users."
             )
-            .setPositiveButton("Tolak") { _, _ ->
+            .setPositiveButton("Reject") { _, _ ->
                 firestore.collection("users").document(driver.uid)
                     .update("isActive", false)
                     .addOnSuccessListener {
-                        Toast.makeText(this, "Driver ${driver.nama} ditolak", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Driver ${driver.nama} rejected", Toast.LENGTH_SHORT).show()
                     }
                     .addOnFailureListener { e ->
-                        Toast.makeText(this, "Gagal menolak: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Failed to reject: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -138,7 +147,7 @@ class ApproveDriverActivity : AppCompatActivity() {
                     isFirstResource: Boolean
                 ): Boolean {
                     Log.e("ApproveDriver", "Gagal memuat foto $url: ${e?.message}", e)
-                    Toast.makeText(this@ApproveDriverActivity, "Gagal memuat foto: ${e?.rootCauses?.firstOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ApproveDriverActivity, "Failed to load photo: ${e?.rootCauses?.firstOrNull()?.message}", Toast.LENGTH_SHORT).show()
                     return false
                 }
                 override fun onResourceReady(

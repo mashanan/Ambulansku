@@ -58,6 +58,12 @@ class ProfileFragmentDriver : Fragment() {
     // lateinit var akan crash (UninitializedPropertyAccessException) saat hasil kamera kembali.
     private var latestCapturedUri: Uri? = null
 
+    // Upload foto profil ke Storage/Firestore itu proses async yang butuh waktu - kalau driver
+    // sempat logout SEBELUM proses ini selesai, sesi login sudah tercabut duluan dan write
+    // Firestore-nya bakal ditolak security rules (muncul sebagai "Gagal unggah/simpan foto").
+    // Flag ini dipakai buat memblokir tombol logout selama upload masih berjalan.
+    private var isUploadingPhoto = false
+
     private val sharedPreferences: SharedPreferences by lazy {
         requireActivity().getSharedPreferences("driver_preferences", Context.MODE_PRIVATE)
     }
@@ -100,16 +106,16 @@ class ProfileFragmentDriver : Fragment() {
 
         // 1. Tampilkan cache dulu (instan) supaya pindah dari Home ke Profile tidak terasa
         // lama menunggu request Firestore, sama seperti pola di ProfileFragment (Passenger).
-        binding.textNama.text = sharedPreferences.getString("name_$userId", "Driver Baru")
-        binding.noTlp.text = sharedPreferences.getString("phone_$userId", "Atur Nomor")
+        binding.textNama.text = sharedPreferences.getString("name_$userId", "New Driver")
+        binding.noTlp.text = sharedPreferences.getString("phone_$userId", "Set Number")
         loadProfileImage(sharedPreferences.getString("img_$userId", null), sharedPreferences.getLong("imgVersion_$userId", 0L))
 
         // 2. Ambil data terbaru dari Firestore di belakang layar, lalu update UI + cache
         firestore.collection("users").document(userId).get()
             .addOnSuccessListener { doc ->
                 if (_binding != null && isAdded) {
-                    val name = doc.getString("nama") ?: "Driver Baru"
-                    val phone = doc.getString("phoneNumber") ?: "Atur Nomor"
+                    val name = doc.getString("nama") ?: "New Driver"
+                    val phone = doc.getString("phoneNumber") ?: "Set Number"
                     val imageUrl = doc.getString("profileImageUrl")
                     val imageVersion = doc.getLong("profileImageUpdatedAt") ?: 0L
 
@@ -140,15 +146,15 @@ class ProfileFragmentDriver : Fragment() {
         val plateNumber = doc.getString("ambulancePlateNumber") ?: "-"
         val isApproved = doc.getBoolean("isApproved") ?: false
 
-        binding.tvQualLicenseNumber.text = "No. SIM: $licenseNumber"
-        binding.tvQualPlateNumber.text = "No. Plat / STNK: $plateNumber"
+        binding.tvQualLicenseNumber.text = "License No.: $licenseNumber"
+        binding.tvQualPlateNumber.text = "Plate / Registration No.: $plateNumber"
 
         if (isApproved) {
-            binding.tvQualificationStatus.text = "✓ Terverifikasi"
+            binding.tvQualificationStatus.text = "✓ Verified"
             binding.tvQualificationStatus.setTextColor(android.graphics.Color.parseColor("#2E7D32"))
             binding.tvQualificationStatus.setBackgroundColor(android.graphics.Color.parseColor("#E8F5E9"))
         } else {
-            binding.tvQualificationStatus.text = "⏳ Menunggu Verifikasi Admin"
+            binding.tvQualificationStatus.text = "⏳ Pending Admin Verification"
             binding.tvQualificationStatus.setTextColor(android.graphics.Color.parseColor("#E65100"))
             binding.tvQualificationStatus.setBackgroundColor(android.graphics.Color.parseColor("#FFF3E0"))
         }
@@ -180,6 +186,10 @@ class ProfileFragmentDriver : Fragment() {
             startActivity(intent)
         }
         binding.logoutButton.setOnClickListener {
+            if (isUploadingPhoto) {
+                Toast.makeText(requireContext(), "Please wait for the profile photo upload to finish first", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             requireContext().stopService(Intent(requireContext(), DriverOnlineService::class.java))
             firebaseAuth.signOut()
             startActivity(Intent(requireContext(), RoleSelectionActivity::class.java).apply {
@@ -200,13 +210,13 @@ class ProfileFragmentDriver : Fragment() {
     // Verifikasi 1: konfirmasi niat menghapus akun
     private fun showDeleteConfirmStep1() {
         AlertDialog.Builder(requireContext())
-            .setTitle("Hapus Akun?")
-            .setMessage("Apakah Anda yakin ingin menghapus akun Driver ini? Tindakan ini tidak dapat dibatalkan.")
-            .setPositiveButton("Lanjutkan") { dialog, _ ->
+            .setTitle("Delete Account?")
+            .setMessage("Are you sure you want to delete this Driver account? This action cannot be undone.")
+            .setPositiveButton("Continue") { dialog, _ ->
                 dialog.dismiss()
                 showDeleteConfirmStep2()
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -217,15 +227,15 @@ class ProfileFragmentDriver : Fragment() {
 
         AlertDialog.Builder(requireContext())
             .setView(dialogView)
-            .setPositiveButton("Hapus Permanen") { _, _ ->
+            .setPositiveButton("Delete Permanently") { _, _ ->
                 val password = etPassword.text.toString().trim()
                 if (password.isEmpty()) {
-                    Toast.makeText(requireContext(), "Password wajib diisi", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Password is required", Toast.LENGTH_SHORT).show()
                 } else {
                     deleteAccountFlow(password)
                 }
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -233,11 +243,11 @@ class ProfileFragmentDriver : Fragment() {
         val user = firebaseAuth.currentUser ?: return
         val email = user.email
         if (email.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "Tidak dapat memverifikasi akun ini.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Unable to verify this account.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        progressDialog.setMessage("Memverifikasi password...")
+        progressDialog.setMessage("Verifying password...")
         progressDialog.show()
 
         val credential = EmailAuthProvider.getCredential(email, password)
@@ -246,35 +256,35 @@ class ProfileFragmentDriver : Fragment() {
                 deleteUserDataThenAccount(user)
             } else {
                 progressDialog.dismiss()
-                Toast.makeText(requireContext(), "Password salah. Akun tidak dihapus.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Incorrect password. Account was not deleted.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun deleteUserDataThenAccount(user: FirebaseUser) {
-        progressDialog.setMessage("Menghapus data akun...")
+        progressDialog.setMessage("Deleting account data...")
         firestore.collection("users").document(user.uid).delete()
             .addOnSuccessListener { finalizeAccountDeletion(user) }
             .addOnFailureListener { e ->
                 progressDialog.dismiss()
-                Toast.makeText(requireContext(), "Gagal menghapus data: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Failed to delete data: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
     private fun finalizeAccountDeletion(user: FirebaseUser) {
-        progressDialog.setMessage("Menghapus akun...")
+        progressDialog.setMessage("Deleting account...")
         user.delete().addOnCompleteListener { deleteTask ->
             progressDialog.dismiss()
             if (deleteTask.isSuccessful) {
                 requireContext().stopService(Intent(requireContext(), DriverOnlineService::class.java))
                 sharedPreferences.edit().clear().apply()
-                Toast.makeText(requireContext(), "Akun berhasil dihapus.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Account successfully deleted.", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(requireContext(), RoleSelectionActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 })
                 requireActivity().finish()
             } else {
-                Toast.makeText(requireContext(), "Gagal menghapus akun: ${deleteTask.exception?.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Failed to delete account: ${deleteTask.exception?.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -318,7 +328,7 @@ class ProfileFragmentDriver : Fragment() {
         if (success && uri != null) {
             uploadProfileImage(uri)
         } else if (success) {
-            Toast.makeText(requireContext(), "Sesi pengambilan foto berakhir, coba lagi", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Photo capture session ended, try again", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -383,10 +393,13 @@ class ProfileFragmentDriver : Fragment() {
     // benar-benar bisa dilihat dari device lain (mis. passenger saat menunggu jemputan).
     private fun uploadProfileImage(uri: Uri) {
         val userId = firebaseAuth.currentUser?.uid ?: return
+        // Context aman dipakai di callback async - requireContext() bisa melempar exception
+        // kalau fragment ini sudah di-detach saat callback-nya baru jalan belakangan.
+        val appContext = requireContext().applicationContext
         try {
             var bitmap = decodeSampledBitmapFromUri(uri, 800)
             if (bitmap == null) {
-                Toast.makeText(requireContext(), "Gagal memproses foto", Toast.LENGTH_SHORT).show()
+                Toast.makeText(appContext, "Failed to process photo", Toast.LENGTH_SHORT).show()
                 return
             }
 
@@ -402,7 +415,8 @@ class ProfileFragmentDriver : Fragment() {
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             bitmap = resizeBitmap(bitmap, 800)
 
-            progressDialog.setMessage("Mengunggah foto...")
+            isUploadingPhoto = true
+            progressDialog.setMessage("Uploading photo...")
             progressDialog.show()
 
             val baos = ByteArrayOutputStream()
@@ -420,29 +434,33 @@ class ProfileFragmentDriver : Fragment() {
                         firestore.collection("users").document(userId)
                             .update(data)
                             .addOnSuccessListener {
+                                isUploadingPhoto = false
                                 progressDialog.dismiss()
-                                loadProfileImage(downloadUri.toString(), newVersion)
+                                if (_binding != null) loadProfileImage(downloadUri.toString(), newVersion)
                             }
                             .addOnFailureListener { e ->
-                                // Kalau Firestore menolak write (mis. karena aturan security rules),
-                                // dialog "Mengunggah foto..." harus tetap tertutup + ada pesan error,
-                                // bukan nyangkut diam-diam.
+                                // Kalau Firestore menolak write (mis. karena aturan security rules,
+                                // atau sesi login sudah tercabut duluan), dialog "Mengunggah foto..."
+                                // harus tetap tertutup + ada pesan error, bukan nyangkut diam-diam.
+                                isUploadingPhoto = false
                                 progressDialog.dismiss()
                                 Log.e("DriverProfile", "firestore update gagal: ${e.message}")
-                                Toast.makeText(requireContext(), "Gagal simpan foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(appContext, "Failed to save photo: ${e.message}", Toast.LENGTH_SHORT).show()
                             }
                     }
                 }
                 .addOnFailureListener { e ->
+                    isUploadingPhoto = false
                     progressDialog.dismiss()
-                    Toast.makeText(requireContext(), "Gagal unggah foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(appContext, "Failed to upload photo: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         } catch (e: Exception) {
             // Selalu tutup dialog & kasih tahu user kalau ada apa-apa - sebelumnya exception di
             // sini cuma di-log, dialog "Mengunggah foto..." nyangkut selamanya tanpa penjelasan.
+            isUploadingPhoto = false
             progressDialog.dismiss()
             Log.e("DriverProfile", e.message.toString())
-            Toast.makeText(requireContext(), "Gagal memproses foto: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(appContext, "Failed to process photo: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

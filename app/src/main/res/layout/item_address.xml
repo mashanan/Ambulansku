@@ -28,7 +28,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Rumah"
+                android:text="Home"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -42,7 +42,7 @@
                 android:background="#E1F5FE"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="2dp"
-                android:text="UTAMA"
+                android:text="PRIMARY"
                 android:textColor="#0288D1"
                 android:textSize="11sp"
                 android:textStyle="bold"
@@ -55,7 +55,7 @@
                 android:layout_height="28dp"
                 android:padding="2dp"
                 android:src="@android:drawable/btn_star_big_off"
-                android:contentDescription="Favorit" />
+                android:contentDescription="Favorite" />
 
             <!-- Tombol Edit (Tetap di Atas) -->
             <ImageView
@@ -66,7 +66,7 @@
                 android:padding="2dp"
                 android:src="@android:drawable/ic_menu_edit"
                 app:tint="#757575"
-                android:contentDescription="Edit Alamat" />
+                android:contentDescription="Edit Address" />
         </LinearLayout>
 
         <!-- Alamat Lengkap -->
@@ -76,7 +76,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/layoutHeader"
             android:layout_marginTop="6dp"
-            android:text="Alamat lengkap"
+            android:text="Full address"
             android:textColor="#424242"
             android:textSize="14sp" />
 
@@ -87,7 +87,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/tvFullAddress"
             android:layout_marginTop="4dp"
-            android:text="Catatan/Patokan"
+            android:text="Note/Landmark"
             android:textColor="#757575"
             android:textSize="12sp"
             android:textStyle="italic" />
@@ -108,7 +108,7 @@
                 android:layout_centerVertical="true"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="0dp"
-                android:text="Jadikan Alamat Utama"
+                android:text="Set as Primary Address"
                 android:textAllCaps="false"
                 android:textSize="12sp"
                 android:textColor="@color/black"
@@ -124,7 +124,7 @@
                 android:padding="4dp"
                 android:src="@android:drawable/ic_menu_delete"
                 app:tint="#D32F2F"
-                android:contentDescription="Hapus Alamat" />
+                android:contentDescription="Delete Address" />
         </RelativeLayout>
 
     </RelativeLayout>

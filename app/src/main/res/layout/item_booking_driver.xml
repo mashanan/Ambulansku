@@ -17,8 +17,21 @@
             android:id="@+id/tvPassengerName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nama Penumpang"
+            android:text="Passenger Name"
             android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvBookingCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="#FADFDF"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:text="Ambulans Biasa"
+            android:textColor="@color/pink_main"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <TextView
@@ -26,7 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Tujuan: Rumah Sakit"
+            android:text="Destination: Hospital"
             android:textColor="#333333" />
 
         <TextView
@@ -34,7 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Lokasi Jemput: Jl. Mawar No. 12"
+            android:text="Pickup Location: Jl. Mawar No. 12"
             android:textColor="#666666" />
 
         <LinearLayout
@@ -47,7 +60,7 @@
                 android:id="@+id/tvDistance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Jarak: - km"
+                android:text="Distance: - km"
                 android:textColor="#D32F2F"
                 android:textStyle="bold"
                 android:textSize="13sp" />
@@ -65,7 +78,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Estimasi: - menit"
+                android:text="Estimate: - min"
                 android:textColor="#D32F2F"
                 android:textStyle="bold"
                 android:textSize="13sp" />
@@ -78,7 +91,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:backgroundTint="@color/pink_button"
-            android:text="Terima Pesanan"
+            android:text="Accept Booking"
             android:textColor="@android:color/white" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

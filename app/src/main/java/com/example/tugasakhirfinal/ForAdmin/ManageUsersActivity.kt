@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tugasakhirfinal.R
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 class ManageUsersActivity : AppCompatActivity() {
 
@@ -23,6 +24,7 @@ class ManageUsersActivity : AppCompatActivity() {
     private val fullUserList = ArrayList<AdminUserItem>()
 
     private val firestore = FirebaseFirestore.getInstance()
+    private var usersListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,9 +38,11 @@ class ManageUsersActivity : AppCompatActivity() {
         btnBack.setOnClickListener { finish() }
 
         rvUserList.layoutManager = LinearLayoutManager(this)
-        userAdapter = UserAdminAdapter(fullUserList) { user ->
-            confirmToggleActive(user)
-        }
+        userAdapter = UserAdminAdapter(
+            fullUserList,
+            onToggleActiveClick = { user -> confirmToggleActive(user) },
+            onDeleteClick = { user -> confirmDeleteUser(user) }
+        )
         rvUserList.adapter = userAdapter
 
         etSearchUser.addTextChangedListener(object : TextWatcher {
@@ -52,11 +56,17 @@ class ManageUsersActivity : AppCompatActivity() {
         loadUsersFromFirestore()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        usersListener?.remove()
+    }
+
     private fun loadUsersFromFirestore() {
-        firestore.collection("users")
+        usersListener?.remove()
+        usersListener = firestore.collection("users")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Toast.makeText(this, "Gagal memuat data pengguna: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to load user data: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
                 }
 
@@ -83,21 +93,46 @@ class ManageUsersActivity : AppCompatActivity() {
     }
 
     private fun confirmToggleActive(user: AdminUserItem) {
-        val action = if (user.isActive) "menonaktifkan" else "mengaktifkan kembali"
+        val action = if (user.isActive) "deactivate" else "reactivate"
         AlertDialog.Builder(this)
-            .setTitle("Konfirmasi")
-            .setMessage("Yakin ingin $action akun \"${user.nama}\"?")
-            .setPositiveButton("Ya") { _, _ ->
+            .setTitle("Confirmation")
+            .setMessage("Are you sure you want to $action the account \"${user.nama}\"?")
+            .setPositiveButton("Yes") { _, _ ->
                 firestore.collection("users").document(user.uid)
                     .update("isActive", !user.isActive)
                     .addOnSuccessListener {
-                        Toast.makeText(this, "Status akun diperbarui", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Account status updated", Toast.LENGTH_SHORT).show()
                     }
                     .addOnFailureListener { e ->
-                        Toast.makeText(this, "Gagal memperbarui: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Failed to update: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    // Hanya menghapus dokumen Firestore (users/{uid}), TIDAK menyentuh akun Firebase Auth -
+    // dipakai admin untuk membersihkan data pengguna yang akun Auth-nya sudah dihapus duluan
+    // lewat Firebase Console (data "hantu" yang tetap nyangkut & masih bisa dinonaktifkan
+    // walau akunnya sendiri sudah tidak ada).
+    private fun confirmDeleteUser(user: AdminUserItem) {
+        AlertDialog.Builder(this)
+            .setTitle("Permanently Delete Account?")
+            .setMessage(
+                "This will delete \"${user.nama}\"'s (${user.email}) data from the app database. " +
+                    "Use this ONLY if this account has already been deleted from Firebase Authentication. " +
+                    "This action cannot be undone."
+            )
+            .setPositiveButton("Delete") { _, _ ->
+                firestore.collection("users").document(user.uid).delete()
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Account data deleted", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this, "Failed to delete: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+            }
+            .setNegativeButton("Cancel", null)
             .show()
     }
 

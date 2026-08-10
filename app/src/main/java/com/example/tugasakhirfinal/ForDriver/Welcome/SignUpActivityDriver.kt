@@ -1,11 +1,9 @@
-package com.example.tugasakhirfinal.ForDriver
+package com.example.tugasakhirfinal.ForDriver.Welcome
 
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.tugasakhirfinal.ForDriver.Welcome.DriverQualificationActivity
-import com.example.tugasakhirfinal.ForDriver.Welcome.SignInActivityDriver
 import com.example.tugasakhirfinal.databinding.ActivitySignUpDriverBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,9 +35,9 @@ class SignUpActivityDriver : AppCompatActivity() {
 
             if (email.isNotEmpty() && pass.isNotEmpty() && confirmPass.isNotEmpty()) {
                 if (pass.length < 6) {
-                    Toast.makeText(this, "Password minimal 6 karakter", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
                 } else if (pass != confirmPass) {
-                    Toast.makeText(this, "Password tidak cocok", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 } else {
                     // 1. Buat Akun di Auth
                     firebaseAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener { task ->
@@ -54,8 +52,8 @@ class SignUpActivityDriver : AppCompatActivity() {
                                 val driverMap = hashMapOf(
                                     "uid" to userId,
                                     "email" to email,
-                                    "nama" to "Driver Baru", // Default
-                                    "phoneNumber" to "Belum diisi", // Default
+                                    "nama" to "New Driver", // Default
+                                    "phoneNumber" to "Not filled in", // Default
                                     "role" to "driver", // 🚩 SANGAT PENTING
                                     "status" to "offline",
                                     "profileImageUrl" to "",
@@ -72,16 +70,16 @@ class SignUpActivityDriver : AppCompatActivity() {
                                         finish()
                                     }
                                     .addOnFailureListener { e ->
-                                        Toast.makeText(this, "Gagal simpan data: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(this, "Failed to save data: ${e.message}", Toast.LENGTH_SHORT).show()
                                     }
                             }
                         } else {
-                            Toast.makeText(this, task.exception?.message ?: "Gagal Daftar", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, task.exception?.message ?: "Sign Up Failed", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
             } else {
-                Toast.makeText(this, "Semua kolom wajib diisi", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show()
             }
         }
     }

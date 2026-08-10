@@ -54,8 +54,8 @@ class SignUpActivity : AppCompatActivity() {
                                 val userMap = hashMapOf(
                                     "uid" to userId,
                                     "email" to email,
-                                    "nama" to "Masukkan Nama Anda",
-                                    "phoneNumber" to "Masukkan Nomor Telepon Anda",
+                                    "nama" to "Enter Your Name",
+                                    "phoneNumber" to "Enter Your Phone Number",
                                     "role" to selectedRole, // Menyimpan role yang dipilih di awal
                                     "status" to "offline", // Default untuk driver (tidak masalah jika untuk passenger)
                                     "profileImageUrl" to "",

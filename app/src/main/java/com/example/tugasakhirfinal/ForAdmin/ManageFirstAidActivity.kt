@@ -20,6 +20,7 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 
 class ManageFirstAidActivity : AppCompatActivity() {
@@ -34,6 +35,7 @@ class ManageFirstAidActivity : AppCompatActivity() {
     private val fullConditionList = ArrayList<FirstAidCondition>()
 
     private val firestore = FirebaseFirestore.getInstance()
+    private var firstAidListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,12 +74,18 @@ class ManageFirstAidActivity : AppCompatActivity() {
         loadFirstAidFromFirestore()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        firstAidListener?.remove()
+    }
+
     private fun loadFirstAidFromFirestore() {
-        firestore.collection("firstAidConditions")
+        firstAidListener?.remove()
+        firstAidListener = firestore.collection("firstAidConditions")
             .orderBy("createdAt", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Toast.makeText(this, "Gagal memuat data: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to load data: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
                 }
 
@@ -124,11 +132,11 @@ class ManageFirstAidActivity : AppCompatActivity() {
         btnImportSeed.isEnabled = false
         batch.commit()
             .addOnSuccessListener {
-                Toast.makeText(this, "9 data awal berhasil diimpor", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "9 initial entries imported successfully", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
                 btnImportSeed.isEnabled = true
-                Toast.makeText(this, "Gagal impor data: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to import data: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -144,18 +152,18 @@ class ManageFirstAidActivity : AppCompatActivity() {
 
     private fun confirmDeleteFirstAid(condition: FirstAidCondition) {
         AlertDialog.Builder(this)
-            .setTitle("Hapus Kondisi?")
-            .setMessage("Hapus \"${condition.title}\" dari daftar Pertolongan Pertama?")
-            .setPositiveButton("Hapus") { _, _ ->
+            .setTitle("Delete Condition?")
+            .setMessage("Delete \"${condition.title}\" from the First Aid list?")
+            .setPositiveButton("Delete") { _, _ ->
                 firestore.collection("firstAidConditions").document(condition.id).delete()
                     .addOnSuccessListener {
-                        Toast.makeText(this, "Kondisi dihapus", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Condition deleted", Toast.LENGTH_SHORT).show()
                     }
                     .addOnFailureListener { e ->
-                        Toast.makeText(this, "Gagal menghapus: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Failed to delete: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 

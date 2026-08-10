@@ -5,13 +5,23 @@
          Material tak berstyle (Button polos yg auto-inflate jadi MaterialButton, Switch,
          CheckBox, ProgressBar, dll) otomatis pakai palet ungu bawaan Material Components alih-alih
          tema merah-putih aplikasi ini. -->
-    <style name="Theme.TugasAkhirFinal" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Parent sengaja ".Light" (BUKAN ".DayNight") - aplikasi ini tidak didesain untuk dark mode
+         (semua warna background/teks di-hardcode, tidak ada values-night). Pakai DayNight bikin
+         komponen yang mengikuti atribut tema (mis. garis kotak TextInputLayout OutlinedBox) ikut
+         berubah warna saat sistem HP dark mode (umum di MIUI/HyperOS Xiaomi/Redmi), sementara
+         background di sekitarnya tetap warna terang yang di-hardcode - hasilnya kotak input
+         email/password jadi menyatu/tak terlihat di HP yang dark mode-nya aktif. -->
+    <style name="Theme.TugasAkhirFinal" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/pink_main</item>
         <item name="colorPrimaryDark">@color/pink_main</item>
         <item name="colorAccent">@color/pink_main</item>
         <item name="colorSecondary">@color/pink_main</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorOnSecondary">@color/white</item>
+        <!-- Mematikan fitur "Force Dark" bawaan Android (API 29+) yang bisa membalik warna app
+             secara paksa di level sistem - beberapa skin OEM (terutama HyperOS/MIUI) lebih agresif
+             menerapkan ini dibanding Android murni, terlepas dari tema Light-only di atas. -->
+        <item name="android:forceDarkAllowed">false</item>
     </style>
 
     <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
@@ -34,6 +44,17 @@
         <item name="android:maxLines">1</item>
         <item name="android:textSize">14sp</item>
         <item name="android:singleLine">true</item>
+    </style>
+
+    <!-- Sudut membulat cuma di atas, dipakai kartu bottom sheet (mis. panel info pesanan di
+         ActivityDrive) supaya bagian bawahnya rata menyatu dengan tepi layar, bukan membulat
+         semua sisi seperti CardView biasa. -->
+    <style name="ShapeAppearance.BottomSheetTop" parent="ShapeAppearance.MaterialComponents.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">20dp</item>
+        <item name="cornerSizeTopRight">20dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
     </style>
 
 </resources>

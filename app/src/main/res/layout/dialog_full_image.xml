@@ -9,7 +9,7 @@
         android:id="@+id/ivFullImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:contentDescription="Foto"
+        android:contentDescription="Photo"
         android:scaleType="fitCenter" />
 
     <ImageView
@@ -19,7 +19,7 @@
         android:layout_gravity="top|end"
         android:layout_margin="16dp"
         android:background="@drawable/bg_close_button_circle"
-        android:contentDescription="Tutup"
+        android:contentDescription="Close"
         android:padding="8dp"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         app:tint="@color/white" />

@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.Model
+package com.example.tugasakhirfinal.Chat
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.PropertyName

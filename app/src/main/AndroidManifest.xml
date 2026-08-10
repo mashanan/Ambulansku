@@ -26,9 +26,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/ic_apps"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_apps"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TugasAkhirFinal"
         tools:targetApi="31">
@@ -65,9 +65,8 @@
         <activity android:name=".ForPassenger.Welcome.MainActivity" android:exported="false" />
         <activity android:name=".ForPassenger.PassengerHomeActivity" android:exported="false" />
 
-        <!-- 🛠️ DIBETULKAN: ActivityDrive sesuaikan package subfolder ForPassenger -->
-        <activity android:name=".ForPassenger.ActivityDrive" android:exported="false" />
-        <activity android:name=".ForPassenger.HospitalListActivity" android:exported="false" />
+        <activity android:name=".ForPassenger.DriveFragment.ActivityDrive" android:exported="false" />
+        <activity android:name=".ForPassenger.DriveFragment.HospitalListActivity" android:exported="false" />
         <activity android:name=".ForPassenger.FirstAid.PertolonganPertamaActivity" android:exported="false" />
 
         <!-- 🛠️ DITAMBAHKAN: ChatPassengerActivity terdaftar resmi -->
@@ -84,7 +83,7 @@
         <activity android:name=".ForDriver.Welcome.MainActivityDriver" android:exported="false" />
         <activity android:name=".ForDriver.Welcome.SignInActivityDriver" android:exported="false" />
         <activity android:name=".ForDriver.Welcome.DriverQualificationActivity" android:exported="false" />
-        <activity android:name=".ForDriver.SignUpActivityDriver" android:exported="false" />
+        <activity android:name=".ForDriver.Welcome.SignUpActivityDriver" android:exported="false" />
         <activity android:name=".ForDriver.DriverHomeActivity" android:exported="false" />
         <activity android:name=".ForDriver.Chat.ChatDriverActivity" android:exported="false" />
 

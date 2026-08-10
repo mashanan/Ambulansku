@@ -11,7 +11,8 @@ import com.example.tugasakhirfinal.R
 
 class UserAdminAdapter(
     private var userList: List<AdminUserItem>,
-    private val onToggleActiveClick: (AdminUserItem) -> Unit
+    private val onToggleActiveClick: (AdminUserItem) -> Unit,
+    private val onDeleteClick: (AdminUserItem) -> Unit
 ) : RecyclerView.Adapter<UserAdminAdapter.UserViewHolder>() {
 
     class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -20,6 +21,7 @@ class UserAdminAdapter(
         val tvRole: TextView = itemView.findViewById(R.id.tvUserRole)
         val tvStatus: TextView = itemView.findViewById(R.id.tvUserStatus)
         val btnToggle: AppCompatButton = itemView.findViewById(R.id.btnToggleActive)
+        val btnDelete: AppCompatButton = itemView.findViewById(R.id.btnDeleteUser)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
@@ -29,26 +31,30 @@ class UserAdminAdapter(
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         val user = userList[position]
-        holder.tvName.text = user.nama.ifEmpty { "Tanpa Nama" }
+        holder.tvName.text = user.nama.ifEmpty { "No Name" }
         holder.tvEmail.text = user.email.ifEmpty { "-" }
         holder.tvRole.text = if (user.role.equals("driver", ignoreCase = true)) "Driver" else "Passenger"
 
         if (user.isActive) {
-            holder.tvStatus.text = "Aktif"
+            holder.tvStatus.text = "Active"
             holder.tvStatus.setTextColor(Color.parseColor("#2E7D32"))
             holder.tvStatus.setBackgroundColor(Color.parseColor("#E8F5E9"))
-            holder.btnToggle.text = "Nonaktifkan"
+            holder.btnToggle.text = "Deactivate"
             holder.btnToggle.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#D32F2F"))
         } else {
-            holder.tvStatus.text = "Nonaktif"
+            holder.tvStatus.text = "Inactive"
             holder.tvStatus.setTextColor(Color.parseColor("#C62828"))
             holder.tvStatus.setBackgroundColor(Color.parseColor("#FFEBEE"))
-            holder.btnToggle.text = "Aktifkan Lagi"
+            holder.btnToggle.text = "Reactivate"
             holder.btnToggle.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#2E7D32"))
         }
 
         holder.btnToggle.setOnClickListener {
             onToggleActiveClick(user)
+        }
+
+        holder.btnDelete.setOnClickListener {
+            onDeleteClick(user)
         }
     }
 

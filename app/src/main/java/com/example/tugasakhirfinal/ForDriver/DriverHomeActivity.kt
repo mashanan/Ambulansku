@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.example.tugasakhirfinal.DeviceSession
 import com.example.tugasakhirfinal.ForDriver.Fragment.HomeFragmentDriver // Nama sudah diperbaiki
 import com.example.tugasakhirfinal.ForDriver.Fragment.ProfileFragmentDriver
 import com.example.tugasakhirfinal.ForDriver.Fragment.ActivityDriveFragmentDriver
@@ -78,13 +79,13 @@ class DriverHomeActivity : AppCompatActivity() {
         binding.switchOnline.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 if (!isApprovedCache) {
-                    Toast.makeText(this, "Akun Anda menunggu verifikasi ulang Admin, tidak bisa online sementara.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Your account is pending re-verification by the Admin, you cannot go online for now.", Toast.LENGTH_LONG).show()
                     binding.switchOnline.isChecked = false
                     return@setOnCheckedChangeListener
                 }
                 requestOnlinePermissionsIfNeeded()
                 ContextCompat.startForegroundService(this, Intent(this, DriverOnlineService::class.java))
-                binding.statusText.text = "Status: Online (Siap Menerima Pesanan)"
+                binding.statusText.text = "Status: Online (Ready to Accept Bookings)"
             } else {
                 stopService(Intent(this, DriverOnlineService::class.java))
                 binding.statusText.text = "Status: Offline"
@@ -125,8 +126,8 @@ class DriverHomeActivity : AppCompatActivity() {
                 val currentName = doc.getString("nama") ?: ""
                 val currentNoTlp = doc.getString("phoneNumber") ?: ""
 
-                val isNameEmpty = currentName.isBlank() || currentName == "Driver Baru"
-                val isPhoneEmpty = currentNoTlp.isBlank() || currentNoTlp == "Belum diisi"
+                val isNameEmpty = currentName.isBlank() || currentName == "New Driver"
+                val isPhoneEmpty = currentNoTlp.isBlank() || currentNoTlp == "Not filled in"
 
                 if (isNameEmpty || isPhoneEmpty) {
                     showIncompleteProfileDialog()
@@ -137,9 +138,9 @@ class DriverHomeActivity : AppCompatActivity() {
     // Fungsi untuk menampilkan dialog jika profil belum lengkap
     private fun showIncompleteProfileDialog() {
         AlertDialog.Builder(this)
-            .setTitle("Lengkapi Profil Anda")
-            .setMessage("Nama dan nomor telepon Anda masih kosong. Silakan buka halaman Profil untuk melengkapi data Anda.")
-            .setPositiveButton("Buka Profil") { _, _ ->
+            .setTitle("Complete Your Profile")
+            .setMessage("Your name and phone number are still empty. Please open the Profile page to complete your details.")
+            .setPositiveButton("Open Profile") { _, _ ->
                 loadFragment(ProfileFragmentDriver())
                 binding.bottomNavigation.selectedItemId = R.id.nav_profile
             }
@@ -152,21 +153,26 @@ class DriverHomeActivity : AppCompatActivity() {
     // Juga pantau isApproved: kalau turun jadi false (mis. driver baru saja edit data
     // kualifikasi & menunggu verifikasi ulang) SAAT sedang online, paksa offline - TAPI beda
     // dari isActive=false, ini BUKAN sign-out penuh, driver tetap boleh pakai app.
+    // Juga pantau activeSessionId: kalau akun ini login lagi di device LAIN, field itu ditimpa
+    // device baru tsb, dan device ini (yang lama) langsung dipaksa logout begitu terdeteksi -
+    // menegakkan aturan 1 akun cuma boleh aktif di 1 device.
     private fun listenToAccountStatus() {
         val uid = auth.currentUser?.uid ?: return
         accountStatusListener?.remove()
         accountStatusListener = firestore.collection("users").document(uid)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
+
+                val remoteSessionId = snapshot?.getString("activeSessionId")
+                val localSessionId = DeviceSession.getSessionId(this)
+                if (remoteSessionId != null && remoteSessionId != localSessionId) {
+                    forceLogout("Your account was signed in on another device.")
+                    return@addSnapshotListener
+                }
+
                 val isActive = snapshot?.getBoolean("isActive") ?: true
                 if (!isActive) {
-                    stopService(Intent(this, DriverOnlineService::class.java))
-                    Toast.makeText(this, "Akun Anda dinonaktifkan oleh admin.", Toast.LENGTH_LONG).show()
-                    auth.signOut()
-                    startActivity(Intent(this, RoleSelectionActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    })
-                    finish()
+                    forceLogout("Your account has been deactivated by the admin.")
                     return@addSnapshotListener
                 }
 
@@ -176,9 +182,19 @@ class DriverHomeActivity : AppCompatActivity() {
                     // Set isChecked=false memicu listener switch di atas (cabang else: stopService
                     // + update statusText), jadi tidak perlu duplikasi logika itu di sini.
                     binding.switchOnline.isChecked = false
-                    Toast.makeText(this, "Akun Anda menunggu verifikasi ulang Admin. Anda tidak bisa online sementara.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Your account is pending re-verification by the Admin. You cannot go online for now.", Toast.LENGTH_LONG).show()
                 }
             }
+    }
+
+    private fun forceLogout(message: String) {
+        stopService(Intent(this, DriverOnlineService::class.java))
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        auth.signOut()
+        startActivity(Intent(this, RoleSelectionActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        finish()
     }
 
     override fun onDestroy() {

@@ -6,6 +6,7 @@ import android.util.Patterns
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.tugasakhirfinal.DeviceSession
 import com.example.tugasakhirfinal.ForPassenger.PassengerHomeActivity
 import com.example.tugasakhirfinal.databinding.ActivitySignInPassengerBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -32,6 +33,10 @@ class SignInActivity : AppCompatActivity() {
             if (user?.isEmailVerified == true) {
                 checkActiveThenNavigate()
             } else {
+                // Sign out di sini PENTING - tanpa ini, sesi Firebase Auth tetap "nyangkut" aktif
+                // walau UI menahan navigasi, dan bisa lolos begitu saja lewat auto-login di
+                // SplashScreenActivity kalau app ditutup-buka lagi tanpa lewat sini dulu.
+                firebaseAuth.signOut()
                 Toast.makeText(this, "Please verify your email before logging in.", Toast.LENGTH_SHORT).show()
                 navigateToMainActivity()
             }
@@ -110,9 +115,9 @@ class SignInActivity : AppCompatActivity() {
     // Fungsi untuk menangani error login dan menampilkan pesan yang lebih user-friendly
     private fun handleLoginError(errorMessage: String?) {
         val displayMessage = when (errorMessage) {
-            "The password is invalid or the user does not have a password." -> "Email atau password salah"
-            "There is no user record corresponding to this identifier. The user may have been deleted." -> "Email atau password salah"
-            else -> "Login gagal. Silakan coba lagi."
+            "The password is invalid or the user does not have a password." -> "Incorrect email or password"
+            "There is no user record corresponding to this identifier. The user may have been deleted." -> "Incorrect email or password"
+            else -> "Login failed. Please try again."
         }
         Toast.makeText(this, displayMessage, Toast.LENGTH_SHORT).show()
     }
@@ -130,9 +135,13 @@ class SignInActivity : AppCompatActivity() {
             .addOnSuccessListener { doc ->
                 val isActive = doc.getBoolean("isActive") ?: true
                 if (isActive) {
+                    // Klaim sesi device ini - device lain yang masih login akan otomatis
+                    // ter-logout lewat listener di PassengerHomeActivity.
+                    firestore.collection("users").document(uid)
+                        .update("activeSessionId", DeviceSession.getSessionId(this))
                     navigateToHomeActivity()
                 } else {
-                    Toast.makeText(this, "Akun Anda dinonaktifkan oleh admin.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Your account has been deactivated by an admin.", Toast.LENGTH_LONG).show()
                     firebaseAuth.signOut()
                 }
             }

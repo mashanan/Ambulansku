@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.tugasakhirfinal.Model.PassengerChatHistory
+import com.example.tugasakhirfinal.ForPassenger.Chat.PassengerChatHistory
 import com.example.tugasakhirfinal.R
 
 class DriverChatAdapter(
@@ -28,15 +28,18 @@ class DriverChatAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = chatList[position]
-        holder.tvPassengerName.text = item.driverName.ifEmpty { "Pasien Ambulans" } // Diisi nama pasien/penumpang
-        holder.tvHospitalDestination.text = "Tujuan: ${item.hospitalName}"
-        holder.tvLastMessage.text = item.lastMessage.ifEmpty { "Klik untuk membuka obrolan" }
+        holder.tvPassengerName.text = item.driverName.ifEmpty { "Ambulance Patient" } // Diisi nama pasien/penumpang
+        holder.tvHospitalDestination.text = "Destination: ${item.hospitalName}"
+        holder.tvLastMessage.text = item.lastMessage.ifEmpty { "Tap to open chat" }
 
         if (item.status.equals("accepted", ignoreCase = true) || item.status.equals("picked_up", ignoreCase = true)) {
-            holder.tvChatStatus.text = "Berlangsung"
+            holder.tvChatStatus.text = "Ongoing"
             holder.tvChatStatus.setTextColor(holder.itemView.context.getColor(android.R.color.holo_green_dark))
+        } else if (item.status.equals("CANCELLED", ignoreCase = true)) {
+            holder.tvChatStatus.text = "Cancelled"
+            holder.tvChatStatus.setTextColor(holder.itemView.context.getColor(android.R.color.holo_red_dark))
         } else {
-            holder.tvChatStatus.text = "Selesai"
+            holder.tvChatStatus.text = "Completed"
             holder.tvChatStatus.setTextColor(holder.itemView.context.getColor(android.R.color.darker_gray))
         }
 

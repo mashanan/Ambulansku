@@ -32,7 +32,7 @@
                 android:id="@+id/tvPassengerName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nama Pasien"
+                android:text="Patient Name"
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -42,7 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Tujuan: Rumah Sakit"
+                android:text="Destination: Hospital"
                 android:textColor="#D32F2F"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -54,7 +54,7 @@
                 android:layout_marginTop="4dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="Pesan dari penumpang..."
+                android:text="Message from passenger..."
                 android:textColor="#757575"
                 android:textSize="13sp" />
         </LinearLayout>
@@ -63,7 +63,7 @@
             android:id="@+id/tvChatStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Berlangsung"
+            android:text="Ongoing"
             android:textColor="@android:color/holo_green_dark"
             android:textSize="12sp"
             android:textStyle="bold" />

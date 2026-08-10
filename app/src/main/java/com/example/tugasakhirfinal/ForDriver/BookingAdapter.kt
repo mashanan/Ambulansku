@@ -1,9 +1,8 @@
-package com.example.tugasakhirfinal.Adapter
+package com.example.tugasakhirfinal.ForDriver
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.tugasakhirfinal.Model.Booking
 import com.example.tugasakhirfinal.databinding.ItemBookingDriverBinding
 
 class BookingAdapter(
@@ -25,17 +24,18 @@ class BookingAdapter(
         val booking = bookings[position]
         holder.binding.apply {
             tvPassengerName.text = booking.passengerName
-            tvHospitalName.text = "Tujuan: ${booking.hospitalName.ifEmpty { "Rumah Sakit" }}"
-            tvLocation.text = "Lokasi Jemput: ${booking.locationName.ifEmpty { "-" }}"
+            tvBookingCategory.text = booking.ambulanceCategory.ifEmpty { "Ambulans Biasa" }
+            tvHospitalName.text = "Destination: ${booking.hospitalName.ifEmpty { "Hospital" }}"
+            tvLocation.text = "Pickup Location: ${booking.locationName.ifEmpty { "-" }}"
             tvDistance.text = if (booking.distanceMeters >= 0) {
-                "Jarak: ${String.format("%.1f", booking.distanceMeters / 1000)} km"
+                "Distance: ${String.format("%.1f", booking.distanceMeters / 1000)} km"
             } else {
-                "Jarak: -"
+                "Distance: -"
             }
             tvEstimasi.text = if (booking.estimatedMinutes >= 0) {
-                "Estimasi: ${booking.estimatedMinutes} menit"
+                "Estimate: ${booking.estimatedMinutes} min"
             } else {
-                "Estimasi: -"
+                "Estimate: -"
             }
 
             btnTerima.setOnClickListener {

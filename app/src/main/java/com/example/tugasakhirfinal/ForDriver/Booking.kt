@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.Model
+package com.example.tugasakhirfinal.ForDriver
 
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.GeoPoint
@@ -14,6 +14,8 @@ data class Booking(
     var pickupLocation: GeoPoint? = null,
     var driverId: String = "",
     var status: String = "SEARCHING",       // Default disamakan menjadi SEARCHING
+    var ambulanceCategory: String = "",     // Dipilih passenger sebelum pesan - dipakai memfilter
+                                             // pesanan yang tampil ke tiap driver sesuai kategorinya
 
     // Jarak & estimasi waktu dari lokasi driver saat ini ke titik jemput, dihitung lokal di client
     // untuk mengurutkan & menampilkan pesanan terdekat. Bukan field Firestore.

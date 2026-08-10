@@ -10,9 +10,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.example.tugasakhirfinal.ForPassenger.ActivityDrive
+import com.example.tugasakhirfinal.ForPassenger.DriveFragment.ActivityDrive
 import com.example.tugasakhirfinal.ForPassenger.FirstAid.PertolonganPertamaActivity
-import com.example.tugasakhirfinal.ForPassenger.HospitalListActivity
+import com.example.tugasakhirfinal.ForPassenger.DriveFragment.HospitalListActivity
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.FragmentHomeBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -64,10 +64,10 @@ class HomeFragment : Fragment() {
     private fun getGreeting(): String {
         val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
         return when (hour) {
-            in 0..10 -> "Selamat Pagi,"
-            in 11..14 -> "Selamat Siang,"
-            in 15..17 -> "Selamat Sore,"
-            else -> "Selamat Malam,"
+            in 0..10 -> "Good Morning,"
+            in 11..14 -> "Good Afternoon,"
+            in 15..17 -> "Good Evening,"
+            else -> "Good Night,"
         }
     }
 

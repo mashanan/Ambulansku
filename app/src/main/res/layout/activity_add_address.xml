@@ -33,7 +33,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Detail Alamat"
+                android:text="Address Details"
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:textStyle="bold"
@@ -44,7 +44,7 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Nama Label (misal: Rumah A, Kos)"
+                android:hint="Label Name (e.g. Home, Boarding House)"
                 android:layout_marginBottom="10dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -59,7 +59,7 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Alamat Lengkap"
+                android:hint="Full Address"
                 android:layout_marginBottom="10dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -75,7 +75,7 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Catatan / Patokan (misal: Gerbang Biru)"
+                android:hint="Note / Landmark (e.g. Blue Gate)"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -90,7 +90,7 @@
                 android:id="@+id/btnSaveAddress"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="Simpan Alamat"
+                android:text="Save Address"
                 android:textAllCaps="false"
                 android:backgroundTint="@color/pink_main"
                 android:textColor="@color/white"

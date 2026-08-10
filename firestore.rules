@@ -48,6 +48,7 @@ service cloud.firestore {
       }
     }
 
+
     match /hospitals/{hospitalId} {
       allow read: if true;
       allow write: if isAdmin();

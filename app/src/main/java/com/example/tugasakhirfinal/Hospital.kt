@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.Model
+package com.example.tugasakhirfinal
 
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint

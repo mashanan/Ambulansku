@@ -33,7 +33,7 @@
                     android:id="@+id/tvTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Nama Kondisi"
+                    android:text="Condition Name"
                     android:textColor="@android:color/black"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -43,7 +43,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Gejala"
+                    android:text="Symptoms"
                     android:textColor="#757575"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -72,7 +72,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="6dp"
-                android:text="Pertolongan Pertama:"
+                android:text="First Aid:"
                 android:textColor="@color/pink_main"
                 android:textSize="13sp"
                 android:textStyle="bold" />
@@ -81,7 +81,7 @@
                 android:id="@+id/tvSteps"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Langkah-langkah"
+                android:text="Steps"
                 android:textColor="@android:color/black"
                 android:textSize="13sp"
                 android:lineSpacingExtra="4dp" />

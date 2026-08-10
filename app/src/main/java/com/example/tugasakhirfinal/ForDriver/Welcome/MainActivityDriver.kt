@@ -3,7 +3,6 @@ package com.example.tugasakhirfinal.ForDriver.Welcome
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.tugasakhirfinal.ForDriver.SignUpActivityDriver
 import com.example.tugasakhirfinal.databinding.ActivityMainDriverBinding
 
 class MainActivityDriver : AppCompatActivity() {

@@ -20,7 +20,7 @@
             android:id="@+id/tvConditionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Nama Kondisi"
+            android:text="Condition Name"
             android:textColor="@color/black"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -32,7 +32,7 @@
             android:layout_marginTop="6dp"
             android:ellipsize="end"
             android:maxLines="2"
-            android:text="Gejala"
+            android:text="Symptoms"
             android:textColor="#616161"
             android:textSize="13sp" />
 
@@ -41,7 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="0 langkah pertolongan"
+            android:text="0 first aid steps"
             android:textColor="#9E9E9E"
             android:textSize="12sp" />
 
@@ -72,7 +72,7 @@
                 android:background="@drawable/rounded_button"
                 android:backgroundTint="@color/pink_button"
                 android:padding="8dp"
-                android:text="Hapus"
+                android:text="Delete"
                 android:textAllCaps="false"
                 android:textColor="@color/white" />
         </LinearLayout>

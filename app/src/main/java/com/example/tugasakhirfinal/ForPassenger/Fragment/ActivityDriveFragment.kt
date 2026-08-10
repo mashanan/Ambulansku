@@ -6,8 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.tugasakhirfinal.ForPassenger.ActivityDrive
-import com.example.tugasakhirfinal.ForPassenger.HospitalListActivity
+import com.example.tugasakhirfinal.ForPassenger.DriveFragment.ActivityDrive
+import com.example.tugasakhirfinal.ForPassenger.DriveFragment.HospitalListActivity
 import com.example.tugasakhirfinal.databinding.FragmentDriveActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -70,7 +70,7 @@ class ActivityDriveFragment : Fragment() {
                     return@addOnSuccessListener
                 }
 
-                val hospitalName = lastDoc.getString("hospitalName") ?: "Rumah Sakit"
+                val hospitalName = lastDoc.getString("hospitalName") ?: "Hospital"
                 val completedAt = lastDoc.getTimestamp("completedAt") ?: lastDoc.getTimestamp("createdAt")
                 val dateText = completedAt?.let {
                     java.text.SimpleDateFormat("d MMMM yyyy", java.util.Locale("id", "ID")).format(it.toDate())

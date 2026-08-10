@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Mencari Driver Ambulans..."
+                android:text="Searching for Ambulance Driver..."
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Mohon tunggu sebentar, sistem sedang menghubungkan dengan driver terdekat."
+                android:text="Please wait a moment, the system is connecting you with the nearest driver."
                 android:textColor="#757575"
                 android:textSize="13sp" />
 
@@ -52,7 +52,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="0 detik berlalu"
+                android:text="0 seconds elapsed"
                 android:textColor="#D32F2F"
                 android:textSize="13sp"
                 android:textStyle="bold" />
@@ -63,7 +63,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:backgroundTint="#D32F2F"
-                android:text="Cari Ulang"
+                android:text="Search Again"
                 android:textColor="@android:color/white"
                 android:textAllCaps="false"
                 android:visibility="gone" />
@@ -74,7 +74,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Batalkan Pesanan"
+                android:text="Cancel Booking"
                 android:textColor="#D32F2F" />
 
         </LinearLayout>

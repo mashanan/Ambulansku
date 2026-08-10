@@ -1,6 +1,7 @@
-package com.example.tugasakhirfinal.ForPassenger
+package com.example.tugasakhirfinal.ForPassenger.DriveFragment
 
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.PropertyName
 
@@ -16,9 +17,6 @@ data class Hospital(
     @get:PropertyName("telepon") @set:PropertyName("telepon")
     var telepon: String = "",
 
-    @get:PropertyName("igdStatus") @set:PropertyName("igdStatus")
-    var igdStatus: String = "Tersedia",
-
     @get:PropertyName("latitude") @set:PropertyName("latitude")
     var latitude: Double = 0.0,
 
@@ -29,7 +27,15 @@ data class Hospital(
     var lokasi: GeoPoint? = null,
 
     @get:PropertyName("imageUrl") @set:PropertyName("imageUrl")
-    var imageUrl: String = ""
+    var imageUrl: String = "",
+
+    // Jarak & estimasi waktu tempuh dari lokasi passenger saat ini, dihitung lokal di client
+    // (bukan field Firestore) - dipakai untuk menampilkan & mengurutkan daftar RS dari yang terdekat.
+    @get:Exclude @set:Exclude
+    var distanceMeters: Float = -1f,
+
+    @get:Exclude @set:Exclude
+    var estimatedMinutes: Int = -1
 ) {
     // Helper function untuk mengambil LatLng ke Google Maps (Aman dari GeoPoint & Double)
     fun getLatLng(): LatLng? {

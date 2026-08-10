@@ -14,6 +14,8 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.Gravity
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -49,6 +51,17 @@ class DriverQualificationActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_EDIT_MODE = "EDIT_MODE"
+        // NOTE: Map keys are intentionally left in Indonesian ("Ambulans Biasa", etc.) — this is
+        // the literal value stored in the Firestore "ambulanceCategory" field and matched via
+        // whereEqualTo() against bookings created on the Passenger side (out of translation scope).
+        // Only the descriptions (pure UI copy, never persisted) are translated.
+        val AMBULANCE_CATEGORY_DESCRIPTIONS = linkedMapOf(
+            "Ambulans Biasa" to "Standard ambulance vehicle for general (non-emergency) patient transport.",
+            "Ambulans Neonatal" to "Dedicated to infant patients under 1 year old.",
+            "Ambulans Gawat Darurat" to "Vehicle for emergency or severe trauma patients, equipped with an oxygen tank, defibrillator (AED), and breathing aid.",
+            "Ambulans Jenazah" to "Dedicated hearse vehicle for transporting the deceased, with no medical equipment on board."
+        )
+        val AMBULANCE_CATEGORIES = AMBULANCE_CATEGORY_DESCRIPTIONS.keys.toList()
     }
 
     private lateinit var binding: ActivityDriverQualificationBinding
@@ -93,8 +106,17 @@ class DriverQualificationActivity : AppCompatActivity() {
         latestCapturedUri = savedInstanceState?.getParcelable("latestCapturedUri")
 
         progressDialog = ProgressDialog(this).apply {
-            setMessage("Mengunggah data...")
+            setMessage("Uploading data...")
             setCancelable(false)
+        }
+
+        binding.spinnerAmbulanceCategory.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, AMBULANCE_CATEGORIES)
+        binding.tvAmbulanceCategoryDescription.text = AMBULANCE_CATEGORY_DESCRIPTIONS[AMBULANCE_CATEGORIES[0]]
+        binding.spinnerAmbulanceCategory.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                binding.tvAmbulanceCategoryDescription.text = AMBULANCE_CATEGORY_DESCRIPTIONS[AMBULANCE_CATEGORIES[position]]
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         binding.btnPickLicensePhoto.setOnClickListener { checkCameraPermissionThenShowOptions("license") }
@@ -111,9 +133,9 @@ class DriverQualificationActivity : AppCompatActivity() {
         }
 
         if (isEditMode) {
-            binding.tvFormTitle.text = "Edit Data Kualifikasi"
-            binding.tvFormSubtitle.text = "Perubahan akan dikirim ulang untuk diverifikasi Admin. Anda tidak bisa menerima pesanan sampai disetujui kembali."
-            binding.btnSubmit.text = "Simpan Perubahan"
+            binding.tvFormTitle.text = "Edit Qualification Data"
+            binding.tvFormSubtitle.text = "Changes will be resubmitted for Admin verification. You won't be able to accept bookings until approved again."
+            binding.btnSubmit.text = "Save Changes"
             loadExistingData()
         }
     }
@@ -126,6 +148,10 @@ class DriverQualificationActivity : AppCompatActivity() {
             .addOnSuccessListener { doc ->
                 binding.etLicenseNumber.setText(doc.getString("licenseNumber") ?: "")
                 binding.etAmbulancePlate.setText(doc.getString("ambulancePlateNumber") ?: "")
+
+                val categoryIndex = AMBULANCE_CATEGORIES.indexOf(doc.getString("ambulanceCategory")).let { if (it >= 0) it else 0 }
+                binding.spinnerAmbulanceCategory.setSelection(categoryIndex)
+                binding.tvAmbulanceCategoryDescription.text = AMBULANCE_CATEGORY_DESCRIPTIONS[AMBULANCE_CATEGORIES[categoryIndex]]
 
                 binding.cbSopSirine.isChecked = doc.getBoolean("sopSirineChecked") ?: false
                 binding.cbSopEquipment.isChecked = doc.getBoolean("sopEquipmentChecked") ?: false
@@ -173,7 +199,7 @@ class DriverQualificationActivity : AppCompatActivity() {
     private fun showPhotoOptionsDialog() {
         val dialog = BottomSheetDialog(this)
         val view = layoutInflater.inflate(R.layout.activity_edit_foto_profile, null)
-        view.findViewById<TextView>(R.id.editProfileTitle).text = "Pilih Foto Dokumen"
+        view.findViewById<TextView>(R.id.editProfileTitle).text = "Choose Document Photo"
 
         view.findViewById<Button>(R.id.selectImageButton).setOnClickListener {
             galleryLauncher.launch("image/*")
@@ -199,7 +225,7 @@ class DriverQualificationActivity : AppCompatActivity() {
         if (success && uri != null && target != null) {
             handlePickedPhoto(target, uri)
         } else if (success) {
-            Toast.makeText(this, "Sesi pengambilan foto berakhir, coba lagi", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Photo capture session ended, try again", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -338,19 +364,19 @@ class DriverQualificationActivity : AppCompatActivity() {
         val hasStnk = stnkPhotoUri != null || existingStnkUrl != null
         val hasAmbulance = ambulancePhotoUris.isNotEmpty() || existingAmbulanceUrls.isNotEmpty()
         if (licenseNumber.isEmpty() || plateNumber.isEmpty() || !hasLicense || !hasStnk || !hasAmbulance) {
-            Toast.makeText(this, "Lengkapi semua data & foto wajib Standar 1", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Complete all required Standard 1 data & photos", Toast.LENGTH_SHORT).show()
             return
         }
         if (!(binding.cbSopSirine.isChecked && binding.cbSopEquipment.isChecked &&
                 binding.cbSopApd.isChecked && binding.cbSopHealthCheck.isChecked)
         ) {
-            Toast.makeText(this, "Centang semua pernyataan checklist SOP", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Check all SOP checklist statements", Toast.LENGTH_SHORT).show()
             return
         }
 
         val uid = auth.currentUser?.uid
         if (uid == null) {
-            Toast.makeText(this, "Sesi berakhir, silakan daftar ulang", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Session expired, please sign up again", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -386,7 +412,7 @@ class DriverQualificationActivity : AppCompatActivity() {
         val bitmap = uriToBitmap(uri)
         if (bitmap == null) {
             progressDialog.dismiss()
-            Toast.makeText(this, "Gagal memproses foto $type", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Failed to process $type photo", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -402,7 +428,7 @@ class DriverQualificationActivity : AppCompatActivity() {
             }
             .addOnFailureListener { e ->
                 progressDialog.dismiss()
-                Toast.makeText(this, "Gagal unggah foto $type: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Failed to upload $type photo: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
@@ -451,6 +477,7 @@ class DriverQualificationActivity : AppCompatActivity() {
         val data = hashMapOf<String, Any>(
             "licenseNumber" to licenseNumber,
             "ambulancePlateNumber" to plateNumber,
+            "ambulanceCategory" to binding.spinnerAmbulanceCategory.selectedItem.toString(),
             "licensePhotoUrl" to licenseUrl,
             "stnkPhotoUrl" to stnkUrl,
             "ambulancePhotoUrls" to ambulanceUrls,
@@ -476,7 +503,7 @@ class DriverQualificationActivity : AppCompatActivity() {
             }
             .addOnFailureListener { e ->
                 progressDialog.dismiss()
-                Toast.makeText(this, "Gagal simpan data: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Failed to save data: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
@@ -488,7 +515,7 @@ class DriverQualificationActivity : AppCompatActivity() {
         stopService(Intent(this, DriverOnlineService::class.java))
         Toast.makeText(
             this,
-            "Perubahan disimpan. Menunggu verifikasi ulang Admin - Anda tidak bisa menerima pesanan sementara.",
+            "Changes saved. Pending Admin re-verification - you cannot accept bookings for now.",
             Toast.LENGTH_LONG
         ).show()
         finish()
@@ -500,7 +527,7 @@ class DriverQualificationActivity : AppCompatActivity() {
             progressDialog.dismiss()
             Toast.makeText(
                 this,
-                "Registrasi berhasil! Cek email verifikasi. Akun akan aktif setelah disetujui Admin.",
+                "Registration successful! Check your verification email. Your account will be active once approved by the Admin.",
                 Toast.LENGTH_LONG
             ).show()
             auth.signOut()

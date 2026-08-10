@@ -62,6 +62,12 @@ class ProfileFragment : Fragment() {
     // Listener untuk pembaruan alamat utama secara real-time
     private var primaryAddressListener: ListenerRegistration? = null
 
+    // Upload foto profil ke Storage/Firestore itu proses async yang butuh waktu - kalau user
+    // sempat logout SEBELUM proses ini selesai, sesi login sudah tercabut duluan dan write
+    // Firestore-nya bakal ditolak security rules (muncul sebagai "Gagal unggah/simpan foto").
+    // Flag ini dipakai buat memblokir tombol logout selama upload masih berjalan.
+    private var isUploadingPhoto = false
+
     private val sharedPrefs by lazy {
         requireActivity().getSharedPreferences("user_cache", Context.MODE_PRIVATE)
     }
@@ -107,18 +113,18 @@ class ProfileFragment : Fragment() {
         if (_binding == null) return
 
         // 1. Load dari Cache (Instan)
-        binding.textNama.text = sharedPrefs.getString("name_$uid", "Klik untuk atur nama")
-        binding.noTlp.text = sharedPrefs.getString("phone_$uid", "Klik untuk atur telepon")
+        binding.textNama.text = sharedPrefs.getString("name_$uid", "Tap to set name")
+        binding.noTlp.text = sharedPrefs.getString("phone_$uid", "Tap to set phone number")
         binding.email.text = sharedPrefs.getString("email_$uid", "-")
-        binding.alamat.text = sharedPrefs.getString("primary_address_label_$uid", "Pilih Alamat Utama")
+        binding.alamat.text = sharedPrefs.getString("primary_address_label_$uid", "Select Primary Address")
         loadProfileImage(sharedPrefs.getString("img_$uid", null), sharedPrefs.getLong("imgVersion_$uid", 0L))
 
         // 2. Load Profil dasar (Nama, No Tlp, Email, Foto) dari Firestore
         firestore.collection("users").document(uid).get()
             .addOnSuccessListener { doc ->
                 if (_binding != null && isAdded) {
-                    val name = doc.getString("nama") ?: "Klik untuk atur nama"
-                    val phone = doc.getString("phoneNumber") ?: "Klik untuk atur telepon"
+                    val name = doc.getString("nama") ?: "Tap to set name"
+                    val phone = doc.getString("phoneNumber") ?: "Tap to set phone number"
                     val email = doc.getString("email") ?: "-"
                     val imageUrl = doc.getString("profileImageUrl")
                     val imageVersion = doc.getLong("profileImageUpdatedAt") ?: 0L
@@ -160,14 +166,14 @@ class ProfileFragment : Fragment() {
                 if (_binding == null || !isAdded) return@addSnapshotListener
 
                 if (error != null) {
-                    binding.alamat.text = "Atur Alamat Utama"
+                    binding.alamat.text = "Set Primary Address"
                     return@addSnapshotListener
                 }
 
                 if (snapshot != null && !snapshot.isEmpty) {
                     val doc = snapshot.documents[0]
                     // Hanya mengambil label alamat saja (tanpa fullAddress)
-                    val label = doc.getString("label") ?: "Alamat Utama"
+                    val label = doc.getString("label") ?: "Primary Address"
 
                     // Tampilkan hanya nama labelnya agar tampilan Profile ringkas
                     binding.alamat.text = label
@@ -176,8 +182,8 @@ class ProfileFragment : Fragment() {
                     sharedPrefs.edit().putString("primary_address_label_$uid", label).apply()
                 } else {
                     // Jika belum ada alamat yang di-set sebagai Utama
-                    binding.alamat.text = "Klik untuk memilih Alamat Utama"
-                    sharedPrefs.edit().putString("primary_address_label_$uid", "Klik untuk memilih Alamat Utama").apply()
+                    binding.alamat.text = "Tap to select Primary Address"
+                    sharedPrefs.edit().putString("primary_address_label_$uid", "Tap to select Primary Address").apply()
                 }
             }
     }
@@ -238,7 +244,7 @@ class ProfileFragment : Fragment() {
         if (success && uri != null) {
             uploadProfileImage(uri)
         } else if (success) {
-            Toast.makeText(requireContext(), "Sesi pengambilan foto berakhir, coba lagi", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Photo capture session expired, please try again", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -303,10 +309,13 @@ class ProfileFragment : Fragment() {
 
     private fun uploadProfileImage(uri: Uri) {
         val userId = firebaseAuth.currentUser?.uid ?: return
+        // Context aman dipakai di callback async - requireContext() bisa melempar exception
+        // kalau fragment ini sudah di-detach saat callback-nya baru jalan belakangan.
+        val appContext = requireContext().applicationContext
         try {
             var bitmap = decodeSampledBitmapFromUri(uri, 800)
             if (bitmap == null) {
-                Toast.makeText(requireContext(), "Gagal memproses foto", Toast.LENGTH_SHORT).show()
+                Toast.makeText(appContext, "Failed to process photo", Toast.LENGTH_SHORT).show()
                 return
             }
 
@@ -322,7 +331,8 @@ class ProfileFragment : Fragment() {
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             bitmap = resizeBitmap(bitmap, 800)
 
-            progressDialog.setMessage("Mengunggah foto...")
+            isUploadingPhoto = true
+            progressDialog.setMessage("Uploading photo...")
             progressDialog.show()
 
             val baos = ByteArrayOutputStream()
@@ -340,29 +350,33 @@ class ProfileFragment : Fragment() {
                         firestore.collection("users").document(userId)
                             .update(data)
                             .addOnSuccessListener {
+                                isUploadingPhoto = false
                                 progressDialog.dismiss()
-                                loadProfileImage(downloadUri.toString(), newVersion)
+                                if (_binding != null) loadProfileImage(downloadUri.toString(), newVersion)
                             }
                             .addOnFailureListener { e ->
-                                // Kalau Firestore menolak write (mis. karena aturan security rules),
-                                // dialog "Mengunggah foto..." harus tetap tertutup + ada pesan error,
-                                // bukan nyangkut diam-diam.
+                                // Kalau Firestore menolak write (mis. karena aturan security rules,
+                                // atau sesi login sudah tercabut duluan), dialog "Mengunggah foto..."
+                                // harus tetap tertutup + ada pesan error, bukan nyangkut diam-diam.
+                                isUploadingPhoto = false
                                 progressDialog.dismiss()
-                                Log.e("PassengerProfile", "firestore update gagal: ${e.message}")
-                                Toast.makeText(requireContext(), "Gagal simpan foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Log.e("PassengerProfile", "Firestore update failed: ${e.message}")
+                                Toast.makeText(appContext, "Failed to save photo: ${e.message}", Toast.LENGTH_SHORT).show()
                             }
                     }
                 }
                 .addOnFailureListener { e ->
+                    isUploadingPhoto = false
                     progressDialog.dismiss()
-                    Toast.makeText(requireContext(), "Gagal unggah foto: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(appContext, "Failed to upload photo: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         } catch (e: Exception) {
             // Selalu tutup dialog & kasih tahu user kalau ada apa-apa - sebelumnya exception di
             // sini cuma di-log, dialog "Mengunggah foto..." nyangkut selamanya tanpa penjelasan.
+            isUploadingPhoto = false
             progressDialog.dismiss()
             Log.e("PassengerProfile", e.message.toString())
-            Toast.makeText(requireContext(), "Gagal memproses foto: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(appContext, "Failed to process photo: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -382,15 +396,35 @@ class ProfileFragment : Fragment() {
             intent.putExtra("current_no_tlp", binding.noTlp.text.toString())
             startActivity(intent)
         }
-        // Listener untuk Membuka Daftar Alamat
+        // Listener untuk Membuka Daftar Alamat - pastikan izin lokasi sudah diberikan dulu
+        // (dibutuhkan saat nanti user menambah/edit alamat lewat peta di AddAddressActivity),
+        // baru izin diberikan langsung arahkan ke daftar alamat yang ada.
         binding.frameAlamat.setOnClickListener {
-            val intent = Intent(requireContext(), ActivityEditAlamat::class.java)
-            startActivity(intent)
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                openAddressList()
+            } else {
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
         }
+    }
+
+    private val locationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        // Baik diizinkan maupun ditolak, tetap lanjut ke daftar alamat - AddAddressActivity sendiri
+        // sudah menangani permintaan izin lokasi lagi kalau user memilih tambah/edit alamat lewat
+        // peta nanti tanpa izin.
+        openAddressList()
+    }
+
+    private fun openAddressList() {
+        startActivity(Intent(requireContext(), ActivityEditAlamat::class.java))
     }
 
     private fun setupLogoutButton() {
         binding.logoutButton.setOnClickListener {
+            if (isUploadingPhoto) {
+                Toast.makeText(requireContext(), "Please wait for the profile photo upload to finish first", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             firebaseAuth.signOut()
             sharedPrefs.edit().clear().apply()
             startActivity(Intent(requireContext(), RoleSelectionActivity::class.java).apply {
@@ -409,13 +443,13 @@ class ProfileFragment : Fragment() {
     // Verifikasi 1: konfirmasi niat menghapus akun
     private fun showDeleteConfirmStep1() {
         AlertDialog.Builder(requireContext())
-            .setTitle("Hapus Akun?")
-            .setMessage("Apakah Anda yakin ingin menghapus akun ini? Tindakan ini tidak dapat dibatalkan.")
-            .setPositiveButton("Lanjutkan") { dialog, _ ->
+            .setTitle("Delete Account?")
+            .setMessage("Are you sure you want to delete this account? This action cannot be undone.")
+            .setPositiveButton("Continue") { dialog, _ ->
                 dialog.dismiss()
                 showDeleteConfirmStep2()
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -426,15 +460,15 @@ class ProfileFragment : Fragment() {
 
         AlertDialog.Builder(requireContext())
             .setView(dialogView)
-            .setPositiveButton("Hapus Permanen") { _, _ ->
+            .setPositiveButton("Delete Permanently") { _, _ ->
                 val password = etPassword.text.toString().trim()
                 if (password.isEmpty()) {
-                    Toast.makeText(requireContext(), "Password wajib diisi", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Password is required", Toast.LENGTH_SHORT).show()
                 } else {
                     deleteAccountFlow(password)
                 }
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -442,11 +476,11 @@ class ProfileFragment : Fragment() {
         val user = firebaseAuth.currentUser ?: return
         val email = user.email
         if (email.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "Tidak dapat memverifikasi akun ini.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Unable to verify this account.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        progressDialog.setMessage("Memverifikasi password...")
+        progressDialog.setMessage("Verifying password...")
         progressDialog.show()
 
         val credential = EmailAuthProvider.getCredential(email, password)
@@ -455,14 +489,14 @@ class ProfileFragment : Fragment() {
                 deleteUserDataThenAccount(user)
             } else {
                 progressDialog.dismiss()
-                Toast.makeText(requireContext(), "Password salah. Akun tidak dihapus.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Incorrect password. Account was not deleted.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun deleteUserDataThenAccount(user: FirebaseUser) {
         val uid = user.uid
-        progressDialog.setMessage("Menghapus data akun...")
+        progressDialog.setMessage("Deleting account data...")
 
         firestore.collection("users").document(uid).collection("addresses").get()
             .addOnSuccessListener { snapshot ->
@@ -475,29 +509,29 @@ class ProfileFragment : Fragment() {
                             .addOnSuccessListener { finalizeAccountDeletion(user) }
                             .addOnFailureListener { e ->
                                 progressDialog.dismiss()
-                                Toast.makeText(requireContext(), "Gagal menghapus data: ${e.message}", Toast.LENGTH_LONG).show()
+                                Toast.makeText(requireContext(), "Failed to delete data: ${e.message}", Toast.LENGTH_LONG).show()
                             }
                     }
             }
             .addOnFailureListener { e ->
                 progressDialog.dismiss()
-                Toast.makeText(requireContext(), "Gagal menghapus data: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Failed to delete data: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
     private fun finalizeAccountDeletion(user: FirebaseUser) {
-        progressDialog.setMessage("Menghapus akun...")
+        progressDialog.setMessage("Deleting account...")
         user.delete().addOnCompleteListener { deleteTask ->
             progressDialog.dismiss()
             if (deleteTask.isSuccessful) {
                 sharedPrefs.edit().clear().apply()
-                Toast.makeText(requireContext(), "Akun berhasil dihapus.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Account deleted successfully.", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(requireContext(), RoleSelectionActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 })
                 requireActivity().finish()
             } else {
-                Toast.makeText(requireContext(), "Gagal menghapus akun: ${deleteTask.exception?.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Failed to delete account: ${deleteTask.exception?.message}", Toast.LENGTH_LONG).show()
             }
         }
     }

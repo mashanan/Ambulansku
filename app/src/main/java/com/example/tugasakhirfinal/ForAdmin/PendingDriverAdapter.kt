@@ -23,6 +23,7 @@ class PendingDriverAdapter(
         val tvEmail: TextView = itemView.findViewById(R.id.tvDriverEmail)
         val tvLicenseNumber: TextView = itemView.findViewById(R.id.tvLicenseNumber)
         val tvAmbulancePlate: TextView = itemView.findViewById(R.id.tvAmbulancePlate)
+        val tvAmbulanceCategory: TextView = itemView.findViewById(R.id.tvAmbulanceCategory)
         val ivLicensePhoto: ImageView = itemView.findViewById(R.id.ivLicensePhoto)
         val ivStnkPhoto: ImageView = itemView.findViewById(R.id.ivStnkPhoto)
         val containerAmbulancePhotos: LinearLayout = itemView.findViewById(R.id.containerAmbulancePhotos)
@@ -45,10 +46,11 @@ class PendingDriverAdapter(
 
     override fun onBindViewHolder(holder: PendingDriverViewHolder, position: Int) {
         val driver = driverList[position]
-        holder.tvName.text = driver.nama.ifEmpty { "Driver Baru" }
+        holder.tvName.text = driver.nama.ifEmpty { "New Driver" }
         holder.tvEmail.text = driver.email
-        holder.tvLicenseNumber.text = "No. SIM: ${driver.licenseNumber.ifEmpty { "-" }}"
-        holder.tvAmbulancePlate.text = "No. Plat / STNK: ${driver.ambulancePlateNumber.ifEmpty { "-" }}"
+        holder.tvLicenseNumber.text = "License No.: ${driver.licenseNumber.ifEmpty { "-" }}"
+        holder.tvAmbulancePlate.text = "Plate No. / Registration: ${driver.ambulancePlateNumber.ifEmpty { "-" }}"
+        holder.tvAmbulanceCategory.text = driver.ambulanceCategory.ifEmpty { "Ambulans Biasa" }
 
         Glide.with(holder.itemView).load(driver.licensePhotoUrl).into(holder.ivLicensePhoto)
         Glide.with(holder.itemView).load(driver.stnkPhotoUrl).into(holder.ivStnkPhoto)
@@ -64,10 +66,10 @@ class PendingDriverAdapter(
         bindOptionalCert(holder.ivAedCert, holder.tvAedMissing, driver.aedCertificateUrl)
         bindOptionalCert(holder.ivMedicalCert, holder.tvMedicalMissing, driver.medicalCertificateUrl)
 
-        bindSopLine(holder.tvSopSirine, "Etika & peraturan sirine", driver.sopSirineChecked)
-        bindSopLine(holder.tvSopEquipment, "Penguasaan alat utama ambulans", driver.sopEquipmentChecked)
-        bindSopLine(holder.tvSopApd, "Penggunaan APD dasar", driver.sopApdChecked)
-        bindSopLine(holder.tvSopHealthCheck, "Tes kesehatan berkala", driver.sopHealthCheckChecked)
+        bindSopLine(holder.tvSopSirine, "Siren ethics & regulations", driver.sopSirineChecked)
+        bindSopLine(holder.tvSopEquipment, "Proficiency with main ambulance equipment", driver.sopEquipmentChecked)
+        bindSopLine(holder.tvSopApd, "Basic PPE (personal protective equipment) use", driver.sopApdChecked)
+        bindSopLine(holder.tvSopHealthCheck, "Periodic health check", driver.sopHealthCheckChecked)
 
         holder.btnApprove.setOnClickListener { onApproveClick(driver) }
         holder.btnReject.setOnClickListener { onRejectClick(driver) }

@@ -7,6 +7,7 @@ data class PendingDriverItem(
     val email: String = "",
     val licenseNumber: String = "",
     val ambulancePlateNumber: String = "",
+    val ambulanceCategory: String = "",
     val licensePhotoUrl: String = "",
     val stnkPhotoUrl: String = "",
     val ambulancePhotoUrls: List<String> = emptyList(),

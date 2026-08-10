@@ -71,7 +71,7 @@ class AddAddressActivity : AppCompatActivity(), OnMapReadyCallback {
             existingLng = intent.getDoubleExtra("longitude", 112.7521)
             isFavoriteExisting = intent.getBooleanExtra("is_favorite", false)
 
-            btnSaveAddress.text = "Perbarui Alamat"
+            btnSaveAddress.text = "Update Address"
         }
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
@@ -89,7 +89,7 @@ class AddAddressActivity : AppCompatActivity(), OnMapReadyCallback {
         val startLocation = LatLng(existingLat, existingLng)
         val markerOptions = MarkerOptions()
             .position(startLocation)
-            .title("Lokasi Terpilih")
+            .title("Selected Location")
             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
 
         centerMarker = mMap.addMarker(markerOptions)
@@ -131,11 +131,11 @@ class AddAddressActivity : AppCompatActivity(), OnMapReadyCallback {
         val note = etNote.text.toString().trim()
 
         if (label.isEmpty()) {
-            etLabel.error = "Nama label wajib diisi"
+            etLabel.error = "Label name is required"
             return
         }
         if (fullAddress.isEmpty()) {
-            etFullAddress.error = "Alamat lengkap wajib diisi"
+            etFullAddress.error = "Full address is required"
             return
         }
 
@@ -158,22 +158,22 @@ class AddAddressActivity : AppCompatActivity(), OnMapReadyCallback {
             userAddressesRef.document(addressIdToEdit!!)
                 .update(addressData)
                 .addOnSuccessListener {
-                    Toast.makeText(this, "Alamat berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Address updated successfully!", Toast.LENGTH_SHORT).show()
                     finish()
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(this, "Gagal memperbarui: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to update: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                 }
         } else {
             // Tambah Alamat Baru
             addressData["createdAt"] = System.currentTimeMillis()
             userAddressesRef.add(addressData)
                 .addOnSuccessListener {
-                    Toast.makeText(this, "Alamat berhasil disimpan!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Address saved successfully!", Toast.LENGTH_SHORT).show()
                     finish()
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(this, "Gagal menyimpan: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to save: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                 }
         }
     }

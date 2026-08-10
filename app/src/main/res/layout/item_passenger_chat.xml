@@ -32,7 +32,7 @@
                 android:id="@+id/tvHospitalName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Rumah Sakit Tujuan"
+                android:text="Destination Hospital"
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -44,7 +44,7 @@
                 android:layout_marginTop="4dp"
                 android:maxLines="1"
                 android:ellipsize="end"
-                android:text="Pesan terakhir..."
+                android:text="Last message..."
                 android:textColor="#757575"
                 android:textSize="13sp" />
         </LinearLayout>
@@ -53,7 +53,7 @@
             android:id="@+id/tvChatStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Berlangsung"
+            android:text="Ongoing"
             android:textSize="12sp"
             android:textStyle="bold" />
 

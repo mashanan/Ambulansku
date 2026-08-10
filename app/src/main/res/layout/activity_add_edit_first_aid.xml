@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Tambah Pertolongan Pertama"
+            android:text="Add First Aid"
             android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -54,7 +54,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:hint="Nama Kondisi">
+                android:hint="Condition Name">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConditionTitle"
@@ -67,7 +67,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:hint="Gejala">
+                android:hint="Symptoms">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConditionSymptoms"
@@ -81,14 +81,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp"
-                android:text="Langkah Pertolongan Pertama"
+                android:text="First Aid Steps"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="6dp"
-                android:text="Satu baris = satu langkah"
+                android:text="One line = one step"
                 android:textColor="#757575"
                 android:textSize="12sp" />
 
@@ -115,7 +115,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:background="@drawable/rounded_button"
-        android:text="Simpan"
+        android:text="Save"
         android:textAllCaps="false"
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"

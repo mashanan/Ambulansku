@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Konfirmasi Akhir"
+        android:text="Final Confirmation"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
@@ -17,7 +17,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Akun dan seluruh data Anda akan dihapus permanen dan tidak dapat dikembalikan. Masukkan password Anda untuk melanjutkan."
+        android:text="Your account and all your data will be permanently deleted and cannot be recovered. Enter your password to continue."
         android:textSize="14sp"
         android:layout_marginBottom="14dp" />
 
@@ -31,6 +31,7 @@
             android:id="@+id/etDeletePassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:importantForAutofill="no"
             android:inputType="textPassword" />
     </com.google.android.material.textfield.TextInputLayout>
 </LinearLayout>

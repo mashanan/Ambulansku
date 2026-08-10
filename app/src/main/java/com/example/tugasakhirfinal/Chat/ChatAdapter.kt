@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.Adapter
+package com.example.tugasakhirfinal.Chat
 
 import android.graphics.Color
 import android.view.LayoutInflater
@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.example.tugasakhirfinal.Model.ChatMessage
 import com.example.tugasakhirfinal.R
 
 class ChatAdapter(
@@ -53,10 +52,10 @@ class ChatAdapter(
             // Menggunakan safe call (?.) berjaga-jaga jika kamu belum menambahkan TextView di XML
             holder.tvStatusRead?.visibility = View.VISIBLE
             if (chat.isRead) {
-                holder.tvStatusRead?.text = "Terbaca"
+                holder.tvStatusRead?.text = "Read"
                 holder.tvStatusRead?.setTextColor(Color.parseColor("#2196F3")) // Warna Biru
             } else {
-                holder.tvStatusRead?.text = "Terkirim"
+                holder.tvStatusRead?.text = "Sent"
                 holder.tvStatusRead?.setTextColor(Color.parseColor("#9E9E9E")) // Warna Abu-abu
             }
 

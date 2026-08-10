@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.tugasakhirfinal.ForDriver.Chat.DriverChatAdapter
 import com.example.tugasakhirfinal.ForDriver.Chat.ChatDriverActivity
-import com.example.tugasakhirfinal.Model.PassengerChatHistory
+import com.example.tugasakhirfinal.ForPassenger.Chat.PassengerChatHistory
 import com.example.tugasakhirfinal.databinding.FragmentChatDriverBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
@@ -66,7 +66,7 @@ class ChatFragmentDriver : Fragment() {
         // 💡 MENCARI BOOKINGS BERDASARKAN driverId AKUN DRIVER YANG SEDANG LOGIN
         chatListener = db.collection("bookings")
             .whereEqualTo("driverId", currentDriverId)
-            .whereIn("status", listOf("accepted", "picked_up", "completed", "ACCEPTED", "PICKED_UP", "COMPLETED"))
+            .whereIn("status", listOf("accepted", "picked_up", "completed", "ACCEPTED", "PICKED_UP", "COMPLETED", "CANCELLED"))
             .addSnapshotListener { snapshot, error ->
                 if (_binding == null) return@addSnapshotListener
 
@@ -88,8 +88,8 @@ class ChatFragmentDriver : Fragment() {
 
                     for (doc in visibleDocs) {
                         val bookingId = doc.id
-                        val passengerName = doc.getString("passengerName") ?: "Pasien Ambulans"
-                        val hospitalName = doc.getString("hospitalName") ?: "Rumah Sakit"
+                        val passengerName = doc.getString("passengerName") ?: "Ambulance Patient"
+                        val hospitalName = doc.getString("hospitalName") ?: "Hospital"
                         val status = doc.getString("status") ?: ""
 
                         val historyItem = PassengerChatHistory(
@@ -115,15 +115,25 @@ class ChatFragmentDriver : Fragment() {
             }
     }
 
-    // Booking yang belum "completed" selalu tampil. Yang sudah completed disembunyikan begitu
-    // lewat 3 hari dari completedAt (fallback ke createdAt untuk data lama sebelum field ini ada).
+    // Booking yang belum "completed"/"CANCELLED" selalu tampil. Yang sudah completed ATAU
+    // dibatalkan disembunyikan begitu lewat 3 hari dari completedAt/cancelledAt (fallback ke
+    // createdAt untuk data lama sebelum field ini ada).
+    // Booking CANCELLED cuma masuk riwayat kalau dibatalkan DRIVER (keadaan darurat di tengah
+    // perjalanan) - pembatalan oleh passenger sendiri saat masih mencari driver tidak relevan
+    // dicatat sebagai riwayat trip.
     private fun isVisibleInHistory(doc: DocumentSnapshot): Boolean {
         val status = doc.getString("status") ?: ""
-        if (!status.equals("completed", ignoreCase = true)) return true
 
-        val completedAt = doc.getTimestamp("completedAt") ?: doc.getTimestamp("createdAt") ?: return true
+        if (status.equals("CANCELLED", ignoreCase = true) && doc.getString("cancelledBy") != "driver") {
+            return false
+        }
+
+        val isCompletedOrCancelled = status.equals("completed", ignoreCase = true) || status.equals("CANCELLED", ignoreCase = true)
+        if (!isCompletedOrCancelled) return true
+
+        val referenceTime = doc.getTimestamp("completedAt") ?: doc.getTimestamp("cancelledAt") ?: doc.getTimestamp("createdAt") ?: return true
         val threeDaysAgo = java.util.Calendar.getInstance().apply { add(java.util.Calendar.DAY_OF_YEAR, -3) }.time
-        return completedAt.toDate().after(threeDaysAgo)
+        return referenceTime.toDate().after(threeDaysAgo)
     }
 
     private fun fetchLastMessage(bookingId: String, historyItem: PassengerChatHistory) {
@@ -139,7 +149,7 @@ class ChatFragmentDriver : Fragment() {
                     val lastMsgDoc = query.documents[0]
                     val rawMessage = lastMsgDoc.getString("message") ?: ""
                     val imageUrl = lastMsgDoc.getString("imageUrl") ?: ""
-                    historyItem.lastMessage = if (rawMessage.isEmpty() && imageUrl.isNotEmpty()) "📷 Foto" else rawMessage
+                    historyItem.lastMessage = if (rawMessage.isEmpty() && imageUrl.isNotEmpty()) "📷 Photo" else rawMessage
                     driverChatAdapter.notifyDataSetChanged()
                 }
             }

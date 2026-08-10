@@ -1,4 +1,4 @@
-package com.example.tugasakhirfinal.ForPassenger
+package com.example.tugasakhirfinal.ForPassenger.DriveFragment
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -30,8 +30,11 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
+import com.example.tugasakhirfinal.ForDriver.Welcome.DriverQualificationActivity
+import com.example.tugasakhirfinal.ForPassenger.ChatPassengerActivity
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.ActivityDriveBinding
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
@@ -43,6 +46,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
+import kotlin.math.roundToInt
 
 class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
@@ -58,6 +62,11 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     private var destinationHospitalLoc: LatLng? = null
     private var lastKnownDriverLocation: LatLng? = null
 
+    // Menandai etape rute ("jemput"/"antar") yang terakhir kali sudah ditampilkan penuh (fit
+    // bounds) - dipakai supaya rute lengkap cuma di-fit sekali di awal tiap etape, update lokasi
+    // driver selanjutnya cukup mengikuti dari dekat lewat drawRouteLine(fitFullBounds = false).
+    private var lastRouteBoundsMode: String? = null
+
     private var roadOverlay: Polyline? = null
     private var hospitalMarkers = mutableListOf<Marker>()
     private var driverMarker: Marker? = null
@@ -65,6 +74,10 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     private var selectedHospitalName: String? = null
     private var isManualHospitalSelected = false
     private var driverPhoneNumber: String? = null
+
+    // Kategori ambulans yang dipilih passenger sebelum pesan - dipakai memfilter pesanan supaya
+    // hanya diteruskan ke driver yang kategorinya sesuai. Default ke kategori pertama (Ambulans Biasa).
+    private var selectedAmbulanceCategory: String = DriverQualificationActivity.AMBULANCE_CATEGORIES[0]
 
     // State Pelacakan
     private var searchDialog: AlertDialog? = null
@@ -78,6 +91,10 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         private const val CHAT_CHANNEL_ID = "chat_message_channel"
         private const val TRIP_CHANNEL_ID = "trip_status_channel"
         private const val ARRIVAL_THRESHOLD_METERS = 100f
+
+        // Level zoom Google Maps yang kira-kira menampilkan radius ~200m di sekitar driver saat
+        // kamera mengikuti dari dekat (bukan menampilkan seluruh rute lagi).
+        private const val DRIVER_FOLLOW_ZOOM = 17f
     }
 
     private var hasNotifiedArrival = false
@@ -95,6 +112,10 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         binding = ActivityDriveBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Panel info pesanan tampil penuh secara default (sama seperti sebelumnya), tapi
+        // sekarang bisa ditarik turun oleh user kapan saja untuk memaksimalkan tampilan peta.
+        BottomSheetBehavior.from(binding.cardOrderInfo).state = BottomSheetBehavior.STATE_EXPANDED
 
         if (intent.hasExtra("SELECTED_HOSPITAL_LAT")) {
             isManualHospitalSelected = true
@@ -120,7 +141,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             if (!phone.isNullOrBlank()) {
                 startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
             } else {
-                Toast.makeText(this, "Nomor telepon driver belum tersedia", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Driver phone number is not available yet", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -131,9 +152,9 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
     private fun updateHeaderTitle() {
         if (isManualHospitalSelected) {
-            binding.tvDestinationTitle.text = "Rumah Sakit Tujuan"
+            binding.tvDestinationTitle.text = "Destination Hospital"
         } else {
-            binding.tvDestinationTitle.text = "Rumah Sakit Terdekat"
+            binding.tvDestinationTitle.text = "Nearest Hospital"
         }
     }
 
@@ -205,7 +226,16 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             .whereIn("status", listOf("SEARCHING", "accepted", "picked_up"))
             .get()
             .addOnSuccessListener { snapshot ->
+                val now = Timestamp.now()
                 val activeDoc = snapshot.documents
+                    .filterNot { doc ->
+                        // Booking SEARCHING yang sudah lewat batas 3 hari (expiresAt) dianggap
+                        // basi/ditinggalkan - jangan sampai salah "dilanjutkan" begitu passenger
+                        // buka app lagi. accepted/picked_up TIDAK disaring expiresAt karena itu
+                        // trip yang sedang berjalan, bukan pesanan yang menunggu driver.
+                        doc.getString("status") == "SEARCHING" &&
+                            doc.getTimestamp("expiresAt")?.let { it <= now } == true
+                    }
                     .sortedByDescending { it.getTimestamp("createdAt") }
                     .firstOrNull()
                 if (activeDoc != null) {
@@ -243,7 +273,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun loadHospitalData() {
-        binding.tvDestinationAddress.text = "Mendeteksi rumah sakit terdekat..."
+        binding.tvDestinationAddress.text = "Detecting nearest hospital..."
 
         firestore.collection("hospitals").get().addOnSuccessListener { result ->
             hospitalMarkers.forEach { it.remove() }
@@ -251,15 +281,14 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             hospitalList.clear()
 
             for (document in result) {
-                val name = document.getString("nama") ?: "Tanpa Nama"
+                val name = document.getString("nama") ?: "No Name"
                 val address = document.getString("alamat") ?: "-"
                 val phone = document.getString("telepon") ?: "-"
-                val igdStatus = document.getString("igdStatus") ?: "Tersedia"
                 val geoPoint = document.getGeoPoint("lokasi")
                 val lat = geoPoint?.latitude ?: document.getDouble("latitude") ?: 0.0
                 val lng = geoPoint?.longitude ?: document.getDouble("longitude") ?: 0.0
 
-                val hospital = Hospital(document.id, name, address, phone, igdStatus, lat, lng, geoPoint)
+                val hospital = Hospital(document.id, name, address, phone, lat, lng, geoPoint)
                 hospitalList.add(hospital)
             }
 
@@ -297,7 +326,12 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun drawRouteLine(start: LatLng, end: LatLng, mode: String) {
+    // fitFullBounds=true (default) menampilkan seluruh rute (titik awal+akhir+jalur) - dipakai
+    // sekali di AWAL tiap etape supaya user dapat gambaran penuh perjalanan. Untuk update lokasi
+    // driver selanjutnya SELAMA etape yang sama, panggil dengan fitFullBounds=false supaya kamera
+    // cuma mengikuti dari dekat (radius ~200m) alih-alih re-fit ke seluruh rute tiap kali - kalau
+    // jaraknya jauh, belokan kecil di dekat driver jadi susah terlihat kalau selalu di-zoom out.
+    private fun drawRouteLine(start: LatLng, end: LatLng, mode: String, fitFullBounds: Boolean = true) {
         val apiKey = getString(R.string.google_maps_key)
         val url = "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${start.latitude},${start.longitude}" +
@@ -354,12 +388,14 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     )
 
                     if (mode == "jemput") {
-                        binding.tvDestinationAddress.text = "Ambulans Menjemput Anda"
-                        binding.tvEstimationInfo.text = "Tiba dalam: $durationText ($distanceText)"
+                        binding.tvDestinationAddress.text = "Ambulance Picking You Up"
+                        binding.tvDestinationEstimation.text = "$distanceText • $durationText"
+                        binding.tvEstimationInfo.text = "Arriving in: $durationText ($distanceText)"
                     } else if (mode == "antar") {
-                        val rsName = selectedHospitalName ?: "Rumah Sakit"
-                        binding.tvDestinationAddress.text = "Menuju $rsName"
-                        binding.tvEstimationInfo.text = "Waktu Tempuh: $durationText ($distanceText)"
+                        val rsName = selectedHospitalName ?: "Hospital"
+                        binding.tvDestinationAddress.text = "Heading to $rsName"
+                        binding.tvDestinationEstimation.text = "$distanceText • $durationText"
+                        binding.tvEstimationInfo.text = "Travel Time: $durationText ($distanceText)"
                     }
                 } else {
                     roadOverlay = mMap.addPolyline(
@@ -367,13 +403,18 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                             .color(if (mode == "jemput") Color.RED else Color.BLUE)
                             .pattern(listOf(Dash(20f), Gap(10f)))
                     )
+                    binding.tvDestinationEstimation.text = "Distance & travel time not available"
                 }
 
-                val boundsBuilder = LatLngBounds.Builder().include(start).include(end)
-                if (path.isNotEmpty()) {
-                    for (point in path) boundsBuilder.include(point)
+                if (fitFullBounds) {
+                    val boundsBuilder = LatLngBounds.Builder().include(start).include(end)
+                    if (path.isNotEmpty()) {
+                        for (point in path) boundsBuilder.include(point)
+                    }
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 150))
+                } else {
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(start, DRIVER_FOLLOW_ZOOM))
                 }
-                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 150))
             }
         }
     }
@@ -407,14 +448,34 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
     private fun prosesPemesananAmbulans() {
         if (destinationHospitalLoc == null || lastKnownLocation == null) return
-        showSearchingDriverDialog()
-        createBookingRequest()
+        showAmbulanceCategoryDialog()
+    }
+
+    // Ditanyakan SEBELUM booking dibuat (jadi sebelum notifikasi terkirim ke driver manapun) -
+    // hasilnya dipakai untuk menyaring supaya pesanan hanya diteruskan ke driver dengan kategori
+    // ambulans yang sama (lihat filter di HomeFragmentDriver.kt & DriverOnlineService.kt).
+    private fun showAmbulanceCategoryDialog() {
+        val categories = DriverQualificationActivity.AMBULANCE_CATEGORIES
+        val descriptions = DriverQualificationActivity.AMBULANCE_CATEGORY_DESCRIPTIONS
+        val displayItems = categories.map { "$it\n${descriptions[it]}" }.toTypedArray()
+        var chosenIndex = categories.indexOf(selectedAmbulanceCategory).let { if (it >= 0) it else 0 }
+
+        AlertDialog.Builder(this)
+            .setTitle("Select the Ambulance Type You Need")
+            .setSingleChoiceItems(displayItems, chosenIndex) { _, which -> chosenIndex = which }
+            .setPositiveButton("Book Now") { _, _ ->
+                selectedAmbulanceCategory = categories[chosenIndex]
+                showSearchingDriverDialog()
+                createBookingRequest()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun createBookingRequest() {
         val pickupLatLng = lastKnownLocation!!
         val pickupGeoPoint = GeoPoint(pickupLatLng.latitude, pickupLatLng.longitude)
-        val passengerName = auth.currentUser?.displayName ?: "Pasien Ambulans"
+        val passengerName = auth.currentUser?.displayName ?: "Ambulance Patient"
 
         // 🚀 Hitung waktu kedaluwarsa 3 hari ke depan
         val calendar = java.util.Calendar.getInstance().apply {
@@ -425,13 +486,14 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         val bookingData = hashMapOf(
             "passengerId" to (auth.currentUser?.uid ?: ""),
             "passengerName" to passengerName,
-            "hospitalName" to (selectedHospitalName ?: "Rumah Sakit"),
-            "locationName" to "Mendeteksi alamat...",
+            "hospitalName" to (selectedHospitalName ?: "Hospital"),
+            "locationName" to "Detecting address...",
             "pickupLocation" to pickupGeoPoint,
             "hospitalLat" to destinationHospitalLoc?.latitude,
             "hospitalLng" to destinationHospitalLoc?.longitude,
             "status" to "SEARCHING",
             "driverId" to "",
+            "ambulanceCategory" to selectedAmbulanceCategory,
             "createdAt" to Timestamp.now(),
             "expiresAt" to expiryTimestamp // 🚀 Field batas kedaluwarsa 3 hari
         )
@@ -463,10 +525,10 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             @Suppress("DEPRECATION")
             val addresses = Geocoder(this, Locale.getDefault())
                 .getFromLocation(latLng.latitude, latLng.longitude, 1)
-            addresses?.firstOrNull()?.getAddressLine(0) ?: "Lokasi Penjemputan"
+            addresses?.firstOrNull()?.getAddressLine(0) ?: "Pickup Location"
         } catch (e: Exception) {
-            Log.e("GEOCODER", "Gagal reverse geocode: ${e.message}")
-            "Lokasi Penjemputan"
+            Log.e("GEOCODER", "Reverse geocode failed: ${e.message}")
+            "Pickup Location"
         }
     }
 
@@ -477,15 +539,15 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         searchCountDownTimer = object : CountDownTimer(MAX_SEARCH_SECONDS * 1000L, 1000L) {
             override fun onTick(millisUntilFinished: Long) {
                 val elapsed = MAX_SEARCH_SECONDS - (millisUntilFinished / 1000L).toInt()
-                searchDialogView?.findViewById<TextView>(R.id.tvElapsedTime)?.text = "$elapsed detik berlalu"
+                searchDialogView?.findViewById<TextView>(R.id.tvElapsedTime)?.text = "$elapsed seconds elapsed"
             }
 
             override fun onFinish() {
                 searchDialogView?.let { view ->
-                    view.findViewById<TextView>(R.id.tvElapsedTime)?.text = "$MAX_SEARCH_SECONDS detik berlalu"
+                    view.findViewById<TextView>(R.id.tvElapsedTime)?.text = "$MAX_SEARCH_SECONDS seconds elapsed"
                     view.findViewById<ProgressBar>(R.id.pbSearching)?.visibility = View.GONE
                     view.findViewById<TextView>(R.id.tvSearchingDescription)?.text =
-                        "Driver belum ditemukan dalam $MAX_SEARCH_SECONDS detik."
+                        "No driver found within $MAX_SEARCH_SECONDS seconds."
                     view.findViewById<Button>(R.id.btnRefreshSearch)?.visibility = View.VISIBLE
                 }
             }
@@ -508,8 +570,8 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         searchDialogView?.let { view ->
             view.findViewById<ProgressBar>(R.id.pbSearching)?.visibility = View.VISIBLE
             view.findViewById<TextView>(R.id.tvSearchingDescription)?.text =
-                "Mohon tunggu sebentar, sistem sedang menghubungkan dengan driver terdekat."
-            view.findViewById<TextView>(R.id.tvElapsedTime)?.text = "0 detik berlalu"
+                "Please wait a moment, the system is connecting you with the nearest driver."
+            view.findViewById<TextView>(R.id.tvElapsedTime)?.text = "0 seconds elapsed"
             view.findViewById<Button>(R.id.btnRefreshSearch)?.visibility = View.GONE
         }
     }
@@ -527,7 +589,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     currentBookingStatus = "accepted"
                     binding.btnPesanAmbulans.visibility = View.GONE
                     binding.layoutDriverOnTheWay.visibility = View.VISIBLE
-                    binding.tvDriverStatus.text = "Ambulans Sedang Menuju Lokasi Anda"
+                    binding.tvDriverStatus.text = "Ambulance Is Heading to Your Location"
                     setupChatButton(bookingId)
                     updateTripStepper(1)
 
@@ -539,8 +601,26 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                 }
                 else if (status == "picked_up") {
                     currentBookingStatus = "picked_up"
-                    binding.tvDriverStatus.text = "Mengantar Pasien ke Rumah Sakit"
+                    binding.tvDriverStatus.text = "Taking Patient to Hospital"
                     updateTripStepper(2)
+
+                    // Deteksi driver mengalihkan tujuan ke RS lain di tengah perjalanan (kondisi
+                    // darurat, butuh fasilitas lebih lengkap) - update tujuan lokal & beri tahu
+                    // passenger begitu terdeteksi berubah dari yang sudah diketahui sebelumnya.
+                    val newHospitalName = snapshot.getString("hospitalName")
+                    val newHospitalLat = snapshot.getDouble("hospitalLat")
+                    val newHospitalLng = snapshot.getDouble("hospitalLng")
+                    if (!newHospitalName.isNullOrEmpty() && newHospitalLat != null && newHospitalLng != null) {
+                        val newLoc = LatLng(newHospitalLat, newHospitalLng)
+                        val hospitalChanged = newHospitalName != selectedHospitalName || destinationHospitalLoc != newLoc
+                        selectedHospitalName = newHospitalName
+                        destinationHospitalLoc = newLoc
+                        if (hospitalChanged) {
+                            displaySelectedHospitalMarker()
+                            Toast.makeText(this, "The driver has redirected to $newHospitalName due to an emergency.", Toast.LENGTH_LONG).show()
+                            showTripNotification("Destination Hospital Changed", "The driver has redirected to $newHospitalName for more complete care.")
+                        }
+                    }
 
                     val startLoc = lastKnownDriverLocation ?: lastKnownLocation
                     if (startLoc != null && destinationHospitalLoc != null) {
@@ -554,20 +634,48 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
                     if (lastNotifiedStatus != "picked_up") {
                         lastNotifiedStatus = "picked_up"
-                        showTripNotification("Anda Telah Dijemput", "Anda sedang dalam perjalanan menuju rumah sakit.")
+                        showTripNotification("You Have Been Picked Up", "You are on your way to the hospital.")
                     }
                 }
                 else if (status == "completed") {
                     updateTripStepper(3)
                     if (lastNotifiedStatus != "completed") {
                         lastNotifiedStatus = "completed"
-                        showTripNotification("Sudah Sampai di Rumah Sakit", "Ambulans telah tiba di rumah sakit tujuan. Semoga lekas sembuh.")
+                        showTripNotification("Arrived at Hospital", "The ambulance has arrived at the destination hospital. Get well soon.")
                     }
-                    Toast.makeText(this, "Perjalanan Selesai! Semoga lekas sembuh.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Trip Completed! Get well soon.", Toast.LENGTH_LONG).show()
                     resetToStandbyMode()
                     finish()
                 }
+                // Dibatalkan driver di TENGAH perjalanan (kecelakaan, ban bocor, dll) - beda dari
+                // pembatalan oleh passenger sendiri (lewat tombol batal cari driver), yang tidak
+                // pernah membawa field cancelledBy="driver" ini.
+                else if (status == "CANCELLED" && snapshot.getString("cancelledBy") == "driver") {
+                    if (lastNotifiedStatus != "cancelled_by_driver") {
+                        lastNotifiedStatus = "cancelled_by_driver"
+                        showDriverCancelledDialog()
+                    }
+                }
             }
+    }
+
+    private fun showDriverCancelledDialog() {
+        // Bersihkan notifikasi tahap perjalanan terakhir sebelum dibatalkan (mis. "Ambulans
+        // Tiba") - resetToStandbyMode() sengaja TIDAK menyentuh notifikasi trip supaya
+        // notifikasi "Perjalanan Selesai" tetap ada sebagai bukti untuk kasus selesai normal,
+        // tapi untuk kasus dibatalkan tidak ada notifikasi pengganti yang menandakan trip usai.
+        currentBookingId?.let { NotificationManagerCompat.from(this).cancel(tripNotificationId(it)) }
+        resetToStandbyMode()
+        AlertDialog.Builder(this)
+            .setTitle("Booking Cancelled by Driver")
+            .setMessage("We're sorry, the driver cancelled the booking due to an issue on the way (e.g. an accident or a flat tire). You can search for another ambulance now with the same destination.")
+            .setCancelable(false)
+            .setPositiveButton("Find Another Ambulance") { _, _ ->
+                showSearchingDriverDialog()
+                createBookingRequest()
+            }
+            .setNegativeButton("Not Now", null)
+            .show()
     }
 
     // Tandai tahap aktif (pink), tahap yang sudah lewat (hijau), tahap yang belum (abu-abu).
@@ -602,9 +710,9 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             .addOnSuccessListener { doc ->
                 if (doc == null || !doc.exists()) return@addOnSuccessListener
 
-                binding.tvDriverName.text = doc.getString("nama") ?: "Driver Ambulans"
+                binding.tvDriverName.text = doc.getString("nama") ?: "Ambulance Driver"
                 val plate = doc.getString("ambulancePlateNumber")
-                binding.tvDriverPlate.text = "Plat: ${if (plate.isNullOrBlank()) "-" else plate}"
+                binding.tvDriverPlate.text = "Plate: ${if (plate.isNullOrBlank()) "-" else plate}"
                 driverPhoneNumber = doc.getString("phoneNumber")
 
                 Glide.with(this)
@@ -624,12 +732,17 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
                 val geo = snapshot.getGeoPoint("currentLocation") ?: return@addSnapshotListener
                 val driverLatLng = LatLng(geo.latitude, geo.longitude)
+                val previousDriverLatLng = lastKnownDriverLocation
                 lastKnownDriverLocation = driverLatLng
 
-                updateDriverMarker(driverLatLng)
+                updateDriverMarker(driverLatLng, previousDriverLatLng)
 
                 if (currentBookingStatus == "accepted" && lastKnownLocation != null) {
-                    drawRouteLine(driverLatLng, lastKnownLocation!!, "jemput")
+                    // Tampilkan seluruh rute cuma sekali di awal etape "jemput" ini - update
+                    // lokasi selanjutnya cukup mengikuti posisi driver dari dekat.
+                    val isFirstUpdateForLeg = lastRouteBoundsMode != "jemput"
+                    lastRouteBoundsMode = "jemput"
+                    drawRouteLine(driverLatLng, lastKnownLocation!!, "jemput", fitFullBounds = isFirstUpdateForLeg)
 
                     val results = FloatArray(1)
                     Location.distanceBetween(
@@ -639,7 +752,10 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     checkArrivalProximity(results[0])
                 }
                 else if (currentBookingStatus == "picked_up" && destinationHospitalLoc != null) {
-                    drawRouteLine(driverLatLng, destinationHospitalLoc!!, "antar")
+                    // Sama halnya untuk etape "antar" - tampilkan rute penuh sekali di awal saja.
+                    val isFirstUpdateForLeg = lastRouteBoundsMode != "antar"
+                    lastRouteBoundsMode = "antar"
+                    drawRouteLine(driverLatLng, destinationHospitalLoc!!, "antar", fitFullBounds = isFirstUpdateForLeg)
                 }
             }
     }
@@ -649,11 +765,18 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     private fun checkArrivalProximity(distanceMeters: Float) {
         if (hasNotifiedArrival || distanceMeters > ARRIVAL_THRESHOLD_METERS) return
         hasNotifiedArrival = true
-        showTripNotification("Ambulans Tiba", "Ambulans sudah sampai di lokasi Anda. Pesanan sudah sesuai alamat.")
+        showTripNotification("Ambulance Arrived", "The ambulance has arrived at your location as requested.")
     }
+
+    // ID notifikasi tetap PER BOOKING (bukan per teks pesan) supaya tiap tahap perjalanan
+    // ("Ambulans Tiba" -> "Anda Telah Dijemput" -> "Sudah Sampai di Rumah Sakit") MENGGANTI
+    // notifikasi tahap sebelumnya di tray, bukan menumpuk jadi banyak notifikasi terpisah yang
+    // tidak pernah hilang sendiri kalau tidak di-swipe manual satu-satu.
+    private fun tripNotificationId(bookingId: String) = ("trip_$bookingId").hashCode()
 
     private fun showTripNotification(title: String, message: String) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
+        val bookingId = currentBookingId ?: return
 
         createTripNotificationChannel()
 
@@ -665,26 +788,62 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             .setAutoCancel(true)
             .build()
 
-        NotificationManagerCompat.from(this).notify((title + message).hashCode(), notification)
+        NotificationManagerCompat.from(this).notify(tripNotificationId(bookingId), notification)
     }
 
     private fun createTripNotificationChannel() {
         val manager = getSystemService(NotificationManager::class.java) ?: return
-        val channel = NotificationChannel(TRIP_CHANNEL_ID, "Status Perjalanan", NotificationManager.IMPORTANCE_HIGH).apply {
-            description = "Notifikasi tahapan penting perjalanan (sudah sampai, jemput, selesai)"
+        val channel = NotificationChannel(TRIP_CHANNEL_ID, "Trip Status", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "Notifications for key trip milestones (arrived, picked up, completed)"
         }
         manager.createNotificationChannel(channel)
     }
 
-    private fun updateDriverMarker(pos: LatLng) {
+    // previousPos dipakai untuk menghitung arah hadap ambulans (bearing) supaya ikon berputar
+    // mengikuti arah gerak - sama seperti ikon mobil di Gojek/Uber, bukan diam menghadap satu arah terus.
+    private fun updateDriverMarker(pos: LatLng, previousPos: LatLng? = null) {
         if (driverMarker == null) {
             driverMarker = mMap.addMarker(
-                MarkerOptions().position(pos).title("Ambulans")
-                    .icon(getResizedBitmapDescriptor(R.drawable.ic_small_car, 85))
+                MarkerOptions().position(pos).title("Ambulance")
+                    .icon(getVehicleMarkerIcon(R.drawable.ambulance_icon_topview, 90))
+                    .anchor(0.5f, 0.5f)
+                    .flat(true)
             )
         } else {
             driverMarker?.position = pos
+            if (previousPos != null) {
+                val movedMeters = FloatArray(1)
+                Location.distanceBetween(
+                    previousPos.latitude, previousPos.longitude,
+                    pos.latitude, pos.longitude, movedMeters
+                )
+                // Cuma update rotasi kalau memang bergerak cukup jauh - kalau diam, bearing dari
+                // noise GPS kecil bisa bikin ikon "gemetar" berputar-putar sendiri di tempat.
+                if (movedMeters[0] > 3f) {
+                    driverMarker?.rotation = bearingBetween(previousPos, pos)
+                }
+            }
         }
+    }
+
+    private fun bearingBetween(start: LatLng, end: LatLng): Float {
+        val startLoc = Location("start").apply { latitude = start.latitude; longitude = start.longitude }
+        val endLoc = Location("end").apply { latitude = end.latitude; longitude = end.longitude }
+        return (startLoc.bearingTo(endLoc) + 360) % 360
+    }
+
+    // Beda dari getResizedBitmapDescriptor (paksa persegi, bikin ikon kendaraan gepeng/distorsi) -
+    // ini mempertahankan rasio asli gambar, cuma menyesuaikan tinggi ke targetHeightPx.
+    private fun getVehicleMarkerIcon(drawableId: Int, targetHeightPx: Int): BitmapDescriptor? {
+        val drawable = ContextCompat.getDrawable(this, drawableId) ?: return null
+        val intrinsicWidth = drawable.intrinsicWidth.takeIf { it > 0 } ?: targetHeightPx
+        val intrinsicHeight = drawable.intrinsicHeight.takeIf { it > 0 } ?: targetHeightPx
+        val targetWidthPx = (targetHeightPx * intrinsicWidth / intrinsicHeight.toFloat()).roundToInt().coerceAtLeast(1)
+        val bitmap = Bitmap.createBitmap(targetWidthPx, targetHeightPx, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
     // 🚀 Fungsi untuk menghitung badge notifikasi + tampilkan notifikasi gaya WhatsApp
@@ -723,15 +882,15 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         createChatNotificationChannel()
 
         val driverName = binding.tvDriverName.text?.toString()
-            ?.takeIf { it.isNotBlank() && it != "Nama Driver" } ?: "Driver"
+            ?.takeIf { it.isNotBlank() && it != "Driver Name" } ?: "Driver"
         val sender = Person.Builder().setName(driverName).build()
 
-        val messagingStyle = NotificationCompat.MessagingStyle(Person.Builder().setName("Anda").build())
+        val messagingStyle = NotificationCompat.MessagingStyle(Person.Builder().setName("You").build())
         for (doc in unreadMessages.takeLast(5)) {
             val rawMessage = doc.getString("message") ?: ""
             val imageUrl = doc.getString("imageUrl") ?: ""
             if (rawMessage.isEmpty() && imageUrl.isEmpty()) continue
-            val text = if (rawMessage.isEmpty() && imageUrl.isNotEmpty()) "📷 Foto" else rawMessage
+            val text = if (rawMessage.isEmpty() && imageUrl.isNotEmpty()) "📷 Photo" else rawMessage
             val truncated = if (text.length > 100) text.take(100) + "..." else text
             val timeMillis = doc.getTimestamp("timestamp")?.toDate()?.time ?: System.currentTimeMillis()
             messagingStyle.addMessage(truncated, timeMillis, sender)
@@ -762,8 +921,8 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
     private fun createChatNotificationChannel() {
         val manager = getSystemService(NotificationManager::class.java) ?: return
-        val channel = NotificationChannel(CHAT_CHANNEL_ID, "Pesan Chat", NotificationManager.IMPORTANCE_HIGH).apply {
-            description = "Notifikasi pesan chat baru selama pesanan aktif"
+        val channel = NotificationChannel(CHAT_CHANNEL_ID, "Chat Messages", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "Notifications for new chat messages during an active booking"
         }
         manager.createNotificationChannel(channel)
     }
@@ -797,11 +956,12 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         currentBookingId = null
         trackedDriverId = null
         lastKnownDriverLocation = null
+        lastRouteBoundsMode = null
         hasNotifiedArrival = false
         lastNotifiedStatus = null
 
-        binding.tvDestinationAddress.text = "Siap Melayani"
-        binding.tvEstimationInfo.text = "Pilih Rumah Sakit atau Panggil Ambulans"
+        binding.tvDestinationAddress.text = "Ready to Serve"
+        binding.tvEstimationInfo.text = "Select a Hospital or Call an Ambulance"
         binding.btnPesanAmbulans.visibility = View.VISIBLE
         binding.layoutDriverOnTheWay.visibility = View.GONE
 
@@ -843,7 +1003,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         hospitalMarkers.clear()
 
         val icon = getResizedBitmapDescriptor(R.drawable.ic_hospital, 80)
-        val m = mMap.addMarker(MarkerOptions().position(pos).title(selectedHospitalName ?: "Rumah Sakit").apply { if (icon != null) icon(icon) })
+        val m = mMap.addMarker(MarkerOptions().position(pos).title(selectedHospitalName ?: "Hospital").apply { if (icon != null) icon(icon) })
         m?.let { hospitalMarkers.add(it) }
     }
 

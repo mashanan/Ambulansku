@@ -6,13 +6,52 @@
     android:layout_height="match_parent"
     tools:context=".ForPassenger.Welcome.MainActivity">
 
-    <!-- background-->
+    <!-- background: wave vector, gampang diubah warna/bentuknya tanpa perlu edit gambar -->
     <ImageView
         android:id="@+id/backgroundmainImage"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/bg_main_login"
+        android:scaleType="fitXY"
+        android:src="@drawable/bg_wave_login"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Nama app & tagline: dulu berupa tulisan "Grab"/"Your everyday everything app"
+         yang ikut ter-bake di dalam gambar PNG - sekarang jadi TextView biasa supaya
+         nama app/tagline bisa diganti kapan saja tanpa perlu edit ulang gambar. -->
+    <TextView
+        android:id="@+id/tvLoginTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ambulansku"
+        android:textColor="@color/white"
+        android:textSize="34sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/tvLoginTagline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvLoginTagline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:text="Your emergency medical assistance"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@id/imageLoginIcon"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Gambar ambulans diposisikan di tengah layar (bukan lagi menempel ke atas) -->
+    <ImageView
+        android:id="@+id/imageLoginIcon"
+        android:layout_width="160dp"
+        android:layout_height="107dp"
+        android:contentDescription="Ambulance Icon"
+        android:src="@drawable/ic_small_car"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -25,7 +64,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="76dp"
         android:background="@drawable/rounded_button"
-        android:text="Sign_In"
+        android:text="Sign In"
         android:textColor="@color/white"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"

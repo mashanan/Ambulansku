@@ -1,10 +1,9 @@
-package com.example.tugasakhirfinal.ForPassenger
+package com.example.tugasakhirfinal.ForPassenger.DriveFragment
 
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tugasakhirfinal.R
@@ -18,7 +17,8 @@ class HospitalAdapter(
         val tvName: TextView = itemView.findViewById(R.id.tvHospitalName)
         val tvAddress: TextView = itemView.findViewById(R.id.tvHospitalAddress)
         val tvPhone: TextView = itemView.findViewById(R.id.tvHospitalPhone)
-        val tvIgdStatus: TextView = itemView.findViewById(R.id.tvIgdStatus)
+        val layoutDistance: LinearLayout = itemView.findViewById(R.id.layoutHospitalDistance)
+        val tvDistance: TextView = itemView.findViewById(R.id.tvHospitalDistance)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HospitalViewHolder {
@@ -30,30 +30,16 @@ class HospitalAdapter(
         val hospital = hospitalList[position]
 
         // Menggunakan properti bahasa Indonesia milik model Hospital
-        holder.tvName.text = hospital.nama.ifEmpty { "Tanpa Nama" }
+        holder.tvName.text = hospital.nama.ifEmpty { "No Name" }
         holder.tvAddress.text = hospital.alamat.ifEmpty { "-" }
         holder.tvPhone.text = hospital.telepon.ifEmpty { "-" }
 
-        val status = hospital.igdStatus ?: "Tersedia"
-
-        // Logika Tampilan & Warna Badge Status IGD
-        when (status.lowercase()) {
-            "tersedia" -> {
-                holder.tvIgdStatus.text = "IGD Tersedia"
-                setIgdStatusStyle(holder.tvIgdStatus, "#2E7D32", "#E8F5E9")
-            }
-            "ramai" -> {
-                holder.tvIgdStatus.text = "IGD Ramai"
-                setIgdStatusStyle(holder.tvIgdStatus, "#E65100", "#FFF3E0")
-            }
-            "penuh" -> {
-                holder.tvIgdStatus.text = "IGD Penuh"
-                setIgdStatusStyle(holder.tvIgdStatus, "#C62828", "#FFEBEE")
-            }
-            else -> {
-                holder.tvIgdStatus.text = "IGD: $status"
-                setIgdStatusStyle(holder.tvIgdStatus, "#424242", "#EEEEEE")
-            }
+        if (hospital.distanceMeters >= 0) {
+            holder.layoutDistance.visibility = View.VISIBLE
+            val km = hospital.distanceMeters / 1000f
+            holder.tvDistance.text = "${String.format("%.1f", km)} km • ~${hospital.estimatedMinutes} min"
+        } else {
+            holder.layoutDistance.visibility = View.GONE
         }
 
         // Event Klik Item
@@ -67,15 +53,5 @@ class HospitalAdapter(
     fun updateList(newList: List<Hospital>) {
         hospitalList = newList
         notifyDataSetChanged()
-    }
-
-    private fun setIgdStatusStyle(textView: TextView, textColorHex: String, bgColorHex: String) {
-        textView.setTextColor(Color.parseColor(textColorHex))
-        val drawable = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = 16f
-            setColor(Color.parseColor(bgColorHex))
-        }
-        textView.background = drawable
     }
 }

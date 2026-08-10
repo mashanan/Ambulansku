@@ -42,7 +42,7 @@
                 android:id="@+id/tvDriverName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Driver Ambulans"
+                android:text="Ambulance Driver"
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -51,7 +51,7 @@
                 android:id="@+id/tvDriverStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sedang menuju lokasi Anda"
+                android:text="Heading to your location"
                 android:textColor="#2E7D32"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -63,7 +63,7 @@
             android:layout_marginStart="8dp"
             android:background="@drawable/rounded_button"
             android:backgroundTint="#2E7D32"
-            android:contentDescription="Telepon"
+            android:contentDescription="Call"
             android:padding="8dp"
             android:src="@android:drawable/ic_menu_call"
             android:visibility="gone"
@@ -78,7 +78,7 @@
         android:background="#FFF3E0"
         android:gravity="center"
         android:padding="10dp"
-        android:text="Riwayat chat ini akan disembunyikan pada ..."
+        android:text="This chat history will be hidden on ..."
         android:textColor="#E65100"
         android:textSize="12sp"
         android:visibility="gone" />
@@ -120,28 +120,28 @@
                     style="@style/Widget.MaterialComponents.Chip.Action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Saya sudah di lokasi" />
+                    android:text="I'm already at the location" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip2"
                     style="@style/Widget.MaterialComponents.Chip.Action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pasien dalam kondisi darurat!" />
+                    android:text="The patient is in an emergency!" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip3"
                     style="@style/Widget.MaterialComponents.Chip.Action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Apakah posisi driver sudah dekat?" />
+                    android:text="Is the driver nearby yet?" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip4"
                     style="@style/Widget.MaterialComponents.Chip.Action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pasien sudah siap dijemput" />
+                    android:text="The patient is ready to be picked up" />
 
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
@@ -159,7 +159,7 @@
                 android:layout_height="40dp"
                 android:layout_marginEnd="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Lampirkan Foto"
+                android:contentDescription="Attach Photo"
                 android:padding="8dp"
                 android:src="@android:drawable/ic_menu_gallery"
                 app:tint="#757575" />
@@ -170,7 +170,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@drawable/search_view_bg"
-                android:hint="Ketik pesan..."
+                android:hint="Type a message..."
                 android:padding="12dp"
                 android:textSize="14sp" />
 

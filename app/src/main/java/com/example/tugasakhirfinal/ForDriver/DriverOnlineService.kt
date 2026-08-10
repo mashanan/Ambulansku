@@ -46,6 +46,10 @@ class DriverOnlineService : Service() {
     // tidak lagi SEARCHING (dibatalkan passenger, kedaluwarsa, atau sudah diambil driver lain).
     private val activeBookingNotifications = mutableMapOf<String, Int>()
 
+    // Kategori ambulans driver ini - dibaca sekali di fetchDriverCategoryThenListenBookings()
+    // sebelum listenToNewBookings() dipasang, supaya query pesanan sudah tersaring sejak awal.
+    private var driverAmbulanceCategory: String = "Ambulans Biasa"
+
     companion object {
         private const val STATUS_CHANNEL_ID = "driver_status_channel"
         private const val BOOKING_CHANNEL_ID = "driver_booking_channel"
@@ -72,9 +76,28 @@ class DriverOnlineService : Service() {
 
         updateDriverStatus("online")
         startLocationUpdates()
-        listenToNewBookings()
+        fetchDriverCategoryThenListenBookings()
 
         return START_NOT_STICKY
+    }
+
+    // Baca kategori ambulans driver sendiri dulu (sekali, cukup untuk masa hidup service ini)
+    // sebelum memasang listener pesanan - supaya notifikasi cuma dikirim untuk booking dengan
+    // kategori yang sama. Kalau gagal dibaca (mis. offline), tetap fallback ke "Ambulans Biasa".
+    private fun fetchDriverCategoryThenListenBookings() {
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            listenToNewBookings()
+            return
+        }
+        firestore.collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                driverAmbulanceCategory = doc.getString("ambulanceCategory") ?: "Ambulans Biasa"
+                listenToNewBookings()
+            }
+            .addOnFailureListener {
+                listenToNewBookings()
+            }
     }
 
     override fun onDestroy() {
@@ -107,16 +130,16 @@ class DriverOnlineService : Service() {
         val manager = getSystemService(NotificationManager::class.java) ?: return
 
         val statusChannel = NotificationChannel(
-            STATUS_CHANNEL_ID, "Status Online Driver", NotificationManager.IMPORTANCE_LOW
+            STATUS_CHANNEL_ID, "Driver Online Status", NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = "Notifikasi persisten selama driver berstatus Online"
+            description = "Persistent notification while the driver is Online"
             setShowBadge(false)
         }
 
         val bookingChannel = NotificationChannel(
-            BOOKING_CHANNEL_ID, "Pesanan Ambulans Baru", NotificationManager.IMPORTANCE_HIGH
+            BOOKING_CHANNEL_ID, "New Ambulance Bookings", NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Notifikasi ketika ada pesanan ambulans baru masuk"
+            description = "Notification when a new ambulance booking comes in"
         }
 
         manager.createNotificationChannel(statusChannel)
@@ -136,7 +159,7 @@ class DriverOnlineService : Service() {
     private fun buildStatusNotification(): Notification {
         return NotificationCompat.Builder(this, STATUS_CHANNEL_ID)
             .setContentTitle("Ambulansku")
-            .setContentText("Anda Online — siap menerima pesanan")
+            .setContentText("You're Online — ready to accept bookings")
             .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
             .setContentIntent(openAppPendingIntent(0))
@@ -183,6 +206,7 @@ class DriverOnlineService : Service() {
         bookingListener?.remove()
         bookingListener = firestore.collection("bookings")
             .whereEqualTo("status", "SEARCHING")
+            .whereEqualTo("ambulanceCategory", driverAmbulanceCategory)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) return@addSnapshotListener
 
@@ -195,7 +219,7 @@ class DriverOnlineService : Service() {
                 for (change in snapshot.documentChanges) {
                     when (change.type) {
                         DocumentChange.Type.ADDED -> {
-                            val hospitalName = change.document.getString("hospitalName") ?: "Rumah Sakit"
+                            val hospitalName = change.document.getString("hospitalName") ?: "Hospital"
                             showNewBookingNotification(change.document.id, hospitalName)
                         }
                         DocumentChange.Type.REMOVED -> {
@@ -214,8 +238,8 @@ class DriverOnlineService : Service() {
 
         val notificationId = nextBookingNotificationId++
         val notification = NotificationCompat.Builder(this, BOOKING_CHANNEL_ID)
-            .setContentTitle("Ada Pesanan Ambulans Baru!")
-            .setContentText("Tujuan: $hospitalName. Buka aplikasi untuk menerima.")
+            .setContentTitle("New Ambulance Booking!")
+            .setContentText("Destination: $hospitalName. Open the app to accept.")
             .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)

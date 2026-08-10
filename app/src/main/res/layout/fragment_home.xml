@@ -15,7 +15,7 @@
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Selamat Datang,"
+        android:text="Welcome,"
         android:textColor="@color/black"
         android:textSize="30sp"
         android:textStyle="bold"
@@ -68,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
         android:layout_marginTop="40dp"
-        android:text="Yang Anda Butuhkan"
+        android:text="What You Need"
         android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -78,7 +78,7 @@
     <!-- CardView Kiri untuk melihat list rumah sakit (disamakan dgn fragment_drive_activity_main.xml) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardMiniLeft"
-        android:layout_width="175dp"
+        android:layout_width="0dp"
         android:layout_height="100dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="10dp"
@@ -90,7 +90,7 @@
         app:layout_constraintTop_toBottomOf="@id/textView4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/cardMiniRight"
-        app:layout_constraintWidth_percent="0.45">
+        app:layout_constraintHorizontal_chainStyle="spread">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -103,7 +103,7 @@
                 android:layout_height="44dp"
                 android:layout_gravity="top|end"
                 android:layout_margin="15dp"
-                android:contentDescription="Icon Rumah Sakit"
+                android:contentDescription="Hospital Icon"
                 android:src="@drawable/ic_address" />
 
             <!-- Teks di kiri bawah -->
@@ -112,7 +112,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|start"
                 android:layout_margin="5dp"
-                android:text="Pilih Rumah Sakit"
+                android:text="Select Hospital"
                 android:textStyle="bold"
                 android:textSize="14sp" />
 
@@ -123,7 +123,7 @@
     <!-- CardView Kanan untuk memanggil ambulans (disamakan dgn fragment_drive_activity_main.xml) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardMiniRight"
-        android:layout_width="175dp"
+        android:layout_width="0dp"
         android:layout_height="100dp"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
@@ -134,8 +134,7 @@
         android:foreground="?attr/selectableItemBackground"
         app:layout_constraintTop_toBottomOf="@id/textView4"
         app:layout_constraintStart_toEndOf="@id/cardMiniLeft"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintWidth_percent="0.45">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -148,7 +147,7 @@
                 android:layout_height="50dp"
                 android:layout_gravity="top|end"
                 android:layout_margin="10dp"
-                android:contentDescription="Icon Ambulans"
+                android:contentDescription="Ambulance Icon"
                 android:src="@drawable/ic_small_car" />
 
             <!-- Teks di kiri bawah -->
@@ -157,7 +156,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|start"
                 android:layout_margin="10dp"
-                android:text="Panggil Ambulans"
+                android:text="Call Ambulance"
                 android:textStyle="bold"
                 android:textSize="14sp" />
         </FrameLayout>
@@ -191,7 +190,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pertologan Pertama"
+                android:text="First Aid"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -205,7 +204,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
         android:layout_marginTop="24dp"
-        android:text="Tentang Kami"
+        android:text="About Us"
         android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -246,7 +245,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:lineSpacingExtra="4dp"
-                android:text="Ambulansku adalah aplikasi yang menghubungkan Anda dengan driver ambulans terdekat secara cepat dan mudah, mirip layanan transportasi online namun khusus untuk kebutuhan darurat medis. Pesan ambulans, lacak posisi driver secara real-time, dan dapatkan bantuan menuju rumah sakit tujuan tanpa perlu menunggu lama."
+                android:text="Ambulansku is an app that connects you with the nearest ambulance driver quickly and easily, similar to an online transportation service but built specifically for medical emergencies. Book an ambulance, track your driver's location in real time, and get help to your destination hospital without a long wait."
                 android:textColor="#616161"
                 android:textSize="13sp" />
         </LinearLayout>

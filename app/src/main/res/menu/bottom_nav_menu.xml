@@ -3,17 +3,17 @@
     <item
         android:id="@+id/navigation_beranda"
         android:icon="@drawable/ic_botnav_home"
-        android:title="Beranda" />
+        android:title="Home" />
     <item
         android:id="@+id/navigation_layanan"
         android:icon="@drawable/ic_botnav_layanan"
-        android:title="Layanan" />
+        android:title="Services" />
     <item
         android:id="@+id/navigation_aktivitas"
         android:icon="@drawable/ic_botnav_aktivitas"
-        android:title="Aktivitas" />
+        android:title="Activity" />
     <item
         android:id="@+id/navigation_akun"
         android:icon="@drawable/ic_botnav_akun"
-        android:title="Akun" />
+        android:title="Account" />
 </menu>
