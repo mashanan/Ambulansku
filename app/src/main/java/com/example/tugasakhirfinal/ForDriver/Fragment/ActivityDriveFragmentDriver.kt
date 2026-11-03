@@ -28,6 +28,7 @@ import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.tugasakhirfinal.ForPassenger.DriveFragment.HospitalListActivity
 import com.example.tugasakhirfinal.Maps.RouteGeometry
+import com.example.tugasakhirfinal.Maps.RouteStyle
 import com.example.tugasakhirfinal.Maps.SmoothMarkerAnimator
 import com.example.tugasakhirfinal.Maps.VehicleMarkerIcon
 import com.example.tugasakhirfinal.Maps.toLatLngs
@@ -175,6 +176,8 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        // Warnai jalan sesuai kepadatan lalu lintas (hijau/oranye/merah) - sama dengan pov passenger.
+        mMap.isTrafficEnabled = true
         mMap.uiSettings.isZoomControlsEnabled = false
 
         setupLocationUpdates()
@@ -393,7 +396,9 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         val url = "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${start.latitude},${start.longitude}" +
                 "&destination=${end.latitude},${end.longitude}" +
-                "&mode=driving&key=$apiKey"
+                // departure_time=now -> Google ikut menghitung kondisi lalu lintas saat ini dan
+                // mengembalikan duration_in_traffic (lihat parsing di bawah).
+                "&mode=driving&departure_time=now&key=$apiKey"
 
         CoroutineScope(Dispatchers.IO).launch {
             var durationText = ""
@@ -422,10 +427,13 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                             val overviewPolyline = route.getJSONObject("overview_polyline").getString("points")
                             val legs = route.getJSONArray("legs").getJSONObject(0)
 
-                            durationText = legs.getJSONObject("duration").getString("text")
+                            // Estimasi memperhitungkan macet kalau Google punya datanya; kalau tidak
+                            // (mis. jalan kecil tanpa data traffic), pakai durasi normal.
+                            val duration = legs.optJSONObject("duration_in_traffic") ?: legs.getJSONObject("duration")
+                            durationText = duration.getString("text")
                             distanceText = legs.getJSONObject("distance").getString("text")
                             distanceMeters = legs.getJSONObject("distance").getDouble("value")
-                            durationSeconds = legs.getJSONObject("duration").getDouble("value")
+                            durationSeconds = duration.getDouble("value")
                             path = decodePolyline(overviewPolyline)
                         }
                     }
@@ -441,7 +449,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                 if (requestSeq != routeRequestSeq || mode != currentMode) return@withContext
                 roadOverlay?.remove()
 
-                val lineColor = if (mode == "jemput") Color.RED else Color.BLUE
+                val lineColor = RouteStyle.colorFor(mode)
 
                 if (isApiSuccess && path.isNotEmpty()) {
                     roadOverlay = mMap.addPolyline(
@@ -537,7 +545,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         if (overlay != null) {
             overlay.points = remaining
         } else {
-            val lineColor = if (currentMode == "jemput") Color.RED else Color.BLUE
+            val lineColor = RouteStyle.colorFor(currentMode)
             roadOverlay = mMap.addPolyline(
                 PolylineOptions().addAll(remaining).width(14f).color(lineColor)
                     .jointType(JointType.ROUND).startCap(RoundCap()).endCap(RoundCap())

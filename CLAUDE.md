@@ -41,7 +41,8 @@ These two trees do not share Activities/Fragments — expect duplicated logic (e
 Exception: map helpers shared by both roles' trip screens live in `Maps/` (added 2026-11-04):
 - `RouteGeometry` — pure Kotlin (unit tested in `src/test/.../Maps/RouteGeometryTest.kt`): trims the traveled part of a route by projecting the vehicle onto the nearest route segment, plus distance/bearing helpers.
 - `VehicleMarker.kt` — dp-sized ambulance icon with a soft shadow (`VehicleMarkerIcon`) and smooth position/rotation animation (`SmoothMarkerAnimator`).
-Both trip screens fetch the Directions API route once per leg, trim it locally on each location update, re-fetch only when the vehicle is more than 50 m off the route (throttled to once per 10 s), and drop stale responses via a request sequence number.
+- `RouteStyle` — route line colors shared by both trip screens (pickup = purple, to-hospital = blue). Deliberately avoids green/orange/red, which the Google traffic layer (`isTrafficEnabled`, on in both screens) uses for congestion.
+Both trip screens request Directions with `departure_time=now` and prefer `duration_in_traffic` for ETAs. They fetch the Directions API route once per leg, trim it locally on each location update, re-fetch only when the vehicle is more than 50 m off the route (throttled to once per 10 s), and drop stale responses via a request sequence number.
 
 ### Firebase data model
 

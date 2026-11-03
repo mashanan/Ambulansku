@@ -34,6 +34,7 @@ import com.bumptech.glide.Glide
 import com.example.tugasakhirfinal.ForDriver.Welcome.DriverQualificationActivity
 import com.example.tugasakhirfinal.ForPassenger.ChatPassengerActivity
 import com.example.tugasakhirfinal.Maps.RouteGeometry
+import com.example.tugasakhirfinal.Maps.RouteStyle
 import com.example.tugasakhirfinal.Maps.SmoothMarkerAnimator
 import com.example.tugasakhirfinal.Maps.VehicleMarkerIcon
 import com.example.tugasakhirfinal.Maps.toLatLngs
@@ -374,7 +375,9 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         val url = "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${start.latitude},${start.longitude}" +
                 "&destination=${end.latitude},${end.longitude}" +
-                "&mode=driving&key=$apiKey"
+                // departure_time=now -> Google ikut menghitung kondisi lalu lintas saat ini dan
+                // mengembalikan duration_in_traffic (lihat parsing di bawah).
+                "&mode=driving&departure_time=now&key=$apiKey"
 
         CoroutineScope(Dispatchers.IO).launch {
             var durationText = ""
@@ -403,10 +406,13 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                             val overviewPolyline = route.getJSONObject("overview_polyline").getString("points")
                             val legs = route.getJSONArray("legs").getJSONObject(0)
 
-                            durationText = legs.getJSONObject("duration").getString("text")
+                            // Estimasi memperhitungkan macet kalau Google punya datanya; kalau tidak
+                            // (mis. jalan kecil tanpa data traffic), pakai durasi normal.
+                            val duration = legs.optJSONObject("duration_in_traffic") ?: legs.getJSONObject("duration")
+                            durationText = duration.getString("text")
                             distanceText = legs.getJSONObject("distance").getString("text")
                             distanceMeters = legs.getJSONObject("distance").getDouble("value")
-                            durationSeconds = legs.getJSONObject("duration").getDouble("value")
+                            durationSeconds = duration.getDouble("value")
                             path = decodePolyline(overviewPolyline)
                         }
                     }
@@ -427,7 +433,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                         PolylineOptions()
                             .addAll(path)
                             .width(14f)
-                            .color(if (mode == "jemput") Color.RED else Color.BLUE)
+                            .color(RouteStyle.colorFor(mode))
                             .jointType(JointType.ROUND)
                             .startCap(RoundCap())
                             .endCap(RoundCap())
@@ -446,7 +452,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                 } else {
                     roadOverlay = mMap.addPolyline(
                         PolylineOptions().add(start, end).width(10f)
-                            .color(if (mode == "jemput") Color.RED else Color.BLUE)
+                            .color(RouteStyle.colorFor(mode))
                             .pattern(listOf(Dash(20f), Gap(10f)))
                     )
                     binding.tvDestinationEstimation.text = "Distance & travel time not available"
