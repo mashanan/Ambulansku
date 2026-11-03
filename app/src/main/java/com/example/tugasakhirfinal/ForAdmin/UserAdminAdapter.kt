@@ -40,7 +40,9 @@ class UserAdminAdapter(
             holder.tvStatus.setTextColor(Color.parseColor("#2E7D32"))
             holder.tvStatus.setBackgroundColor(Color.parseColor("#E8F5E9"))
             holder.btnToggle.text = "Deactivate"
-            holder.btnToggle.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#D32F2F"))
+            // Warna utama app (oranye), bukan merah - supaya jelas beda dari tombol Delete Account
+            // (merah) di sebelahnya. Sama dengan pola Edit/Delete di Manage Hospitals.
+            holder.btnToggle.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#FF624E"))
         } else {
             holder.tvStatus.text = "Inactive"
             holder.tvStatus.setTextColor(Color.parseColor("#C62828"))

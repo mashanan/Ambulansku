@@ -68,6 +68,7 @@
             android:contentDescription="Driver's License Photo Preview" />
 
         <Button
+            style="@style/SecondaryOutlinedButton"
             android:id="@+id/btnPickLicensePhoto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -126,6 +127,7 @@
             android:contentDescription="Vehicle Registration Photo Preview" />
 
         <Button
+            style="@style/SecondaryOutlinedButton"
             android:id="@+id/btnPickStnkPhoto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -153,6 +155,7 @@
         </HorizontalScrollView>
 
         <Button
+            style="@style/SecondaryOutlinedButton"
             android:id="@+id/btnAddAmbulancePhoto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -177,6 +180,7 @@
             android:visibility="gone" />
 
         <Button
+            style="@style/SecondaryOutlinedButton"
             android:id="@+id/btnPickAedCert"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -217,6 +221,7 @@
             android:visibility="gone" />
 
         <Button
+            style="@style/SecondaryOutlinedButton"
             android:id="@+id/btnPickMedicalCert"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -279,7 +284,8 @@
             android:id="@+id/btnSubmit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="#D32F2F"
+            android:backgroundTint="@color/pink_main"
+            app:cornerRadius="16dp"
             android:textColor="@android:color/white"
             android:text="Submit for Verification"
             android:textAllCaps="false"

@@ -112,7 +112,9 @@ class HomeFragmentDriver : Fragment() {
                 if (isOnline && (bookingListener == null || categoryChanged)) {
                     binding.tvEmpty.text = "Searching for ambulance bookings..."
                     listenToBookings()
-                } else if (!isOnline && bookingListener != null) {
+                } else if (!isOnline) {
+                    // Tanpa syarat bookingListener != null: driver yang membuka app dalam keadaan
+                    // Offline juga harus melihat pesan "Turn on Online mode", bukan layar kosong.
                     stopListening()
                 } else {
                     // Statusnya belum berubah kategori, tapi lokasi bisa saja baru update
