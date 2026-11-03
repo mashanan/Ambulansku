@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pengganti bg_main_login.png: background wave dalam bentuk vector supaya
+     warna & bentuk gampang diubah tanpa perlu edit ulang gambar raster. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="375dp"
+    android:height="812dp"
+    android:viewportWidth="375"
+    android:viewportHeight="812">
+
+    <path
+        android:fillColor="@color/white"
+        android:pathData="M0,0 L375,0 L375,812 L0,812 Z" />
+
+    <path
+        android:fillColor="@color/pink_main"
+        android:pathData="M0,0 L375,0 L375,565
+            C320,580 270,635 230,610
+            C190,585 150,545 100,545
+            C70,545 40,565 0,585 Z" />
+</vector>
