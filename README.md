@@ -5,6 +5,9 @@ An Android native utility application designed to streamline emergency data hand
 ## 🚀 Key Features
 *   **Secure User Authentication:** Integrated with Firebase Authentication for seamless and secure user login/registration.
 *   **Real-time Data Management:** Utilizes Firebase (Firestore/Realtime Database) to ensure data is synced efficiently without memory leaks.
+*   **Live Ambulance Tracking:** The ambulance appears as a top-down vehicle icon that glides smoothly and turns with the direction of travel, and the part of the route it has already driven disappears from the map as it moves, for both passenger and driver.
+*   **Traffic-Aware Navigation:** Both trip maps show the Google Maps traffic layer (green = smooth, orange = busy, red = jammed), and arrival estimates take current traffic into account instead of assuming empty roads.
+*   **Color-Coded Route:** The route line is **purple** while the ambulance is on its way to pick up the patient and **blue** while it is heading to the hospital. Neither color is used by the traffic layer, so the route never gets mixed up with congested roads.
 *   **Clean UI Flow:** A straightforward, responsive user interface built natively to ensure optimal performance.
 *   **Robust Configuration:** Project dependencies and build logic are cleanly structured using **Groovy DSL**, ensuring maintainability and fast build times.
 
