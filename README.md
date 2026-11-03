@@ -14,6 +14,21 @@ An Android native utility application designed to streamline emergency data hand
 *   **Backend & Database:** Firebase Authentication, Cloud Firestore
 *   **Build Tool:** Gradle (Groovy DSL)
 
+## 🔑 Test Accounts
+Use these ready-made accounts to try the app without signing up. Both are already email-verified, and the driver is already approved by the admin, so you can log in right away.
+
+| Role | Email | Password | Where to log in |
+|---|---|---|---|
+| Passenger | `passenger@ambulansku.test` | `12345678` | Role selection → **I want to be a Passenger** → Sign In |
+| Driver | `driver@ambulansku.test` | `12345678` | Role selection → **I want to be a Driver** → Sign In |
+
+To test a full trip, log in as the passenger on one phone and as the driver on another, set the driver **online**, then call an ambulance from the passenger account.
+
+Notes:
+*   An account can only be active on **one device at a time**. If someone else logs in with the same test account, you will be logged out automatically.
+*   The `@ambulansku.test` addresses are not real mailboxes, so features that send email (password reset, re-sending verification) will not deliver anything.
+*   An admin test account exists but is not published here, because this repository is public. Contact the repository owner if you need admin access.
+
 ## 📸 Screenshots
 <img width="746" height="1600" alt="image" src="https://github.com/user-attachments/assets/e01a4c21-aa8a-4b52-a44c-b8c5b8638bd4" />
 <img width="746" height="1600" alt="image" src="https://github.com/user-attachments/assets/c3c99dcc-cb9b-4080-a7c6-47f61c129e8a" />
