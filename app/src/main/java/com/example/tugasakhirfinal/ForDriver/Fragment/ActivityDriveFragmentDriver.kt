@@ -11,6 +11,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Log
 import android.view.*
 import android.widget.TextView
@@ -26,6 +27,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.tugasakhirfinal.ForPassenger.DriveFragment.HospitalListActivity
+import com.example.tugasakhirfinal.Maps.RouteGeometry
+import com.example.tugasakhirfinal.Maps.SmoothMarkerAnimator
+import com.example.tugasakhirfinal.Maps.VehicleMarkerIcon
+import com.example.tugasakhirfinal.Maps.toLatLngs
+import com.example.tugasakhirfinal.Maps.toRoutePoint
+import com.example.tugasakhirfinal.Maps.toRoutePoints
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.FragmentDriveDriverBinding
 import com.google.android.gms.location.*
@@ -52,6 +59,14 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         // Level zoom Google Maps yang kira-kira menampilkan radius ~200m di sekitar driver saat
         // kamera mengikuti dari dekat (bukan menampilkan seluruh rute lagi).
         private const val DRIVER_FOLLOW_ZOOM = 17f
+
+        // Kalau driver menyimpang lebih dari ini dari garis rute (salah belok / ambil jalan lain),
+        // rute diminta ulang ke Directions API dari posisi sekarang.
+        private const val OFF_ROUTE_METERS = 50.0
+
+        // Jeda minimum antar permintaan Directions API selama satu etape. Lokasi masuk tiap 3
+        // detik; tanpa jeda ini, saat API lambat/gagal aplikasi bisa memanggilnya tiap 3 detik.
+        private const val MIN_ROUTE_REQUEST_INTERVAL_MS = 10_000L
     }
 
     private var _binding: FragmentDriveDriverBinding? = null
@@ -86,6 +101,13 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
     // bagian jalur yang sudah dilalui driver menghilang dari peta (sama seperti pov passenger),
     // bukan tetap utuh menampilkan seluruh rute dari titik awal.
     private var currentRoutePath: List<LatLng> = emptyList()
+
+    // Nomor urut permintaan rute. Respons Directions API bisa datang tidak berurutan; respons
+    // yang nomornya bukan yang terbaru diabaikan supaya rute lama tidak menimpa rute baru.
+    private var routeRequestSeq = 0
+    private var lastRouteRequestAt = 0L
+
+    private val driverMarkerAnimator = SmoothMarkerAnimator()
 
     private var lastFetchedPassengerId: String? = null
     private var passengerPhoneNumber: String? = null
@@ -165,26 +187,6 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
-    // Beda dari getResizedBitmapDescriptor (paksa persegi, bikin ikon kendaraan gepeng/distorsi) -
-    // ini mempertahankan rasio asli gambar, cuma menyesuaikan tinggi ke targetHeightPx.
-    private fun getVehicleMarkerIcon(drawableId: Int, targetHeightPx: Int): BitmapDescriptor? {
-        val drawable = ContextCompat.getDrawable(requireContext(), drawableId) ?: return null
-        val intrinsicWidth = drawable.intrinsicWidth.takeIf { it > 0 } ?: targetHeightPx
-        val intrinsicHeight = drawable.intrinsicHeight.takeIf { it > 0 } ?: targetHeightPx
-        val targetWidthPx = (targetHeightPx * intrinsicWidth / intrinsicHeight.toFloat()).roundToInt().coerceAtLeast(1)
-        val bitmap = Bitmap.createBitmap(targetWidthPx, targetHeightPx, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        return BitmapDescriptorFactory.fromBitmap(bitmap)
-    }
-
-    private fun bearingBetween(start: LatLng, end: LatLng): Float {
-        val startLoc = android.location.Location("start").apply { latitude = start.latitude; longitude = start.longitude }
-        val endLoc = android.location.Location("end").apply { latitude = end.latitude; longitude = end.longitude }
-        return (startLoc.bearingTo(endLoc) + 360) % 360
-    }
-
     private fun setupLocationUpdates() {
         val request = LocationRequest.create().apply {
             interval = 3000
@@ -204,27 +206,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                         .update("currentLocation", GeoPoint(loc.latitude, loc.longitude))
                 }
 
-                if (driverMarker == null) {
-                    driverMarker = mMap.addMarker(MarkerOptions()
-                        .position(currentPos)
-                        .icon(getVehicleMarkerIcon(R.drawable.ambulance_icon_topview, 90))
-                        .anchor(0.5f, 0.5f)
-                        .flat(true))
-                } else {
-                    driverMarker?.position = currentPos
-                    if (previousPos != null) {
-                        // Ikon berputar mengikuti arah gerak driver sendiri - sama seperti ikon
-                        // mobil di Gojek/Uber - biar tidak diam menghadap satu arah terus.
-                        val movedMeters = FloatArray(1)
-                        android.location.Location.distanceBetween(
-                            previousPos.latitude, previousPos.longitude,
-                            currentPos.latitude, currentPos.longitude, movedMeters
-                        )
-                        if (movedMeters[0] > 3f) {
-                            driverMarker?.rotation = bearingBetween(previousPos, currentPos)
-                        }
-                    }
-                }
+                updateDriverMarker(currentPos, previousPos)
 
                 if (isFirstLocation) {
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentPos, 17f))
@@ -233,24 +215,12 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
 
                 targetLocation?.let { target ->
                     if (!isRouteZoomed) {
-                        drawRouteWithDirections(currentPos, target, currentMode)
+                        requestRouteThrottled(currentPos, target, currentMode)
                     } else {
                         val results = FloatArray(1)
                         android.location.Location.distanceBetween(currentPos.latitude, currentPos.longitude, target.latitude, target.longitude, results)
                         val statusStr = if (currentMode == "jemput") "Picking Up Patient" else "Heading to Hospital"
                         binding.tvCurrentStatus.text = statusStr
-
-                        val remainingKm = results[0] / 1000
-                        val refDistance = lastLegDistanceMeters
-                        val refDuration = lastLegDurationSeconds
-                        binding.tvEstimationInfo.text = if (refDistance != null && refDuration != null && refDistance > 0) {
-                            // Skala durasi awal secara proporsional terhadap sisa jarak sekarang,
-                            // sama seperti "Tiba dalam: X menit (Y km)" di pov passenger.
-                            val estMinutes = ((results[0] / refDistance) * refDuration / 60).roundToInt().coerceAtLeast(1)
-                            "Estimate: $estMinutes min (${String.format("%.1f", remainingKm)} km)"
-                        } else {
-                            "Remaining Distance: ${String.format("%.1f", remainingKm)} km"
-                        }
 
                         // 🚀 Rute lengkap sudah ditampilkan sekali di awal etape ini (lihat
                         // drawRouteWithDirections -> fitCameraToRoute). Update lokasi selanjutnya
@@ -261,7 +231,26 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                         // Potong bagian jalur yang sudah dilewati driver dari polyline (tanpa
                         // panggil Directions API lagi) supaya jalur yang sudah dilalui menghilang
                         // dari peta, sama seperti pov passenger.
-                        trimTraveledRoute(currentPos)
+                        trimTraveledRoute(currentPos, target)
+
+                        // Sisa jarak diukur SEPANJANG jalur (bukan garis lurus) supaya estimasi
+                        // tidak terlalu optimis di jalan yang berkelok.
+                        val remainingMeters = if (currentRoutePath.size >= 2) {
+                            RouteGeometry.lengthMeters(currentRoutePath.toRoutePoints())
+                        } else {
+                            results[0].toDouble()
+                        }
+                        val remainingKm = remainingMeters / 1000
+                        val refDistance = lastLegDistanceMeters
+                        val refDuration = lastLegDurationSeconds
+                        binding.tvEstimationInfo.text = if (refDistance != null && refDuration != null && refDistance > 0) {
+                            // Skala durasi awal secara proporsional terhadap sisa jarak sekarang,
+                            // sama seperti "Tiba dalam: X menit (Y km)" di pov passenger.
+                            val estMinutes = ((remainingMeters / refDistance) * refDuration / 60).roundToInt().coerceAtLeast(1)
+                            "Estimate: $estMinutes min (${String.format("%.1f", remainingKm)} km)"
+                        } else {
+                            "Remaining Distance: ${String.format("%.1f", remainingKm)} km"
+                        }
 
                         checkArrivalProximity(results[0])
                     }
@@ -382,7 +371,18 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
             .icon(getResizedBitmapDescriptor(iconRes, 90)))
     }
 
-    private fun drawRouteWithDirections(start: LatLng, end: LatLng, mode: String) {
+    // Panggil Directions API paling cepat tiap MIN_ROUTE_REQUEST_INTERVAL_MS. Dipakai dari update
+    // lokasi (tiap 3 detik) - permintaan yang memang wajib langsung (etape baru dari listener
+    // booking) tetap memanggil drawRouteWithDirections() secara langsung.
+    private fun requestRouteThrottled(start: LatLng, end: LatLng, mode: String, fitCamera: Boolean = true) {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastRouteRequestAt < MIN_ROUTE_REQUEST_INTERVAL_MS) return
+        drawRouteWithDirections(start, end, mode, fitCamera)
+    }
+
+    private fun drawRouteWithDirections(start: LatLng, end: LatLng, mode: String, fitCamera: Boolean = true) {
+        lastRouteRequestAt = SystemClock.elapsedRealtime()
+        val requestSeq = ++routeRequestSeq
         val apiKey = getString(R.string.google_maps_key)
         val url = "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${start.latitude},${start.longitude}" +
@@ -430,6 +430,9 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
 
             withContext(Dispatchers.Main) {
                 if (_binding == null) return@withContext
+                // Respons basi (sudah ada permintaan yang lebih baru, atau etape sudah berganti) -
+                // abaikan supaya tidak menggambar ulang rute dari posisi lama.
+                if (requestSeq != routeRequestSeq || mode != currentMode) return@withContext
                 roadOverlay?.remove()
 
                 val lineColor = if (mode == "jemput") Color.RED else Color.BLUE
@@ -451,7 +454,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                     // (boros kuota) — kamera sendiri tetap disesuaikan tiap update lewat fitCameraToRoute()
                     // di setupLocationUpdates(), bukan cuma sekali di sini.
                     isRouteZoomed = true
-                    fitCameraToRoute(start, end, path)
+                    if (fitCamera) fitCameraToRoute(start, end, path) else followDriverCamera(start)
                 } else {
                     roadOverlay = mMap.addPolyline(PolylineOptions().add(start, end).width(10f).color(lineColor).pattern(listOf(Dash(20f), Gap(10f))))
                     val results = FloatArray(1)
@@ -462,7 +465,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                     lastLegDistanceMeters = null
                     lastLegDurationSeconds = null
                     currentRoutePath = emptyList()
-                    fitCameraToRoute(start, end)
+                    if (fitCamera) fitCameraToRoute(start, end) else followDriverCamera(start)
                 }
             }
         }
@@ -491,36 +494,57 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
     }
 
     // Memotong bagian polyline yang sudah dilewati driver secara LOKAL (tanpa panggil Directions
-    // API lagi) - cari titik jalur terdekat dengan posisi driver sekarang, lalu gambar ulang
-    // polyline mulai dari titik itu. currentRoutePath ikut dipotong permanen supaya progresnya
-    // maju terus (tidak "kembali" walau ada noise GPS kecil).
-    private fun trimTraveledRoute(currentPos: LatLng) {
+    // API lagi). Perhitungannya ada di RouteGeometry.trim(): posisi driver diproyeksikan ke ruas
+    // jalur terdekat sehingga garis terpotong tepat di posisi ambulans. currentRoutePath ikut
+    // dipotong permanen supaya progresnya maju terus (tidak "kembali" karena noise GPS kecil).
+    private fun trimTraveledRoute(currentPos: LatLng, target: LatLng) {
         if (_binding == null || currentRoutePath.size < 2) return
 
-        var nearestIndex = 0
-        var nearestDistSq = Double.MAX_VALUE
-        for (i in currentRoutePath.indices) {
-            val p = currentRoutePath[i]
-            val dLat = p.latitude - currentPos.latitude
-            val dLng = p.longitude - currentPos.longitude
-            val distSq = dLat * dLat + dLng * dLng
-            if (distSq < nearestDistSq) {
-                nearestDistSq = distSq
-                nearestIndex = i
-            }
+        val trim = RouteGeometry.trim(currentRoutePath.toRoutePoints(), currentPos.toRoutePoint()) ?: return
+
+        // Driver keluar jalur (salah belok / ambil jalan lain) - jalur lama sudah tidak relevan,
+        // minta rute baru dari posisi sekarang tanpa me-zoom-out kamera.
+        if (trim.distanceFromRouteMeters > OFF_ROUTE_METERS) {
+            requestRouteThrottled(currentPos, target, currentMode, fitCamera = false)
+            return
         }
 
-        if (nearestIndex <= 0) return
-        val remaining = currentRoutePath.subList(nearestIndex, currentRoutePath.size)
-        if (remaining.size < 2) return
-
+        val remaining = trim.remaining.toLatLngs()
         currentRoutePath = remaining
-        roadOverlay?.remove()
-        val lineColor = if (currentMode == "jemput") Color.RED else Color.BLUE
-        roadOverlay = mMap.addPolyline(
-            PolylineOptions().addAll(remaining).width(14f).color(lineColor)
-                .jointType(JointType.ROUND).startCap(RoundCap()).endCap(RoundCap())
-        )
+        // Ganti titik-titik polyline yang sudah ada (bukan hapus lalu gambar ulang) supaya garis
+        // tidak berkedip tiap update.
+        val overlay = roadOverlay
+        if (overlay != null) {
+            overlay.points = remaining
+        } else {
+            val lineColor = if (currentMode == "jemput") Color.RED else Color.BLUE
+            roadOverlay = mMap.addPolyline(
+                PolylineOptions().addAll(remaining).width(14f).color(lineColor)
+                    .jointType(JointType.ROUND).startCap(RoundCap()).endCap(RoundCap())
+            )
+        }
+    }
+
+    // Marker ambulans meluncur halus ke posisi baru dan berputar mengikuti arah gerak - sama
+    // seperti ikon mobil di Gojek/Grab - alih-alih "loncat" tiap update lokasi.
+    private fun updateDriverMarker(currentPos: LatLng, previousPos: LatLng?) {
+        val marker = driverMarker
+        if (marker == null) {
+            driverMarker = mMap.addMarker(MarkerOptions()
+                .position(currentPos)
+                .icon(VehicleMarkerIcon.create(requireContext(), R.drawable.ambulance_icon_topview))
+                .anchor(0.5f, 0.5f)
+                .flat(true)
+                .zIndex(1f))
+            return
+        }
+
+        // Rotasi cuma diperbarui kalau memang bergerak cukup jauh - kalau diam, arah dari noise
+        // GPS kecil bisa bikin ikon "gemetar" berputar-putar sendiri di tempat.
+        val newRotation = previousPos
+            ?.takeIf { RouteGeometry.distanceMeters(it.toRoutePoint(), currentPos.toRoutePoint()) > 3.0 }
+            ?.let { RouteGeometry.bearingDegrees(it.toRoutePoint(), currentPos.toRoutePoint()) }
+        driverMarkerAnimator.animateTo(marker, currentPos, newRotation)
     }
 
     private fun decodePolyline(encoded: String): List<LatLng> {
@@ -852,6 +876,8 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
 
     private fun resetToStandbyMode() {
         roadOverlay?.remove()
+        roadOverlay = null
+        routeRequestSeq++ // batalkan respons rute yang masih di jalan
         targetMarker?.remove()
         targetLocation = null
         currentBookingId?.let { cancelChatNotification(it) }
@@ -880,6 +906,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         super.onDestroyView()
         fusedLocationClient.removeLocationUpdates(locationCallback)
         unreadListener?.remove() // Pembersihan tambahan
+        driverMarkerAnimator.cancel()
         _binding = null
     }
 }

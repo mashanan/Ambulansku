@@ -14,6 +14,7 @@ import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.SystemClock
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -32,6 +33,12 @@ import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.example.tugasakhirfinal.ForDriver.Welcome.DriverQualificationActivity
 import com.example.tugasakhirfinal.ForPassenger.ChatPassengerActivity
+import com.example.tugasakhirfinal.Maps.RouteGeometry
+import com.example.tugasakhirfinal.Maps.SmoothMarkerAnimator
+import com.example.tugasakhirfinal.Maps.VehicleMarkerIcon
+import com.example.tugasakhirfinal.Maps.toLatLngs
+import com.example.tugasakhirfinal.Maps.toRoutePoint
+import com.example.tugasakhirfinal.Maps.toRoutePoints
 import com.example.tugasakhirfinal.R
 import com.example.tugasakhirfinal.databinding.ActivityDriveBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -62,10 +69,21 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     private var destinationHospitalLoc: LatLng? = null
     private var lastKnownDriverLocation: LatLng? = null
 
-    // Menandai etape rute ("jemput"/"antar") yang terakhir kali sudah ditampilkan penuh (fit
-    // bounds) - dipakai supaya rute lengkap cuma di-fit sekali di awal tiap etape, update lokasi
-    // driver selanjutnya cukup mengikuti dari dekat lewat drawRouteLine(fitFullBounds = false).
-    private var lastRouteBoundsMode: String? = null
+    // --- Pelacakan rute selama trip berjalan (lihat updateTrackedRoute) ---
+    // Rute diambil dari Directions API SEKALI per etape, lalu dipotong lokal tiap lokasi driver
+    // berubah. Versi lama memanggil API tiap ~3 detik: boros kuota, dan karena responsnya bisa
+    // datang tidak berurutan, rute dari posisi lama sering menimpa yang baru - itulah sebabnya
+    // garis di belakang ambulans kadang muncul lagi.
+    private var trackedRouteLegKey: String? = null // "mode:lat,lng" tujuan etape yang sedang dilacak
+    private var trackedRoutePath: List<LatLng> = emptyList()
+    private var trackedLegDistanceMeters: Double? = null
+    private var trackedLegDurationSeconds: Double? = null
+    private var lastTrackedRouteRequestAt = 0L
+
+    // Nomor urut permintaan rute - respons yang bukan dari permintaan terbaru diabaikan.
+    private var routeRequestSeq = 0
+
+    private val driverMarkerAnimator = SmoothMarkerAnimator()
 
     private var roadOverlay: Polyline? = null
     private var hospitalMarkers = mutableListOf<Marker>()
@@ -95,6 +113,12 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         // Level zoom Google Maps yang kira-kira menampilkan radius ~200m di sekitar driver saat
         // kamera mengikuti dari dekat (bukan menampilkan seluruh rute lagi).
         private const val DRIVER_FOLLOW_ZOOM = 17f
+
+        // Driver menyimpang lebih dari ini dari garis rute -> minta rute baru dari posisinya.
+        private const val OFF_ROUTE_METERS = 50.0
+
+        // Jeda minimum antar permintaan Directions API dalam satu etape (lokasi masuk tiap ~3 detik).
+        private const val MIN_ROUTE_REQUEST_INTERVAL_MS = 10_000L
     }
 
     private var hasNotifiedArrival = false
@@ -167,6 +191,10 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         }
 
         mMap.setOnMarkerClickListener { marker ->
+            // Ganti tujuan RS hanya boleh sebelum memesan, dan hanya lewat marker rumah sakit.
+            // Sebelumnya, mengetuk marker ambulans di tengah trip ikut dianggap "pilih RS" dan
+            // menggambar rute ke posisi ambulans.
+            if (currentBookingStatus != "standby" || marker !in hospitalMarkers) return@setOnMarkerClickListener false
             val selectedHospitalLoc = marker.position
             if (selectedHospitalLoc.latitude != 0.0 && selectedHospitalLoc.longitude != 0.0) {
                 destinationHospitalLoc = selectedHospitalLoc
@@ -331,7 +359,14 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     // driver selanjutnya SELAMA etape yang sama, panggil dengan fitFullBounds=false supaya kamera
     // cuma mengikuti dari dekat (radius ~200m) alih-alih re-fit ke seluruh rute tiap kali - kalau
     // jaraknya jauh, belokan kecil di dekat driver jadi susah terlihat kalau selalu di-zoom out.
-    private fun drawRouteLine(start: LatLng, end: LatLng, mode: String, fitFullBounds: Boolean = true) {
+    private fun drawRouteLine(
+        start: LatLng,
+        end: LatLng,
+        mode: String,
+        fitFullBounds: Boolean = true,
+        onRouteReady: ((path: List<LatLng>, distanceMeters: Double?, durationSeconds: Double?) -> Unit)? = null
+    ) {
+        val requestSeq = ++routeRequestSeq
         val apiKey = getString(R.string.google_maps_key)
         val url = "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${start.latitude},${start.longitude}" +
@@ -343,6 +378,8 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             var distanceText = ""
             var path: List<LatLng> = emptyList()
             var isApiSuccess = false
+            var distanceMeters: Double? = null
+            var durationSeconds: Double? = null
 
             try {
                 val connection = (URL(url).openConnection() as HttpURLConnection).apply {
@@ -365,6 +402,8 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
                             durationText = legs.getJSONObject("duration").getString("text")
                             distanceText = legs.getJSONObject("distance").getString("text")
+                            distanceMeters = legs.getJSONObject("distance").getDouble("value")
+                            durationSeconds = legs.getJSONObject("duration").getDouble("value")
                             path = decodePolyline(overviewPolyline)
                         }
                     }
@@ -374,6 +413,10 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             }
 
             withContext(Dispatchers.Main) {
+                if (isFinishing || isDestroyed) return@withContext
+                // Respons basi: sudah ada permintaan rute yang lebih baru - abaikan supaya rute
+                // dari posisi lama tidak menimpa rute terbaru.
+                if (requestSeq != routeRequestSeq) return@withContext
                 roadOverlay?.remove()
 
                 if (isApiSuccess && path.isNotEmpty()) {
@@ -405,6 +448,8 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     )
                     binding.tvDestinationEstimation.text = "Distance & travel time not available"
                 }
+
+                onRouteReady?.invoke(if (isApiSuccess) path else emptyList(), distanceMeters, durationSeconds)
 
                 if (fitFullBounds) {
                     val boundsBuilder = LatLngBounds.Builder().include(start).include(end)
@@ -622,9 +667,14 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                         }
                     }
 
-                    val startLoc = lastKnownDriverLocation ?: lastKnownLocation
-                    if (startLoc != null && destinationHospitalLoc != null) {
-                        drawRouteLine(startLoc, destinationHospitalLoc!!, "antar")
+                    val driverLoc = lastKnownDriverLocation
+                    val hospitalLoc = destinationHospitalLoc
+                    if (driverLoc != null && hospitalLoc != null) {
+                        // Etape baru (atau RS tujuan berubah) -> updateTrackedRoute otomatis
+                        // mengambil rute penuh sekali; kalau etapenya sama, cukup dipotong lokal.
+                        updateTrackedRoute(driverLoc, hospitalLoc, "antar")
+                    } else if (lastKnownLocation != null && hospitalLoc != null) {
+                        drawRouteLine(lastKnownLocation!!, hospitalLoc, "antar")
                     }
 
                     if (driverId.isNotEmpty() && driverId != trackedDriverId) {
@@ -738,11 +788,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                 updateDriverMarker(driverLatLng, previousDriverLatLng)
 
                 if (currentBookingStatus == "accepted" && lastKnownLocation != null) {
-                    // Tampilkan seluruh rute cuma sekali di awal etape "jemput" ini - update
-                    // lokasi selanjutnya cukup mengikuti posisi driver dari dekat.
-                    val isFirstUpdateForLeg = lastRouteBoundsMode != "jemput"
-                    lastRouteBoundsMode = "jemput"
-                    drawRouteLine(driverLatLng, lastKnownLocation!!, "jemput", fitFullBounds = isFirstUpdateForLeg)
+                    updateTrackedRoute(driverLatLng, lastKnownLocation!!, "jemput")
 
                     val results = FloatArray(1)
                     Location.distanceBetween(
@@ -752,12 +798,74 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     checkArrivalProximity(results[0])
                 }
                 else if (currentBookingStatus == "picked_up" && destinationHospitalLoc != null) {
-                    // Sama halnya untuk etape "antar" - tampilkan rute penuh sekali di awal saja.
-                    val isFirstUpdateForLeg = lastRouteBoundsMode != "antar"
-                    lastRouteBoundsMode = "antar"
-                    drawRouteLine(driverLatLng, destinationHospitalLoc!!, "antar", fitFullBounds = isFirstUpdateForLeg)
+                    updateTrackedRoute(driverLatLng, destinationHospitalLoc!!, "antar")
                 }
             }
+    }
+
+    // Menjaga garis rute selama trip berjalan, dipanggil tiap lokasi driver berubah:
+    // - etape baru / tujuan berubah -> ambil rute penuh sekali & tampilkan seluruhnya (fit bounds)
+    // - etape sama -> potong lokal di posisi ambulans (RouteGeometry.trim), kamera mengikuti driver
+    // - driver keluar jalur > OFF_ROUTE_METERS, atau rute belum ada -> ambil ulang (dibatasi jeda)
+    private fun updateTrackedRoute(driverPos: LatLng, target: LatLng, mode: String) {
+        val legKey = "$mode:${target.latitude},${target.longitude}"
+        if (legKey != trackedRouteLegKey) {
+            trackedRouteLegKey = legKey
+            trackedRoutePath = emptyList()
+            requestTrackedRoute(driverPos, target, mode, fitFullBounds = true)
+            return
+        }
+
+        val trim = if (trackedRoutePath.size >= 2) {
+            RouteGeometry.trim(trackedRoutePath.toRoutePoints(), driverPos.toRoutePoint())
+        } else null
+
+        if (trim == null || trim.distanceFromRouteMeters > OFF_ROUTE_METERS) {
+            val now = SystemClock.elapsedRealtime()
+            if (now - lastTrackedRouteRequestAt >= MIN_ROUTE_REQUEST_INTERVAL_MS) {
+                requestTrackedRoute(driverPos, target, mode, fitFullBounds = false)
+            } else {
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(driverPos, DRIVER_FOLLOW_ZOOM))
+            }
+            return
+        }
+
+        val remaining = trim.remaining.toLatLngs()
+        trackedRoutePath = remaining
+        // Ganti titik polyline yang ada (bukan hapus & gambar ulang) supaya garis tidak berkedip.
+        roadOverlay?.points = remaining
+        updateTrackedEta(mode, RouteGeometry.lengthMeters(trim.remaining))
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(driverPos, DRIVER_FOLLOW_ZOOM))
+    }
+
+    private fun requestTrackedRoute(driverPos: LatLng, target: LatLng, mode: String, fitFullBounds: Boolean) {
+        lastTrackedRouteRequestAt = SystemClock.elapsedRealtime()
+        val legKey = trackedRouteLegKey
+        drawRouteLine(driverPos, target, mode, fitFullBounds) { path, distanceMeters, durationSeconds ->
+            if (legKey != trackedRouteLegKey) return@drawRouteLine
+            trackedRoutePath = path
+            trackedLegDistanceMeters = distanceMeters
+            trackedLegDurationSeconds = durationSeconds
+        }
+    }
+
+    // Estimasi sisa waktu tanpa memanggil API lagi: durasi awal dari Directions API diskalakan
+    // sebanding dengan sisa jarak sepanjang jalur.
+    private fun updateTrackedEta(mode: String, remainingMeters: Double) {
+        val refDistance = trackedLegDistanceMeters ?: return
+        val refDuration = trackedLegDurationSeconds ?: return
+        if (refDistance <= 0) return
+
+        val minutes = ((remainingMeters / refDistance) * refDuration / 60).roundToInt().coerceAtLeast(1)
+        val distanceText = String.format(Locale.US, "%.1f km", remainingMeters / 1000)
+        val durationText = "$minutes min"
+
+        binding.tvDestinationEstimation.text = "$distanceText • $durationText"
+        binding.tvEstimationInfo.text = if (mode == "jemput") {
+            "Arriving in: $durationText ($distanceText)"
+        } else {
+            "Travel Time: $durationText ($distanceText)"
+        }
     }
 
     // 🚀 Deteksi otomatis "sudah sampai" berdasarkan jarak (bukan tombol) — hanya untuk etape
@@ -799,51 +907,27 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         manager.createNotificationChannel(channel)
     }
 
-    // previousPos dipakai untuk menghitung arah hadap ambulans (bearing) supaya ikon berputar
-    // mengikuti arah gerak - sama seperti ikon mobil di Gojek/Uber, bukan diam menghadap satu arah terus.
+    // Marker ambulans meluncur halus ke posisi baru dan berputar mengikuti arah gerak - sama
+    // seperti ikon mobil di Gojek/Grab - alih-alih "loncat" tiap update lokasi (~3 detik).
     private fun updateDriverMarker(pos: LatLng, previousPos: LatLng? = null) {
-        if (driverMarker == null) {
+        val marker = driverMarker
+        if (marker == null) {
             driverMarker = mMap.addMarker(
                 MarkerOptions().position(pos).title("Ambulance")
-                    .icon(getVehicleMarkerIcon(R.drawable.ambulance_icon_topview, 90))
+                    .icon(VehicleMarkerIcon.create(this, R.drawable.ambulance_icon_topview))
                     .anchor(0.5f, 0.5f)
                     .flat(true)
+                    .zIndex(1f)
             )
-        } else {
-            driverMarker?.position = pos
-            if (previousPos != null) {
-                val movedMeters = FloatArray(1)
-                Location.distanceBetween(
-                    previousPos.latitude, previousPos.longitude,
-                    pos.latitude, pos.longitude, movedMeters
-                )
-                // Cuma update rotasi kalau memang bergerak cukup jauh - kalau diam, bearing dari
-                // noise GPS kecil bisa bikin ikon "gemetar" berputar-putar sendiri di tempat.
-                if (movedMeters[0] > 3f) {
-                    driverMarker?.rotation = bearingBetween(previousPos, pos)
-                }
-            }
+            return
         }
-    }
 
-    private fun bearingBetween(start: LatLng, end: LatLng): Float {
-        val startLoc = Location("start").apply { latitude = start.latitude; longitude = start.longitude }
-        val endLoc = Location("end").apply { latitude = end.latitude; longitude = end.longitude }
-        return (startLoc.bearingTo(endLoc) + 360) % 360
-    }
-
-    // Beda dari getResizedBitmapDescriptor (paksa persegi, bikin ikon kendaraan gepeng/distorsi) -
-    // ini mempertahankan rasio asli gambar, cuma menyesuaikan tinggi ke targetHeightPx.
-    private fun getVehicleMarkerIcon(drawableId: Int, targetHeightPx: Int): BitmapDescriptor? {
-        val drawable = ContextCompat.getDrawable(this, drawableId) ?: return null
-        val intrinsicWidth = drawable.intrinsicWidth.takeIf { it > 0 } ?: targetHeightPx
-        val intrinsicHeight = drawable.intrinsicHeight.takeIf { it > 0 } ?: targetHeightPx
-        val targetWidthPx = (targetHeightPx * intrinsicWidth / intrinsicHeight.toFloat()).roundToInt().coerceAtLeast(1)
-        val bitmap = Bitmap.createBitmap(targetWidthPx, targetHeightPx, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        return BitmapDescriptorFactory.fromBitmap(bitmap)
+        // Rotasi cuma diperbarui kalau memang bergerak cukup jauh - kalau diam, arah dari noise
+        // GPS kecil bisa bikin ikon "gemetar" berputar-putar sendiri di tempat.
+        val newRotation = previousPos
+            ?.takeIf { RouteGeometry.distanceMeters(it.toRoutePoint(), pos.toRoutePoint()) > 3.0 }
+            ?.let { RouteGeometry.bearingDegrees(it.toRoutePoint(), pos.toRoutePoint()) }
+        driverMarkerAnimator.animateTo(marker, pos, newRotation)
     }
 
     // 🚀 Fungsi untuk menghitung badge notifikasi + tampilkan notifikasi gaya WhatsApp
@@ -945,6 +1029,8 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         binding.tvUnreadBadge.visibility = View.GONE // Reset Badge
 
         roadOverlay?.remove()
+        roadOverlay = null
+        driverMarkerAnimator.cancel()
         driverMarker?.remove()
         driverMarker = null
 
@@ -956,7 +1042,11 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         currentBookingId = null
         trackedDriverId = null
         lastKnownDriverLocation = null
-        lastRouteBoundsMode = null
+        trackedRouteLegKey = null
+        trackedRoutePath = emptyList()
+        trackedLegDistanceMeters = null
+        trackedLegDurationSeconds = null
+        lastTrackedRouteRequestAt = 0L
         hasNotifiedArrival = false
         lastNotifiedStatus = null
 
@@ -1031,6 +1121,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     override fun onDestroy() {
         super.onDestroy()
         searchCountDownTimer?.cancel()
+        driverMarkerAnimator.cancel()
         bookingListenerRegistration?.remove()
         driverLocationListener?.remove()
         unreadListener?.remove() // Pembersihan tambahan
