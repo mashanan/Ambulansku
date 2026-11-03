@@ -67,6 +67,9 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         // Jeda minimum antar permintaan Directions API selama satu etape. Lokasi masuk tiap 3
         // detik; tanpa jeda ini, saat API lambat/gagal aplikasi bisa memanggilnya tiap 3 detik.
         private const val MIN_ROUTE_REQUEST_INTERVAL_MS = 10_000L
+
+        // Ukuran marker tujuan (RS / lokasi pasien) - sama dengan pov passenger.
+        private const val TARGET_MARKER_SIZE_DP = 32
     }
 
     private var _binding: FragmentDriveDriverBinding? = null
@@ -178,7 +181,10 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         fetchActiveBooking()
     }
 
-    private fun getResizedBitmapDescriptor(drawableId: Int, sizePx: Int): BitmapDescriptor? {
+    // Ukuran dalam dp (bukan pixel mentah) supaya ukuran fisik ikon sama di semua kepadatan layar,
+    // dan sama persis dengan marker RS di pov passenger (ActivityDrive, TARGET_MARKER_SIZE_DP).
+    private fun getResizedBitmapDescriptor(drawableId: Int, sizeDp: Int = TARGET_MARKER_SIZE_DP): BitmapDescriptor? {
+        val sizePx = (sizeDp * resources.displayMetrics.density).roundToInt().coerceAtLeast(1)
         val drawable = ContextCompat.getDrawable(requireContext(), drawableId) ?: return null
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -368,7 +374,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         targetMarker = mMap.addMarker(MarkerOptions()
             .position(pos)
             .title(titleStr)
-            .icon(getResizedBitmapDescriptor(iconRes, 90)))
+            .icon(getResizedBitmapDescriptor(iconRes)))
     }
 
     // Panggil Directions API paling cepat tiap MIN_ROUTE_REQUEST_INTERVAL_MS. Dipakai dari update
@@ -465,6 +471,11 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                     lastLegDistanceMeters = null
                     lastLegDurationSeconds = null
                     currentRoutePath = emptyList()
+                    // Tetap masuk mode "mengikuti driver" walau API gagal: update lokasi berikutnya
+                    // lewat trimTraveledRoute() yang mencoba ambil rute lagi (dibatasi jeda) tanpa
+                    // zoom-out berulang, dan deteksi "sudah sampai" tetap jalan - sama seperti pov
+                    // passenger saat Directions API gagal.
+                    isRouteZoomed = true
                     if (fitCamera) fitCameraToRoute(start, end) else followDriverCamera(start)
                 }
             }
@@ -498,7 +509,16 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
     // jalur terdekat sehingga garis terpotong tepat di posisi ambulans. currentRoutePath ikut
     // dipotong permanen supaya progresnya maju terus (tidak "kembali" karena noise GPS kecil).
     private fun trimTraveledRoute(currentPos: LatLng, target: LatLng) {
-        if (_binding == null || currentRoutePath.size < 2) return
+        if (_binding == null) return
+
+        // Rute belum ada - biasanya karena pengambilan ulang (keluar jalur) gagal dan yang tampil
+        // cuma garis putus-putus sementara. Sebelumnya fungsi ini langsung return, sehingga garis
+        // putus-putus dari posisi lama tertinggal terus di peta & tidak pernah diambil ulang.
+        // Sekarang dicoba lagi (dibatasi jeda), sama seperti pov passenger (updateTrackedRoute).
+        if (currentRoutePath.size < 2) {
+            requestRouteThrottled(currentPos, target, currentMode, fitCamera = false)
+            return
+        }
 
         val trim = RouteGeometry.trim(currentRoutePath.toRoutePoints(), currentPos.toRoutePoint()) ?: return
 

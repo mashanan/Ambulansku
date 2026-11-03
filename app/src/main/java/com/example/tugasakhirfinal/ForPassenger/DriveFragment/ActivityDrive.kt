@@ -119,6 +119,9 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
 
         // Jeda minimum antar permintaan Directions API dalam satu etape (lokasi masuk tiap ~3 detik).
         private const val MIN_ROUTE_REQUEST_INTERVAL_MS = 10_000L
+
+        // Ukuran marker rumah sakit - sama dengan pov driver (ActivityDriveFragmentDriver).
+        private const val TARGET_MARKER_SIZE_DP = 32
     }
 
     private var hasNotifiedArrival = false
@@ -1092,7 +1095,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         hospitalMarkers.forEach { it.remove() }
         hospitalMarkers.clear()
 
-        val icon = getResizedBitmapDescriptor(R.drawable.ic_hospital, 80)
+        val icon = getResizedBitmapDescriptor(R.drawable.ic_hospital)
         val m = mMap.addMarker(MarkerOptions().position(pos).title(selectedHospitalName ?: "Hospital").apply { if (icon != null) icon(icon) })
         m?.let { hospitalMarkers.add(it) }
     }
@@ -1100,13 +1103,15 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     private fun displayHospitalMarkers() {
         for (hospital in hospitalList) {
             val pos = hospital.getLatLng() ?: continue
-            val icon = getResizedBitmapDescriptor(R.drawable.ic_hospital, 80)
+            val icon = getResizedBitmapDescriptor(R.drawable.ic_hospital)
             val m = mMap.addMarker(MarkerOptions().position(pos).title(hospital.nama).apply { if(icon!=null) icon(icon) })
             m?.let { hospitalMarkers.add(it) }
         }
     }
 
-    private fun getResizedBitmapDescriptor(drawableId: Int, sizePx: Int): BitmapDescriptor? {
+    // Ukuran dalam dp (bukan pixel mentah) supaya ukuran fisik ikon sama di semua kepadatan layar.
+    private fun getResizedBitmapDescriptor(drawableId: Int, sizeDp: Int = TARGET_MARKER_SIZE_DP): BitmapDescriptor? {
+        val sizePx = (sizeDp * resources.displayMetrics.density).roundToInt().coerceAtLeast(1)
         val drawable = ContextCompat.getDrawable(this, drawableId) ?: return null
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
