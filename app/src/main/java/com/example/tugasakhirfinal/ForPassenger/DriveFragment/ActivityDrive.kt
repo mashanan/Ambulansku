@@ -914,7 +914,7 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         if (marker == null) {
             driverMarker = mMap.addMarker(
                 MarkerOptions().position(pos).title("Ambulance")
-                    .icon(VehicleMarkerIcon.create(this, R.drawable.ambulance_icon_topview))
+                    .icon(VehicleMarkerIcon.create(this, R.drawable.ic_ambulance_topview))
                     .anchor(0.5f, 0.5f)
                     .flat(true)
                     .zIndex(1f)

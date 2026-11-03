@@ -32,7 +32,7 @@ object VehicleMarkerIcon {
      * (Note 20 Ultra) ikonnya jadi sangat kecil, di layar biasa (A02) jadi besar. Dengan dp,
      * ukuran fisiknya sama di semua HP.
      */
-    private const val DEFAULT_HEIGHT_DP = 44f
+    private const val DEFAULT_HEIGHT_DP = 48f
     private const val SHADOW_RADIUS_DP = 3f
     private const val SHADOW_OFFSET_Y_DP = 1.5f
 

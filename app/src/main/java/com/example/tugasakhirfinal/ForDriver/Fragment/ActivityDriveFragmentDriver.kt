@@ -532,7 +532,7 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         if (marker == null) {
             driverMarker = mMap.addMarker(MarkerOptions()
                 .position(currentPos)
-                .icon(VehicleMarkerIcon.create(requireContext(), R.drawable.ambulance_icon_topview))
+                .icon(VehicleMarkerIcon.create(requireContext(), R.drawable.ic_ambulance_topview))
                 .anchor(0.5f, 0.5f)
                 .flat(true)
                 .zIndex(1f))
