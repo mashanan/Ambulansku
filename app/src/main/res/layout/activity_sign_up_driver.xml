@@ -7,18 +7,26 @@
     android:background="@drawable/bg_sign_up"
     tools:context=".ForDriver.Welcome.SignUpActivityDriver">
 
+    <!-- Form mulai di 35% tinggi layar: background gelombang di-stretch ke seluruh layar,
+         jadi persentase (bukan dp tetap) selalu pas di bawah gelombang di HP mana pun. -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideForm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.35" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/emailLayout"
         style="@style/LoginTextInputOuterFieldStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="300dp"
         app:boxStrokeColor="@color/pink_main"
         app:hintTextColor="@color/pink_main"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="@id/guideForm">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/emailEt"
@@ -78,27 +86,25 @@
         android:id="@+id/signupbutton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
         android:layout_marginHorizontal="16dp"
         android:background="@drawable/rounded_button"
         android:text="Sign Up as Driver"
         android:textColor="@color/white"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/confirmPasswordLayout"
-        app:layout_constraintVertical_bias="0.600"/>
+        app:layout_constraintTop_toBottomOf="@+id/confirmPasswordLayout"/>
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:textColor="@color/black"
         android:text="Already Registered , Sign In !"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signupbutton"
-        app:layout_constraintVertical_bias="0.400"/>
+        app:layout_constraintTop_toBottomOf="@+id/signupbutton"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

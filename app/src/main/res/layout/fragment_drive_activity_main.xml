@@ -38,10 +38,10 @@
             <!-- Gambar di kanan atas -->
             <ImageView
                 android:id="@+id/imagerumahsakit"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_gravity="top|end"
-                android:layout_margin="15dp"
+                android:layout_margin="12dp"
                 android:contentDescription="Hospital Icon"
                 android:src="@drawable/ic_address" />
 
@@ -50,7 +50,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|start"
-                android:layout_margin="5dp"
+                android:layout_margin="14dp"
                 android:text="Select Hospital"
                 android:textStyle="bold"
                 android:textSize="14sp" />
@@ -81,10 +81,10 @@
             <!-- Gambar di kanan atas -->
             <ImageView
                 android:id="@+id/imageambulans"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_gravity="top|end"
-                android:layout_margin="10dp"
+                android:layout_margin="12dp"
                 android:contentDescription="Ambulance Icon"
                 android:src="@drawable/ic_small_car" />
 
@@ -93,7 +93,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|start"
-                android:layout_margin="10dp"
+                android:layout_margin="14dp"
                 android:text="Call Ambulance"
                 android:textStyle="bold"
                 android:textSize="14sp" />

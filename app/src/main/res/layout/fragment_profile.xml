@@ -1,32 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<!-- ScrollView + fillViewport: di layar pendek konten bisa di-scroll (tombol tidak menimpa
+     kotak data), di layar tinggi tombol tetap menempel di bawah. -->
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F3F3F3"
+    android:fillViewport="true"
     tools:context=".ForPassenger.Fragment.ProfileFragment">
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/profile_image"
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="56dp"
         android:src="@drawable/foto_profil"
         android:contentDescription="@string/foto_profil"
         app:civ_border_color="#80FF624E"
         app:civ_border_width="15dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Kotak data disusun berurutan (bukan marginTop tetap dari foto) dan tingginya minimal
+         50dp tapi bisa bertambah - alamat yang panjang jadi 2 baris, tidak terpotong. -->
     <FrameLayout
         android:id="@+id/frame_nama"
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
+        android:layout_marginTop="24dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
         android:background="@drawable/bg_frame"
@@ -42,6 +51,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
+            android:padding="12dp"
             android:text="@string/nama_placeholder"
             android:textColor="@color/black"
             android:textSize="16sp" />
@@ -50,17 +60,17 @@
     <FrameLayout
         android:id="@+id/frame_no_tlp"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="70dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="20dp"
         android:background="@drawable/bg_frame"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profile_image">
+        app:layout_constraintTop_toBottomOf="@id/frame_nama">
 
         <TextView
             android:id="@+id/no_tlp"
@@ -68,6 +78,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
+            android:padding="12dp"
             android:text="@string/tlp_placeholder"
             android:textColor="@color/black"
             android:textSize="16sp" />
@@ -76,17 +87,17 @@
     <FrameLayout
         android:id="@+id/frame_email"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="130dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="20dp"
         android:background="@drawable/bg_frame"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profile_image">
+        app:layout_constraintTop_toBottomOf="@id/frame_no_tlp">
 
         <TextView
             android:id="@+id/email"
@@ -94,6 +105,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
+            android:padding="12dp"
             android:text="Email Placeholder"
             android:textColor="@color/black"
             android:textSize="16sp" />
@@ -102,17 +114,17 @@
     <FrameLayout
         android:id="@+id/frame_alamat"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="190dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="20dp"
         android:background="@drawable/bg_frame"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profile_image">
+        app:layout_constraintTop_toBottomOf="@id/frame_email">
 
         <TextView
             android:id="@+id/alamat"
@@ -120,41 +132,51 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
+            android:padding="12dp"
             android:text="@string/alamat"
             android:textColor="@color/black"
             android:textSize="16sp" />
     </FrameLayout>
 
+    <!-- Logout = aksi utama (tombol penuh). Delete Account = aksi berbahaya, ditaruh paling
+         bawah dengan gaya garis merah supaya tidak lebih mencolok dari Logout. Lebar tombol
+         disamakan dengan kotak data (20dp) supaya tepinya lurus. -->
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/logoutButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="20dp"
         android:background="@drawable/rounded_button"
         android:text="Logout"
         android:textColor="@color/white"
         android:textStyle="bold"
         android:textAllCaps="false"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/deleteAccountButton"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/frame_alamat"
+        app:layout_constraintVertical_bias="1"
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/deleteAccountButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/rounded_button"
-        android:backgroundTint="@color/pink_button"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/rounded_button_outline_danger"
         android:text="Delete Account"
-        android:textColor="@color/white"
+        android:textColor="@color/pink_button"
         android:textStyle="bold"
         android:textAllCaps="false"
-        app:layout_constraintBottom_toTopOf="@id/logoutButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/logoutButton" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -167,3 +189,5 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>

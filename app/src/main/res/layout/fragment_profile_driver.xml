@@ -130,38 +130,43 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/deleteAccountButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/rounded_button"
-        android:backgroundTint="@color/pink_button"
-        android:text="Delete Account"
-        android:textColor="@color/white"
-        android:textStyle="bold"
-        android:textAllCaps="false"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardDriverQualification" />
-
+    <!-- Sama dengan profil passenger: Logout = aksi utama, Delete Account (berbahaya) paling
+         bawah dengan gaya garis merah. Keduanya satu chain "packed" yang menempel di bawah -
+         sebelumnya Logout ditambatkan atas+bawah sehingga melayang di tengah sisa ruang. -->
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/logoutButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="24dp"
         android:background="@drawable/rounded_button"
         android:text="Logout"
         android:textColor="@color/white"
         android:textStyle="bold"
         android:textAllCaps="false"
+        app:layout_constraintBottom_toTopOf="@id/deleteAccountButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardDriverQualification"
+        app:layout_constraintVertical_bias="1"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/deleteAccountButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/rounded_button_outline_danger"
+        android:text="Delete Account"
+        android:textColor="@color/pink_button"
+        android:textStyle="bold"
+        android:textAllCaps="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/deleteAccountButton" />
+        app:layout_constraintTop_toBottomOf="@id/logoutButton" />
 
     <ProgressBar
         android:id="@+id/progressBar"
