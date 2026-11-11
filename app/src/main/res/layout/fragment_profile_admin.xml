@@ -23,8 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Admin"
-        android:textSize="18sp"
-        android:textStyle="bold"
+        android:textAppearance="@style/TextAppearance.V2.H2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/profileImage" />
@@ -35,7 +34,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:text=""
-        android:textColor="#757575"
+        android:textAppearance="@style/TextAppearance.V2.Body"
+        android:textColor="@color/v2_text_secondary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvAdminName" />

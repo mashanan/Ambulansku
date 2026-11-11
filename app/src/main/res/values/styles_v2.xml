@@ -8,7 +8,9 @@
          family, so legacy layouts keep their own size/color and textStyle="bold" still works.
          NOTE: do not put fontFamily directly in the theme: theme-level fontFamily overrides the
          font of every textAppearance below (all weights would render as Regular). -->
-    <style name="TextAppearance.V2.Default" parent="">
+    <!-- Parent = the platform default TextView appearance (14sp, secondary text color), so views
+         without an explicit textSize keep their normal size instead of falling back to 15px. -->
+    <style name="TextAppearance.V2.Default" parent="@android:style/TextAppearance.Material.Small">
         <item name="android:fontFamily">@font/plus_jakarta_sans</item>
         <item name="fontFamily">@font/plus_jakarta_sans</item>
     </style>
