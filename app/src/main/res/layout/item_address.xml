@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Address Card (Figma component "Address Card"). IDs/types unchanged (AddressAdapter.kt). -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.V2.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:strokeColor="#E0E0E0"
-    app:strokeWidth="1dp">
+    android:layout_marginBottom="12dp">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Baris Atas: Label, Tag Utama, Favorit & Edit -->
         <LinearLayout
             android:id="@+id/layoutHeader"
             android:layout_width="match_parent"
@@ -23,109 +20,107 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_v2_map_pin"
+                app:tint="@color/v2_brand" />
+
             <TextView
                 android:id="@+id/tvLabel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Home"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <!-- Badge/Chip ALAMAT UTAMA -->
-            <TextView
-                android:id="@+id/tvPrimaryBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:background="#E1F5FE"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
-                android:text="PRIMARY"
-                android:textColor="#0288D1"
-                android:textSize="11sp"
-                android:textStyle="bold"
+                android:layout_marginStart="8dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Home"
+                android:textAppearance="@style/TextAppearance.V2.H3" />
+
+            <TextView
+                android:id="@+id/tvPrimaryBadge"
+                style="@style/Widget.V2.Badge.Brand"
+                android:layout_marginStart="8dp"
+                android:text="Primary"
                 android:visibility="gone" />
 
-            <!-- Tombol Bintang Favorit -->
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
             <ImageView
                 android:id="@+id/btnFavorite"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:padding="2dp"
-                android:src="@android:drawable/btn_star_big_off"
-                android:contentDescription="Favorite" />
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Favorite"
+                android:padding="8dp"
+                android:src="@drawable/ic_v2_star"
+                app:tint="@color/v2_text_tertiary" />
 
-            <!-- Tombol Edit (Tetap di Atas) -->
             <ImageView
                 android:id="@+id/btnEdit"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginStart="8dp"
-                android:padding="2dp"
-                android:src="@android:drawable/ic_menu_edit"
-                app:tint="#757575"
-                android:contentDescription="Edit Address" />
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Edit address"
+                android:padding="8dp"
+                android:src="@drawable/ic_v2_pencil"
+                app:tint="@color/v2_text_secondary" />
         </LinearLayout>
 
-        <!-- Alamat Lengkap -->
         <TextView
             android:id="@+id/tvFullAddress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/layoutHeader"
             android:layout_marginTop="6dp"
             android:text="Full address"
-            android:textColor="#424242"
-            android:textSize="14sp" />
+            android:textAppearance="@style/TextAppearance.V2.Body.Secondary" />
 
-        <!-- Catatan / Patokan -->
         <TextView
             android:id="@+id/tvNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvFullAddress"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
+            android:drawablePadding="6dp"
+            android:gravity="center_vertical"
             android:text="Note/Landmark"
-            android:textColor="#757575"
-            android:textSize="12sp"
-            android:textStyle="italic" />
+            android:textAppearance="@style/TextAppearance.V2.Caption"
+            android:textColor="@color/v2_text_tertiary"
+            app:drawableStartCompat="@drawable/ic_v2_info"
+            app:drawableTint="@color/v2_text_tertiary" />
 
-        <!-- Baris Bawah: Tombol Set Utama (Kiri) & Tombol Hapus (Kanan Bawah) -->
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvNote"
-            android:layout_marginTop="10dp">
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSetPrimary"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.V2.Button.Tertiary.Medium"
                 android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="0dp"
-                android:text="Set as Primary Address"
-                android:textAllCaps="false"
-                android:textSize="12sp"
-                android:textColor="@color/black"
-                app:strokeColor="#D12F2F" />
+                android:layout_height="wrap_content"
+                android:minHeight="36dp"
+                android:text="Set as primary"
+                android:textSize="13sp" />
 
-            <!-- Tombol Hapus DIPINDAHKAN KE KANAN BAWAH -->
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
             <ImageView
                 android:id="@+id/btnDelete"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:padding="4dp"
-                android:src="@android:drawable/ic_menu_delete"
-                app:tint="#D32F2F"
-                android:contentDescription="Delete Address" />
-        </RelativeLayout>
-
-    </RelativeLayout>
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Delete address"
+                android:padding="8dp"
+                android:src="@drawable/ic_v2_trash"
+                app:tint="@color/v2_danger" />
+        </LinearLayout>
+    </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

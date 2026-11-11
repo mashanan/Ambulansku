@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Circle fill. Color it with android:backgroundTint (round icon buttons, avatars, step dots). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@color/v2_bg_surface" />
+</shape>

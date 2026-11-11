@@ -1,92 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Hospital Card (Figma component "Hospital Card"). -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.V2.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeColor="#E0E0E0"
-    app:strokeWidth="1dp">
+    android:layout_marginBottom="12dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:padding="16dp">
 
-        <!-- Header: Nama RS -->
-        <TextView
-            android:id="@+id/tvHospitalName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="RSUD Dr. Soetomo"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+        <ImageView
+            style="@style/Widget.V2.IconBox"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_v2_hospital" />
 
-        <!-- Alamat RS -->
-        <TextView
-            android:id="@+id/tvHospitalAddress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Jl. Mayjen Prof. Dr. Moestopo No. 6-8, Surabaya"
-            android:textColor="#616161"
-            android:textSize="13sp" />
-
-        <!-- Nomor Telepon / Call Center -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@android:drawable/ic_menu_call"
-                app:tint="#D32F2F" />
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvHospitalPhone"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvHospitalName"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="(031) 5501078"
-                android:textColor="#D32F2F"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Jarak & Estimasi Waktu dari lokasi passenger saat ini - hanya tampil kalau sudah dihitung -->
-        <LinearLayout
-            android:id="@+id/layoutHospitalDistance"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@android:drawable/ic_menu_mylocation"
-                app:tint="@color/pink_main" />
+                android:text="RSUD Dr. Soetomo"
+                android:textAppearance="@style/TextAppearance.V2.H3" />
 
             <TextView
-                android:id="@+id/tvHospitalDistance"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvHospitalAddress"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="3.2 km • ~12 min"
-                android:textColor="@color/pink_main"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="4dp"
+                android:text="Jl. Mayjen Prof. Dr. Moestopo No. 6-8, Surabaya"
+                android:textAppearance="@style/TextAppearance.V2.Caption" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Distance & ETA from the passenger, only shown once calculated -->
+                <LinearLayout
+                    android:id="@+id/layoutHospitalDistance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/tvHospitalDistance"
+                        style="@style/Widget.V2.Badge.Info"
+                        android:text="3.2 km • ~12 min" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvHospitalPhone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawablePadding="4dp"
+                    android:gravity="center_vertical"
+                    android:text="(031) 5501078"
+                    android:textAppearance="@style/TextAppearance.V2.Caption"
+                    android:textColor="@color/v2_text_tertiary"
+                    app:drawableStartCompat="@drawable/ic_v2_phone"
+                    app:drawableTint="@color/v2_text_tertiary" />
+            </LinearLayout>
         </LinearLayout>
 
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_v2_chevron_right"
+            app:tint="@color/v2_text_tertiary" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -44,6 +44,14 @@ Exception: map helpers shared by both roles' trip screens live in `Maps/` (added
 - `RouteStyle` — route line colors shared by both trip screens (pickup = purple, to-hospital = blue). Deliberately avoids green/orange/red, which the Google traffic layer (`isTrafficEnabled`, on in both screens) uses for congestion.
 Both trip screens request Directions with `departure_time=now` and prefer `duration_in_traffic` for ETAs. They fetch the Directions API route once per leg, trim it locally on each location update, re-fetch only when the vehicle is more than 50 m off the route (throttled to once per 10 s), and drop stale responses via a request sequence number.
 
+### v2 design system (UI redesign, started 2026-11-11)
+
+The UI is being migrated to a "v2" design system that mirrors the Figma file desain-TA (section "v2 · Design System"). Use it for any new or touched layout instead of the legacy `pink_*` colors / `rounded_button`:
+- Tokens: `res/values/colors_v2.xml` (`v2_brand` #D63B27 for actions — darker than the old #FF624E so white text passes contrast; `v2_brand_accent` #FF624E for gradients/decoration). Theme `Theme.TugasAkhirFinal` now uses these + app-wide font Plus Jakarta Sans (`res/font/`, OFL license in `app/licenses/`).
+- Styles: `res/values/styles_v2.xml` — `TextAppearance.V2.*`, `Widget.V2.Button.{Primary,Secondary,Tertiary,Danger}[.Medium]`, `Widget.V2.TextInputLayout`, `Widget.V2.Card`, `Widget.V2.Badge.*`, `Widget.V2.BottomNav`, `Widget.V2.IconBox`, `Widget.V2.CircleButton`.
+- Icons: `ic_v2_*.xml` stroke vectors (recolor with `app:tint`); shapes `bg_v2_*.xml` (tint with `android:backgroundTint`).
+- Done so far: passenger screens (splash, role selection, welcome, sign in/up, home, hospital list, booking map + searching dialog, activity tab, chat list/room — chat room is shared with the driver — profile, edit name/phone, saved addresses). Driver and admin layouts are still v1. Layout rewrites kept every view ID that Kotlin references; some view classes changed (e.g. card → MaterialButton/LinearLayout) where code only sets click listeners.
+
 ### Firebase data model
 
 Firestore is the primary datastore (Realtime Database dependency is included but unused — no `FirebaseDatabase` calls in the codebase). Collections referenced throughout the code:

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ system splash (sebelum SplashScreenActivity tampil): latar coral, bukan abu-abu. -->
+    <style name="Theme.TugasAkhirFinal.Splash">
+        <item name="android:statusBarColor">@color/v2_brand_accent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/v2_brand</item>
+        <item name="android:windowBackground">@drawable/bg_v2_brand_gradient</item>
+        <item name="android:windowSplashScreenBackground">@color/v2_brand_accent</item>
+    </style>
+</resources>

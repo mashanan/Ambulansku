@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Coral header with rounded bottom corners (Home header, Welcome hero). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient android:angle="270" android:startColor="@color/v2_brand_accent" android:endColor="@color/v2_brand" />
+    <corners android:bottomLeftRadius="28dp" android:bottomRightRadius="28dp" android:topLeftRadius="0dp" android:topRightRadius="0dp" />
+</shape>

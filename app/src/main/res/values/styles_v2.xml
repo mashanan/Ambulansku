@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v2 design system styles. Mirrors the Figma file desain-TA (section "v2 · Design System"):
+     text styles v2/*, Button, Input, Badge, Card, Bottom Nav. -->
+<resources>
+
+    <!-- ===================== Typography ===================== -->
+    <!-- Default font for every TextView (via android:textViewStyle in the theme). Only sets the
+         family, so legacy layouts keep their own size/color and textStyle="bold" still works.
+         NOTE: do not put fontFamily directly in the theme: theme-level fontFamily overrides the
+         font of every textAppearance below (all weights would render as Regular). -->
+    <style name="TextAppearance.V2.Default" parent="">
+        <item name="android:fontFamily">@font/plus_jakarta_sans</item>
+        <item name="fontFamily">@font/plus_jakarta_sans</item>
+    </style>
+    <style name="Widget.V2.TextView" parent="Widget.AppCompat.TextView">
+        <item name="android:textAppearance">@style/TextAppearance.V2.Default</item>
+    </style>
+
+    <style name="TextAppearance.V2" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_regular</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_regular</item>
+        <item name="android:textColor">@color/v2_text_primary</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="TextAppearance.V2.Display">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_extrabold</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_extrabold</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+    <style name="TextAppearance.V2.H1">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_bold</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_bold</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    <style name="TextAppearance.V2.H2">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_bold</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_bold</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+    <style name="TextAppearance.V2.H3">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_semibold</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_semibold</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+    <style name="TextAppearance.V2.Body" />
+    <style name="TextAppearance.V2.Body.Secondary">
+        <item name="android:textColor">@color/v2_text_secondary</item>
+    </style>
+    <style name="TextAppearance.V2.BodyStrong">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_semibold</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_semibold</item>
+    </style>
+    <style name="TextAppearance.V2.Label">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_semibold</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_semibold</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+    <style name="TextAppearance.V2.Caption">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_medium</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_medium</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/v2_text_secondary</item>
+    </style>
+    <style name="TextAppearance.V2.Overline">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_bold</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_bold</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:letterSpacing">0.06</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/v2_text_tertiary</item>
+    </style>
+    <style name="TextAppearance.V2.Button">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_bold</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_bold</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    <style name="TextAppearance.V2.NavLabel">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_medium</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_medium</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+    <style name="TextAppearance.V2.NavLabel.Active">
+        <item name="android:fontFamily">@font/plus_jakarta_sans_bold</item>
+        <item name="fontFamily">@font/plus_jakarta_sans_bold</item>
+    </style>
+
+    <!-- Badge: TextView with pill background. Color the pill with backgroundTint + textColor,
+         or use one of the tone styles below. -->
+    <style name="Widget.V2.Badge" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_v2_pill</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.V2.Caption</item>
+        <item name="android:maxLines">1</item>
+    </style>
+    <style name="Widget.V2.Badge.Brand">
+        <item name="android:backgroundTint">@color/v2_brand_soft</item>
+        <item name="android:textColor">@color/v2_brand</item>
+    </style>
+    <style name="Widget.V2.Badge.Success">
+        <item name="android:backgroundTint">@color/v2_success_soft</item>
+        <item name="android:textColor">@color/v2_success</item>
+    </style>
+    <style name="Widget.V2.Badge.Warning">
+        <item name="android:backgroundTint">@color/v2_warning_soft</item>
+        <item name="android:textColor">@color/v2_warning</item>
+    </style>
+    <style name="Widget.V2.Badge.Info">
+        <item name="android:backgroundTint">@color/v2_info_soft</item>
+        <item name="android:textColor">@color/v2_info</item>
+    </style>
+    <style name="Widget.V2.Badge.Neutral">
+        <item name="android:backgroundTint">@color/v2_bg_subtle</item>
+        <item name="android:textColor">@color/v2_text_secondary</item>
+    </style>
+
+    <!-- ===================== Buttons ===================== -->
+    <!-- Primary: one main action per screen. Large = 52dp. -->
+    <style name="Widget.V2.Button.Primary" parent="Widget.MaterialComponents.Button">
+        <item name="android:minHeight">52dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.V2.Button</item>
+        <item name="android:textColor">@color/v2_btn_primary_text</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="backgroundTint">@color/v2_btn_primary_bg</item>
+        <item name="iconTint">@color/v2_btn_primary_text</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">8dp</item>
+        <item name="iconSize">20dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="elevation">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="rippleColor">#33FFFFFF</item>
+    </style>
+    <style name="Widget.V2.Button.Primary.Medium">
+        <item name="android:minHeight">44dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Secondary: alternative action, coral outline. -->
+    <style name="Widget.V2.Button.Secondary" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:minHeight">52dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.V2.Button</item>
+        <item name="android:textColor">@color/v2_brand</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="strokeColor">@color/v2_brand</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="backgroundTint">@color/v2_bg_surface</item>
+        <item name="iconTint">@color/v2_brand</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">8dp</item>
+        <item name="iconSize">20dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="rippleColor">@color/v2_brand_soft_strong</item>
+    </style>
+    <style name="Widget.V2.Button.Secondary.Medium">
+        <item name="android:minHeight">44dp</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Tertiary: low emphasis, soft coral fill. -->
+    <style name="Widget.V2.Button.Tertiary" parent="Widget.V2.Button.Primary">
+        <item name="android:textColor">@color/v2_brand</item>
+        <item name="backgroundTint">@color/v2_brand_soft</item>
+        <item name="iconTint">@color/v2_brand</item>
+        <item name="rippleColor">@color/v2_brand_soft_strong</item>
+    </style>
+    <style name="Widget.V2.Button.Tertiary.Medium">
+        <item name="android:minHeight">44dp</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Danger: destructive actions (delete, cancel booking). -->
+    <style name="Widget.V2.Button.Danger" parent="Widget.V2.Button.Primary">
+        <item name="android:textColor">@color/v2_danger</item>
+        <item name="backgroundTint">@color/v2_danger_soft</item>
+        <item name="iconTint">@color/v2_danger</item>
+        <item name="rippleColor">#33DC2626</item>
+    </style>
+    <style name="Widget.V2.Button.Danger.Medium">
+        <item name="android:minHeight">44dp</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Text-only link button (e.g. "Change", "See all", "Resend verification email"). -->
+    <style name="Widget.V2.Button.Text" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.V2.Label</item>
+        <item name="android:textColor">@color/v2_brand</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="rippleColor">@color/v2_brand_soft_strong</item>
+    </style>
+
+    <!-- ===================== Input ===================== -->
+    <style name="Widget.V2.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxStrokeColor">@color/v2_input_stroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxBackgroundColor">@color/v2_bg_surface</item>
+        <item name="boxStrokeErrorColor">@color/v2_danger</item>
+        <item name="hintTextColor">@color/v2_brand</item>
+        <item name="android:textColorHint">@color/v2_text_tertiary</item>
+        <item name="startIconTint">@color/v2_text_tertiary</item>
+        <item name="endIconTint">@color/v2_text_tertiary</item>
+        <item name="errorTextColor">@color/v2_danger</item>
+        <item name="hintTextAppearance">@style/TextAppearance.V2.Caption</item>
+        <item name="errorTextAppearance">@style/TextAppearance.V2.Caption</item>
+        <item name="helperTextTextAppearance">@style/TextAppearance.V2.Caption</item>
+    </style>
+    <style name="Widget.V2.TextInputEditText" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
+        <item name="android:textAppearance">@style/TextAppearance.V2.Body</item>
+        <item name="android:textColor">@color/v2_text_primary</item>
+        <item name="android:maxLines">1</item>
+    </style>
+
+    <!-- ===================== Cards ===================== -->
+    <style name="Widget.V2.Card" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/v2_bg_surface</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeColor">@color/v2_border_default</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cardPreventCornerOverlap">true</item>
+    </style>
+    <!-- Floating card (Home emergency CTA, map overlays). -->
+    <style name="Widget.V2.Card.Elevated">
+        <item name="strokeWidth">0dp</item>
+        <item name="cardElevation">6dp</item>
+        <item name="cardCornerRadius">24dp</item>
+    </style>
+
+    <!-- ===================== Chips (chat quick replies) ===================== -->
+    <style name="Widget.V2.Chip" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="chipBackgroundColor">@color/v2_bg_surface</item>
+        <item name="chipStrokeColor">@color/v2_border_strong</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipCornerRadius">999dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.V2.Label</item>
+        <item name="android:textColor">@color/v2_text_primary</item>
+        <item name="chipMinHeight">36dp</item>
+    </style>
+
+    <!-- ===================== Bottom navigation ===================== -->
+    <style name="Widget.V2.BottomNav" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="backgroundTint">@color/v2_bg_surface</item>
+        <item name="android:background">@drawable/bg_v2_divider_top</item>
+        <item name="itemIconTint">@color/v2_nav_item</item>
+        <item name="itemTextColor">@color/v2_nav_item</item>
+        <item name="itemIconSize">24dp</item>
+        <item name="itemTextAppearanceInactive">@style/TextAppearance.V2.NavLabel</item>
+        <item name="itemTextAppearanceActive">@style/TextAppearance.V2.NavLabel.Active</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.V2.BottomNav.ActiveIndicator</item>
+        <item name="itemRippleColor">@color/v2_brand_soft</item>
+        <item name="elevation">0dp</item>
+    </style>
+    <!-- Coral pill behind the active icon (Material 3 style indicator). -->
+    <style name="Widget.V2.BottomNav.ActiveIndicator" parent="">
+        <item name="android:width">64dp</item>
+        <item name="android:height">32dp</item>
+        <item name="android:color">@color/v2_brand_soft</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.V2.Full</item>
+        <item name="marginHorizontal">4dp</item>
+    </style>
+    <style name="ShapeAppearance.V2.Full" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- ===================== Layout helpers ===================== -->
+    <!-- Square icon box: FrameLayout 44dp with tinted 12dp background, icon centered inside. -->
+    <style name="Widget.V2.IconBox" parent="">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:background">@drawable/bg_v2_round_md</item>
+        <item name="android:backgroundTint">@color/v2_brand_soft</item>
+        <item name="android:padding">11dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="tint">@color/v2_brand</item>
+    </style>
+    <!-- Round icon button (back, call, chat). -->
+    <style name="Widget.V2.CircleButton" parent="">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:background">@drawable/bg_v2_circle</item>
+        <item name="android:backgroundTint">@color/v2_bg_subtle</item>
+        <item name="android:padding">11dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="tint">@color/v2_text_primary</item>
+        <item name="android:foreground">?attr/selectableItemBackgroundBorderless</item>
+    </style>
+</resources>

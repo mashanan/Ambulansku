@@ -1,78 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- v2 Splash (Figma: P01 Splash). Full coral gradient, logo in a white circle with halo. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_v2_brand_gradient"
     tools:context=".SplashScreenActivity">
 
-    <!-- Background wave vector (sama dengan layar login) - scale presisi (fitXY) di semua ukuran
-         layar, tidak ada lagi resiko ter-crop beda-beda seperti bg_splash_screen.png raster. -->
-    <ImageView
+    <View
         android:id="@+id/splashImage"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:scaleType="fitXY"
-        android:src="@drawable/bg_wave_login"
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="148dp"
+        android:layout_height="148dp"
+        android:background="@drawable/bg_v2_splash_ring"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.40" />
 
-    <!-- Ikon ambulans sebagai elemen terpisah (bukan lagi bagian gambar background) - posisinya
-         presisi & konsisten di semua device lewat ConstraintLayout, bukan tebakan persentase. -->
     <ImageView
         android:id="@+id/splashCarIcon"
-        android:layout_width="160dp"
-        android:layout_height="107dp"
-        android:contentDescription="Ambulance Icon"
-        android:src="@drawable/ic_small_car"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.38" />
+        android:layout_width="112dp"
+        android:layout_height="112dp"
+        android:background="@drawable/bg_v2_circle"
+        android:contentDescription="Ambulansku logo"
+        android:elevation="4dp"
+        android:padding="28dp"
+        android:src="@drawable/ic_v2_ambulance"
+        app:tint="@color/v2_brand"
+        app:layout_constraintBottom_toBottomOf="@id/splashImage"
+        app:layout_constraintEnd_toEndOf="@id/splashImage"
+        app:layout_constraintStart_toStartOf="@id/splashImage"
+        app:layout_constraintTop_toTopOf="@id/splashImage" />
 
-    <!-- Nama app & tagline di-anchor LANGSUNG ke bawah ikon lewat constraintTop_toBottomOf -
-         dijamin selalu tepat di bawah ikon di ukuran layar berapa pun. -->
     <TextView
         android:id="@+id/tvSplashTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="20dp"
         android:text="@string/app_name"
-        android:textColor="@color/white"
-        android:textSize="34sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/splashCarIcon"
+        android:textAppearance="@style/TextAppearance.V2.Display"
+        android:textColor="@color/v2_text_on_brand"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/splashImage" />
 
     <TextView
         android:id="@+id/tvSplashTagline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
+        android:alpha="0.9"
         android:text="Your emergency medical assistance"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintTop_toBottomOf="@id/tvSplashTitle"
+        android:textAppearance="@style/TextAppearance.V2.Body"
+        android:textColor="@color/v2_text_on_brand"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tvSplashTitle" />
 
-    <!-- Ilustrasi di bagian bawah supaya area putih tidak terlihat kosong. Warna aslinya
-         (cloud pink pucat + figur merah) sudah senada dengan pink_main/wave, jadi tidak perlu
-         di-tint ulang. Rasio dikunci ke ukuran asli file (375x230) supaya tidak gepeng/melar
-         di layar mana pun. -->
-    <ImageView
+    <ProgressBar
         android:id="@+id/splashIllustration"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:contentDescription="Ambulansku Illustration"
-        android:src="@drawable/illustration_splash"
-        app:layout_constraintDimensionRatio="375:230"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginBottom="48dp"
+        android:indeterminateTint="@color/v2_text_on_brand"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

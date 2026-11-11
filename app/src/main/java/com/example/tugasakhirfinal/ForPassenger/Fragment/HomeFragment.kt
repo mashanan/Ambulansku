@@ -129,10 +129,11 @@ class HomeFragment : Fragment() {
     }
 
     private fun adjustTextSize(name: String) {
+        // v2: skala mengikuti TextAppearance.V2.H1 (22sp) di header coral
         val textSize = when {
-            name.length > 20 -> 21f
-            name.length > 18 -> 23f
-            else -> 25f
+            name.length > 20 -> 18f
+            name.length > 18 -> 20f
+            else -> 22f
         }
         binding.textView3.textSize = textSize
     }

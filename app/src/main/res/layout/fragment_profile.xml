@@ -1,193 +1,344 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ScrollView + fillViewport: di layar pendek konten bisa di-scroll (tombol tidak menimpa
-     kotak data), di layar tinggi tombol tetap menempel di bawah. -->
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Passenger Profile (Figma: P14). Identity header + tappable list rows.
+     IDs used by ProfileFragment.kt are unchanged (profile_image, frame_* rows and their texts,
+     logoutButton, deleteAccountButton, progressBar). -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F3F3F3"
+    android:background="@color/v2_bg_canvas"
     android:fillViewport="true"
+    android:fitsSystemWindows="true"
     tools:context=".ForPassenger.Fragment.ProfileFragment">
 
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/profile_image"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="56dp"
-        android:src="@drawable/foto_profil"
-        android:contentDescription="@string/foto_profil"
-        app:civ_border_color="#80FF624E"
-        app:civ_border_width="15dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Kotak data disusun berurutan (bukan marginTop tetap dari foto) dan tingginya minimal
-         50dp tapi bisa bertambah - alamat yang panjang jadi 2 baris, tidak terpotong. -->
     <FrameLayout
-        android:id="@+id/frame_nama"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:minHeight="50dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:background="@drawable/bg_frame"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profile_image">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/text_nama"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="24dp">
+
+            <!-- Identity -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/profile_image"
+                    android:layout_width="104dp"
+                    android:layout_height="104dp"
+                    android:contentDescription="@string/foto_profil"
+                    android:src="@drawable/foto_profil"
+                    app:civ_border_color="@color/v2_brand_soft_strong"
+                    app:civ_border_width="4dp" />
+
+                <ImageView
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/bg_v2_circle"
+                    android:backgroundTint="@color/v2_brand"
+                    android:importantForAccessibility="no"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_v2_camera"
+                    app:tint="@color/v2_text_on_brand" />
+            </FrameLayout>
+
+            <TextView
+                style="@style/Widget.V2.Badge.Brand"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
+                android:text="Passenger" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="Tap the photo to change it"
+                android:textAppearance="@style/TextAppearance.V2.Caption"
+                android:textColor="@color/v2_text_tertiary" />
+
+            <!-- Account rows -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="24dp"
+                android:text="Account"
+                android:textAppearance="@style/TextAppearance.V2.Overline" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_v2_card"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
+
+                <LinearLayout
+                    android:id="@+id/frame_nama"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        style="@style/Widget.V2.IconBox"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:importantForAccessibility="no"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_v2_user" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Name"
+                            android:textAppearance="@style/TextAppearance.V2.Caption"
+                            android:textColor="@color/v2_text_tertiary" />
+
+                        <TextView
+                            android:id="@+id/text_nama"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/nama_placeholder"
+                            android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_v2_chevron_right"
+                        app:tint="@color/v2_text_tertiary" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/frame_no_tlp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        style="@style/Widget.V2.IconBox"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:importantForAccessibility="no"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_v2_phone" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Phone number"
+                            android:textAppearance="@style/TextAppearance.V2.Caption"
+                            android:textColor="@color/v2_text_tertiary" />
+
+                        <TextView
+                            android:id="@+id/no_tlp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/tlp_placeholder"
+                            android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_v2_chevron_right"
+                        app:tint="@color/v2_text_tertiary" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/frame_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        style="@style/Widget.V2.IconBox"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:importantForAccessibility="no"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_v2_mail" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Email"
+                            android:textAppearance="@style/TextAppearance.V2.Caption"
+                            android:textColor="@color/v2_text_tertiary" />
+
+                        <TextView
+                            android:id="@+id/email"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="Email Placeholder"
+                            android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_v2_chevron_right"
+                        app:tint="@color/v2_text_tertiary" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/frame_alamat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        style="@style/Widget.V2.IconBox"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:importantForAccessibility="no"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_v2_map_pin" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Saved addresses"
+                            android:textAppearance="@style/TextAppearance.V2.Caption"
+                            android:textColor="@color/v2_text_tertiary" />
+
+                        <TextView
+                            android:id="@+id/alamat"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/alamat"
+                            android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_v2_chevron_right"
+                        app:tint="@color/v2_text_tertiary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Other -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="24dp"
+                android:text="Other"
+                android:textAppearance="@style/TextAppearance.V2.Overline" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_v2_card"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
+
+                <TextView
+                    android:id="@+id/logoutButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:drawablePadding="12dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:text="Log out"
+                    android:textAppearance="@style/TextAppearance.V2.BodyStrong"
+                    app:drawableStartCompat="@drawable/ic_v2_log_out"
+                    app:drawableTint="@color/v2_text_secondary" />
+
+                <TextView
+                    android:id="@+id/deleteAccountButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:drawablePadding="12dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:text="Delete account"
+                    android:textAppearance="@style/TextAppearance.V2.BodyStrong"
+                    android:textColor="@color/v2_danger"
+                    app:drawableStartCompat="@drawable/ic_v2_trash"
+                    app:drawableTint="@color/v2_danger" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:gravity="center"
-            android:padding="12dp"
-            android:text="@string/nama_placeholder"
-            android:textColor="@color/black"
-            android:textSize="16sp" />
+            android:visibility="gone" />
     </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/frame_no_tlp"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:minHeight="50dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="20dp"
-        android:background="@drawable/bg_frame"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/frame_nama">
-
-        <TextView
-            android:id="@+id/no_tlp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:padding="12dp"
-            android:text="@string/tlp_placeholder"
-            android:textColor="@color/black"
-            android:textSize="16sp" />
-    </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/frame_email"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:minHeight="50dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="20dp"
-        android:background="@drawable/bg_frame"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/frame_no_tlp">
-
-        <TextView
-            android:id="@+id/email"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:padding="12dp"
-            android:text="Email Placeholder"
-            android:textColor="@color/black"
-            android:textSize="16sp" />
-    </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/frame_alamat"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:minHeight="50dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="20dp"
-        android:background="@drawable/bg_frame"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/frame_email">
-
-        <TextView
-            android:id="@+id/alamat"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:padding="12dp"
-            android:text="@string/alamat"
-            android:textColor="@color/black"
-            android:textSize="16sp" />
-    </FrameLayout>
-
-    <!-- Logout = aksi utama (tombol penuh). Delete Account = aksi berbahaya, ditaruh paling
-         bawah dengan gaya garis merah supaya tidak lebih mencolok dari Logout. Lebar tombol
-         disamakan dengan kotak data (20dp) supaya tepinya lurus. -->
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/logoutButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="20dp"
-        android:background="@drawable/rounded_button"
-        android:text="Logout"
-        android:textColor="@color/white"
-        android:textStyle="bold"
-        android:textAllCaps="false"
-        app:layout_constraintBottom_toTopOf="@id/deleteAccountButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/frame_alamat"
-        app:layout_constraintVertical_bias="1"
-        app:layout_constraintVertical_chainStyle="packed" />
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/deleteAccountButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
-        android:background="@drawable/rounded_button_outline_danger"
-        android:text="Delete Account"
-        android:textColor="@color/pink_button"
-        android:textStyle="bold"
-        android:textAllCaps="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/logoutButton" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
-
 </androidx.core.widget.NestedScrollView>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Surface with a 1dp top border (sticky footers, chat composer). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><shape><solid android:color="@color/v2_border_default" /></shape></item>
+    <item android:top="1dp"><shape><solid android:color="@color/v2_bg_surface" /></shape></item>
+</layer-list>

@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Booking map (Figma: P08 Order Ambulance + P10 Driver On The Way).
+     Full-screen map, draggable bottom sheet. Before booking: destination + ETA + "Call Ambulance Now".
+     After a driver accepts: layoutDriverOnTheWay shows driver card, status, ETA and trip stepper.
+     All view IDs/types used by ActivityDrive.kt are unchanged. -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/v2_bg_canvas"
+    android:fitsSystemWindows="true"
     tools:context=".ForPassenger.DriveFragment.ActivityDrive">
 
-    <!-- Google Maps Fragment - selalu penuh layar, tidak lagi tertutup permanen oleh panel info -->
     <fragment
         android:id="@+id/mapview"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 💬 Tombol Chat - posisi tetap di kanan atas peta, tidak ikut naik-turun bersama
-         panel bawah supaya selalu gampang dijangkau apa pun posisi panel-nya -->
+    <!-- Chat with driver (visible once a driver accepted), unread badge on top -->
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -27,131 +30,164 @@
             android:id="@+id/btnChatDriver"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_dialog_email"
+            android:layout_margin="4dp"
+            android:contentDescription="Chat with driver"
+            android:src="@drawable/ic_v2_chat"
             android:visibility="gone"
-            app:backgroundTint="#0084FF"
-            app:tint="@android:color/white"
-            android:contentDescription="Chat Driver" />
+            app:backgroundTint="@color/v2_brand"
+            app:tint="@color/v2_text_on_brand"
+            tools:visibility="visible" />
 
-        <!-- 🔴 Angka Notif Merah (Badge) untuk Passenger -->
         <TextView
             android:id="@+id/tvUnreadBadge"
             android:layout_width="22dp"
             android:layout_height="22dp"
             android:layout_gravity="top|end"
-            android:background="@drawable/bg_badge_red"
+            android:background="@drawable/bg_v2_circle"
+            android:backgroundTint="@color/v2_danger"
+            android:elevation="10dp"
             android:gravity="center"
             android:text="1"
-            android:textColor="@android:color/white"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:elevation="10dp"
-            android:visibility="gone" />
+            android:textAppearance="@style/TextAppearance.V2.Overline"
+            android:textColor="@color/v2_text_on_brand"
+            android:visibility="gone"
+            tools:visibility="visible" />
     </FrameLayout>
 
-    <!-- Panel Informasi Pemesanan & Penjemputan, sekarang bottom sheet yang bisa ditarik turun
-         (mengecil, cuma sisakan handle + judul, memaksimalkan tampilan peta) atau ditarik naik
-         (tampil penuh) kapan saja oleh user. Sengaja TIDAK hideable penuh (behavior_hideable
-         di-omit/false) supaya selalu ada handle tersisa untuk ditarik kembali - kalau
-         disembunyikan total, user tidak akan punya cara menariknya lagi. -->
+    <!-- Bottom sheet (drag down to see more map; never fully hideable so the handle stays) -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardOrderInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:behavior_peekHeight="84dp"
         app:behavior_fitToContents="true"
-        app:cardElevation="10dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.BottomSheetTop">
+        app:behavior_peekHeight="96dp"
+        app:cardBackgroundColor="@color/v2_bg_surface"
+        app:cardElevation="12dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.BottomSheetTop"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="20dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="24dp">
 
-            <!-- Pegangan drag -->
             <View
                 android:layout_width="40dp"
                 android:layout_height="4dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_drag_handle" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_v2_handle" />
 
             <TextView
                 android:id="@+id/tvDestinationTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Nearest Hospital"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@android:color/black" />
+                android:textAppearance="@style/TextAppearance.V2.Overline" />
 
-            <TextView
-                android:id="@+id/tvDestinationAddress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Detecting hospital location..."
-                android:textSize="14sp"
-                android:layout_marginTop="4dp" />
-
-            <!-- Jarak & estimasi waktu tempuh dari Directions API, ditampilkan selalu terlihat
-                 di atas tombol (beda dari tvEstimationInfo yang cuma tampil setelah pesanan diterima driver) -->
-            <TextView
-                android:id="@+id/tvDestinationEstimation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Calculating distance &amp; travel time..."
-                android:textColor="@color/pink_main"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/btnPesanAmbulans"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    style="@style/Widget.V2.IconBox"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:backgroundTint="@color/v2_info_soft"
+                    android:importantForAccessibility="no"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_v2_hospital"
+                    app:tint="@color/v2_info" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvDestinationAddress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Detecting hospital location..."
+                        android:textAppearance="@style/TextAppearance.V2.H3" />
+
+                    <TextView
+                        android:id="@+id/tvDestinationEstimation"
+                        style="@style/Widget.V2.Badge.Info"
+                        android:layout_marginTop="6dp"
+                        android:drawablePadding="4dp"
+                        android:gravity="center_vertical"
+                        android:text="Calculating distance &amp; travel time..."
+                        app:drawableStartCompat="@drawable/ic_v2_clock"
+                        app:drawableTint="@color/v2_info" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPesanAmbulans"
+                style="@style/Widget.V2.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
                 android:text="Call Ambulance Now"
-                android:backgroundTint="#D32F2F"
-                android:textColor="@android:color/white"
-                android:padding="12dp"
-                android:textAllCaps="false" />
+                app:icon="@drawable/ic_v2_ambulance" />
 
             <LinearLayout
                 android:id="@+id/layoutDriverOnTheWay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:orientation="vertical"
-                android:layout_marginTop="12dp"
-                android:visibility="gone">
+                android:visibility="gone"
+                tools:visibility="visible">
 
-                <View
+                <TextView
+                    android:id="@+id/tvDriverStatus"
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#E0E0E0"
-                    android:layout_marginVertical="8dp" />
+                    android:layout_height="wrap_content"
+                    android:text="Ambulance Is Heading to Your Location"
+                    android:textAppearance="@style/TextAppearance.V2.H2" />
 
-                <!-- 🚑 Info Driver: supaya passenger bisa konfirmasi driver saat bertemu -->
+                <TextView
+                    android:id="@+id/tvEstimationInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Estimated arrival: Calculating..."
+                    android:textAppearance="@style/TextAppearance.V2.Caption" />
+
+                <!-- Driver card: lets the passenger confirm the driver on arrival -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_v2_round_lg"
+                    android:backgroundTint="@color/v2_bg_canvas"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="8dp">
+                    android:padding="14dp">
 
                     <de.hdodenhof.circleimageview.CircleImageView
                         android:id="@+id/ivDriverPhoto"
                         android:layout_width="52dp"
                         android:layout_height="52dp"
                         android:src="@drawable/foto_profil"
-                        app:civ_border_color="#80FF624E"
+                        app:civ_border_color="@color/v2_brand_soft_strong"
                         app:civ_border_width="2dp" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginHorizontal="12dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -159,56 +195,32 @@
                             android:id="@+id/tvDriverName"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:maxLines="1"
                             android:text="Driver Name"
-                            android:textColor="@android:color/black"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
+                            android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
 
                         <TextView
                             android:id="@+id/tvDriverPlate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Plate: -"
-                            android:textColor="#757575"
-                            android:textSize="12sp" />
+                            style="@style/Widget.V2.Badge.Neutral"
+                            android:layout_marginTop="4dp"
+                            android:text="Plate: -" />
                     </LinearLayout>
 
                     <ImageView
                         android:id="@+id/btnCallDriver"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/rounded_button"
-                        android:backgroundTint="#2E7D32"
-                        android:contentDescription="Call Driver"
-                        android:padding="8dp"
-                        android:src="@android:drawable/ic_menu_call"
-                        app:tint="@color/white" />
+                        style="@style/Widget.V2.CircleButton"
+                        android:backgroundTint="@color/v2_brand"
+                        android:contentDescription="Call driver"
+                        android:src="@drawable/ic_v2_phone"
+                        app:tint="@color/v2_text_on_brand" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvDriverStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ambulance Is Heading to Your Location"
-                    android:textColor="#D32F2F"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvEstimationInfo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Estimated arrival: Calculating..."
-                    android:textColor="#757575"
-                    android:textSize="13sp"
-                    android:layout_marginTop="2dp" />
-
-                <!-- 🚑 Stepper progres perjalanan: pembacaan visual dari status booking yang
-                     sudah dilacak listenDriverResponse(), bukan sumber data baru. -->
+                <!-- Trip stepper, colored by ActivityDrive.updateTripStepper() -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -220,27 +232,27 @@
 
                         <View
                             android:id="@+id/stepCircle1"
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:background="@drawable/bg_step_circle" />
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:background="@drawable/bg_v2_circle"
+                            android:backgroundTint="@color/v2_bg_subtle" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Picked Up"
-                            android:textColor="#757575"
-                            android:textSize="10sp" />
+                            android:layout_marginTop="6dp"
+                            android:text="Picked up"
+                            android:textAppearance="@style/TextAppearance.V2.Caption" />
                     </LinearLayout>
 
                     <View
                         android:id="@+id/stepConnector1"
                         android:layout_width="0dp"
                         android:layout_height="3dp"
+                        android:layout_marginHorizontal="6dp"
+                        android:layout_marginBottom="20dp"
                         android:layout_weight="1"
-                        android:layout_marginHorizontal="4dp"
-                        android:layout_marginBottom="14dp"
-                        android:background="#E0E0E0" />
+                        android:background="@color/v2_bg_subtle" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -250,27 +262,27 @@
 
                         <View
                             android:id="@+id/stepCircle2"
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:background="@drawable/bg_step_circle" />
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:background="@drawable/bg_v2_circle"
+                            android:backgroundTint="@color/v2_bg_subtle" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="En Route"
-                            android:textColor="#757575"
-                            android:textSize="10sp" />
+                            android:layout_marginTop="6dp"
+                            android:text="To hospital"
+                            android:textAppearance="@style/TextAppearance.V2.Caption" />
                     </LinearLayout>
 
                     <View
                         android:id="@+id/stepConnector2"
                         android:layout_width="0dp"
                         android:layout_height="3dp"
+                        android:layout_marginHorizontal="6dp"
+                        android:layout_marginBottom="20dp"
                         android:layout_weight="1"
-                        android:layout_marginHorizontal="4dp"
-                        android:layout_marginBottom="14dp"
-                        android:background="#E0E0E0" />
+                        android:background="@color/v2_bg_subtle" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -280,20 +292,19 @@
 
                         <View
                             android:id="@+id/stepCircle3"
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:background="@drawable/bg_step_circle" />
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:background="@drawable/bg_v2_circle"
+                            android:backgroundTint="@color/v2_bg_subtle" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Completed"
-                            android:textColor="#757575"
-                            android:textSize="10sp" />
+                            android:layout_marginTop="6dp"
+                            android:text="Done"
+                            android:textAppearance="@style/TextAppearance.V2.Caption" />
                     </LinearLayout>
                 </LinearLayout>
-
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

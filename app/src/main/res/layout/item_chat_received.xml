@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- v2 Chat Bubble / Received. IDs unchanged (Chat/ChatAdapter.kt). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="start"
     android:orientation="vertical"
-    android:padding="4dp">
+    android:paddingVertical="4dp"
+    android:paddingStart="4dp"
+    android:paddingEnd="48dp">
 
     <ImageView
         android:id="@+id/ivReceivedImage"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
-        android:layout_marginBottom="2dp"
-        android:background="#EEEEEE"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/bg_v2_round_lg"
+        android:backgroundTint="@color/v2_bg_subtle"
+        android:clipToOutline="true"
         android:contentDescription="Photo"
         android:scaleType="centerCrop"
         android:visibility="gone" />
@@ -20,12 +25,12 @@
         android:id="@+id/tvReceivedMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_v2_bubble_received"
         android:maxWidth="260dp"
-        android:background="@drawable/bg_chat_bubble_received"
         android:paddingHorizontal="14dp"
         android:paddingVertical="10dp"
         android:text="I'm close to the location now."
-        android:textColor="@android:color/black"
-        android:textSize="14sp" />
+        android:textAppearance="@style/TextAppearance.V2.Body"
+        android:textColor="@color/v2_text_primary" />
 
 </LinearLayout>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Role option card: highlighted while pressed/focused. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true" android:drawable="@drawable/bg_v2_card_brand" />
+    <item android:drawable="@drawable/bg_v2_card" />
+</selector>

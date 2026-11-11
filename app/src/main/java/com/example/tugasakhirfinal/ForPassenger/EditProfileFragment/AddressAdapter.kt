@@ -56,10 +56,15 @@ class AddressAdapter(
         }
 
         // Tampilan Bintang Favorit
+        // v2: bintang garis (abu) / bintang terisi (amber)
         if (currentItem.isFavorite) {
-            holder.btnFavorite.setImageResource(android.R.drawable.btn_star_big_on)
+            holder.btnFavorite.setImageResource(R.drawable.ic_v2_star_filled)
+            holder.btnFavorite.imageTintList = null
         } else {
-            holder.btnFavorite.setImageResource(android.R.drawable.btn_star_big_off)
+            holder.btnFavorite.setImageResource(R.drawable.ic_v2_star)
+            holder.btnFavorite.imageTintList = android.content.res.ColorStateList.valueOf(
+                holder.itemView.context.getColor(R.color.v2_text_tertiary)
+            )
         }
 
         // Event Listeners

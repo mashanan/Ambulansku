@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v2 design tokens (mirror of the Figma "v2/Color" variables in desain-TA).
+     Use these semantic names in new/updated layouts instead of the legacy pink_* colors. -->
+<resources>
+    <!-- Brand -->
+    <color name="v2_brand">#D63B27</color>          <!-- coral/600: buttons, links, active states (white text passes WCAG AA) -->
+    <color name="v2_brand_accent">#FF624E</color>   <!-- coral/500: original brand coral, gradients & decoration -->
+    <color name="v2_brand_pressed">#B02F1E</color>
+    <color name="v2_brand_soft">#FFF2EF</color>
+    <color name="v2_brand_soft_strong">#FFE1DA</color>
+
+    <!-- Surfaces -->
+    <color name="v2_bg_canvas">#F7F7F8</color>
+    <color name="v2_bg_surface">#FFFFFF</color>
+    <color name="v2_bg_subtle">#EFEFF2</color>
+    <color name="v2_bg_inverse">#16161A</color>
+    <color name="v2_scrim">#73161619</color>
+
+    <!-- Text -->
+    <color name="v2_text_primary">#16161A</color>
+    <color name="v2_text_secondary">#52525C</color>
+    <color name="v2_text_tertiary">#6F6F7A</color>
+    <color name="v2_text_disabled">#9C9CA7</color>
+    <color name="v2_text_on_brand">#FFFFFF</color>
+
+    <!-- Borders -->
+    <color name="v2_border_default">#E3E3E8</color>
+    <color name="v2_border_strong">#CACAD2</color>
+
+    <!-- Status -->
+    <color name="v2_success">#15803D</color>
+    <color name="v2_success_soft">#E9F8EF</color>
+    <color name="v2_warning">#B45309</color>
+    <color name="v2_warning_soft">#FEF4E2</color>
+    <color name="v2_info">#1D4ED8</color>
+    <color name="v2_info_soft">#EAF2FE</color>
+    <color name="v2_danger">#DC2626</color>
+    <color name="v2_danger_soft">#FDECEC</color>
+
+    <!-- Map routes (same values as Maps/RouteStyle.kt) -->
+    <color name="v2_route_pickup">#7B1FA2</color>
+    <color name="v2_route_hospital">#1E88E5</color>
+</resources>

@@ -1,68 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Hospital List (Figma: P07). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA"
+    android:background="@color/v2_bg_canvas"
+    android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <!-- Header Toolbar -->
-    <RelativeLayout
+    <!-- Top bar -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@color/white"
-        android:elevation="2dp"
-        android:paddingHorizontal="16dp">
+        android:layout_height="wrap_content"
+        android:background="@color/v2_bg_surface"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp">
 
         <ImageView
             android:id="@+id/btnBack"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_centerVertical="true"
-            android:src="@android:drawable/ic_menu_revert"
-            app:tint="@color/black" />
+            style="@style/Widget.V2.CircleButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="Back"
+            android:padding="10dp"
+            android:src="@drawable/ic_v2_arrow_left" />
 
         <TextView
             android:id="@+id/tvHospitalListTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="Hospital List"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-    </RelativeLayout>
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:text="Select Hospital"
+            android:textAppearance="@style/TextAppearance.V2.H2" />
+    </LinearLayout>
 
-    <!-- Search View -->
-    <com.google.android.material.card.MaterialCardView
+    <!-- Search -->
+    <EditText
+        android:id="@+id/etSearchHospital"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_v2_pill_outline"
+        android:drawablePadding="10dp"
+        android:hint="Search hospitals…"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:paddingHorizontal="16dp"
+        android:textAppearance="@style/TextAppearance.V2.Body"
+        android:textColorHint="@color/v2_text_tertiary"
+        app:drawableStartCompat="@drawable/ic_v2_search"
+        app:drawableTint="@color/v2_text_tertiary" />
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="2dp"
-        app:strokeWidth="0dp">
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="4dp"
+        android:drawablePadding="6dp"
+        android:gravity="center_vertical"
+        android:text="Sorted by distance from your location"
+        android:textAppearance="@style/TextAppearance.V2.Caption"
+        android:textColor="@color/v2_text_tertiary"
+        app:drawableStartCompat="@drawable/ic_v2_navigation"
+        app:drawableTint="@color/v2_text_tertiary" />
 
-        <EditText
-            android:id="@+id/etSearchHospital"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@null"
-            android:drawableStart="@android:drawable/ic_menu_search"
-            android:drawablePadding="12dp"
-            android:hint="Search hospitals..."
-            android:inputType="text"
-            android:paddingHorizontal="16dp"
-            android:textSize="14sp" />
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- RecyclerView List RS -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvHospitalList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
         android:paddingBottom="16dp" />
 
 </LinearLayout>

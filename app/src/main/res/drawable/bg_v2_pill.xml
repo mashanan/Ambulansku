@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fully rounded fill. Color it with android:backgroundTint (badges, chips, search bars). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/v2_bg_surface" />
+    <corners android:radius="999dp" />
+</shape>

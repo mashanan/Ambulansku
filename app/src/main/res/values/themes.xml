@@ -11,13 +11,31 @@
          berubah warna saat sistem HP dark mode (umum di MIUI/HyperOS Xiaomi/Redmi), sementara
          background di sekitarnya tetap warna terang yang di-hardcode - hasilnya kotak input
          email/password jadi menyatu/tak terlihat di HP yang dark mode-nya aktif. -->
+    <!-- v2 (2026-11): warna utama pindah ke v2_brand (#D63B27, coral lebih gelap supaya teks putih
+         di tombol lolos kontras WCAG AA) dan font seluruh app jadi Plus Jakarta Sans. -->
     <style name="Theme.TugasAkhirFinal" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">@color/pink_main</item>
-        <item name="colorPrimaryDark">@color/pink_main</item>
-        <item name="colorAccent">@color/pink_main</item>
-        <item name="colorSecondary">@color/pink_main</item>
+        <item name="colorPrimary">@color/v2_brand</item>
+        <item name="colorPrimaryDark">@color/v2_brand</item>
+        <item name="colorPrimaryVariant">@color/v2_brand_pressed</item>
+        <item name="colorAccent">@color/v2_brand</item>
+        <item name="colorSecondary">@color/v2_brand</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSurface">@color/v2_bg_surface</item>
+        <item name="colorOnSurface">@color/v2_text_primary</item>
+        <item name="colorError">@color/v2_danger</item>
+        <item name="android:colorBackground">@color/v2_bg_canvas</item>
+        <item name="android:textColorPrimary">@color/v2_text_primary</item>
+        <item name="android:textColorSecondary">@color/v2_text_secondary</item>
+        <!-- Font: lewat textViewStyle/textAppearance, BUKAN android:fontFamily di tema
+             (fontFamily di tema menimpa ketebalan dari TextAppearance.V2.*). -->
+        <item name="android:textViewStyle">@style/Widget.V2.TextView</item>
+        <item name="android:statusBarColor">@color/v2_bg_surface</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="textInputStyle">@style/Widget.V2.TextInputLayout</item>
+        <item name="materialButtonStyle">@style/Widget.V2.Button.Primary</item>
+        <item name="bottomNavigationStyle">@style/Widget.V2.BottomNav</item>
+        <item name="chipStyle">@style/Widget.V2.Chip</item>
         <!-- Mematikan fitur "Force Dark" bawaan Android (API 29+) yang bisa membalik warna app
              secara paksa di level sistem - beberapa skin OEM (terutama HyperOS/MIUI) lebih agresif
              menerapkan ini dibanding Android murni, terlepas dari tema Light-only di atas. -->
@@ -26,7 +44,15 @@
 
     <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowFullscreen">true</item>
-        <item name="android:windowBackground">@drawable/bg_splash_screen</item>
+        <item name="android:windowBackground">@drawable/bg_v2_brand_gradient</item>
+    </style>
+
+    <!-- v2 Splash: status bar ikut coral supaya tidak ada strip putih di atas gradien. -->
+    <style name="Theme.TugasAkhirFinal.Splash">
+        <item name="android:statusBarColor">@color/v2_brand_accent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/v2_brand</item>
+        <item name="android:windowBackground">@drawable/bg_v2_brand_gradient</item>
     </style>
 
     <style name="LoginTextInputOuterFieldStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">

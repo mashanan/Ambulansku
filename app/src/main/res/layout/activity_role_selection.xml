@@ -1,59 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Role Selection (Figma: P02). Each role is a large tappable card; tapping goes straight
+     to that role's welcome screen (same behaviour as the old buttons, IDs unchanged). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/v2_bg_surface"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="24dp"
     tools:context=".RoleSelectionActivity">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_v2_round_md"
+            android:backgroundTint="@color/v2_brand"
+            android:importantForAccessibility="no"
+            android:padding="9dp"
+            android:src="@drawable/ic_v2_ambulance"
+            app:tint="@color/v2_text_on_brand" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/app_name"
+            android:textAppearance="@style/TextAppearance.V2.H3" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/textViewRoleTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Choose Your Role"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="32dp"
-        app:layout_constraintBottom_toTopOf="@+id/passengerButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_marginTop="32dp"
+        android:text="How will you use Ambulansku?"
+        android:textAppearance="@style/TextAppearance.V2.H1" />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Choose your role. You can sign out and switch later."
+        android:textAppearance="@style/TextAppearance.V2.Body.Secondary" />
+
+    <!-- Passenger -->
+    <LinearLayout
         android:id="@+id/passengerButton"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
-        android:background="@drawable/rounded_button"
-        android:text="I want to be a PASSENGER"
-        app:layout_constraintBottom_toTopOf="@+id/driverButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        android:layout_marginTop="28dp"
+        android:background="@drawable/bg_v2_card_brand"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="20dp">
 
-    <androidx.appcompat.widget.AppCompatButton
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_v2_round_md"
+            android:backgroundTint="@color/v2_brand"
+            android:importantForAccessibility="no"
+            android:padding="14dp"
+            android:src="@drawable/ic_v2_user"
+            app:tint="@color/v2_text_on_brand" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="I need an ambulance"
+                android:textAppearance="@style/TextAppearance.V2.H3" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Passenger · Book an ambulance for yourself or your family"
+                android:textAppearance="@style/TextAppearance.V2.Caption" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_v2_chevron_right"
+            app:tint="@color/v2_brand" />
+    </LinearLayout>
+
+    <!-- Driver -->
+    <LinearLayout
         android:id="@+id/driverButton"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/rounded_button"
-        android:text="I want to be a DRIVER"
-        app:layout_constraintTop_toBottomOf="@+id/passengerButton"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:background="@drawable/bg_v2_role_card"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="20dp">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_v2_round_md"
+            android:backgroundTint="@color/v2_bg_subtle"
+            android:importantForAccessibility="no"
+            android:padding="14dp"
+            android:src="@drawable/ic_v2_ambulance"
+            app:tint="@color/v2_text_secondary" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="I'm an ambulance driver"
+                android:textAppearance="@style/TextAppearance.V2.H3" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Driver · Receive and handle emergency bookings"
+                android:textAppearance="@style/TextAppearance.V2.Caption" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_v2_chevron_right"
+            app:tint="@color/v2_text_tertiary" />
+    </LinearLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <TextView
         android:id="@+id/adminEntryText"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="Admin"
-        android:textColor="@color/gray"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:gravity="center"
+        android:padding="12dp"
+        android:text="Hospital or system admin? Admin sign in"
+        android:textAppearance="@style/TextAppearance.V2.Label"
+        android:textColor="@color/v2_brand" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

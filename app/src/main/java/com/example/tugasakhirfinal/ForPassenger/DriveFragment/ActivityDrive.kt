@@ -737,12 +737,12 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             .show()
     }
 
-    // Tandai tahap aktif (pink), tahap yang sudah lewat (hijau), tahap yang belum (abu-abu).
+    // Tandai tahap yang sudah lewat & tahap aktif (coral v2), tahap yang belum (abu-abu).
     // stage: 1=Dijemput, 2=Menuju RS, 3=Selesai.
     private fun updateTripStepper(activeStage: Int) {
-        val green = android.graphics.Color.parseColor("#2E7D32")
-        val gray = android.graphics.Color.parseColor("#E0E0E0")
-        val pink = ContextCompat.getColor(this, R.color.pink_main)
+        val green = ContextCompat.getColor(this, R.color.v2_brand)          // tahap yang sudah lewat
+        val gray = ContextCompat.getColor(this, R.color.v2_bg_subtle)       // tahap yang belum
+        val pink = ContextCompat.getColor(this, R.color.v2_brand_accent)    // tahap aktif
 
         val circles = listOf(binding.stepCircle1, binding.stepCircle2, binding.stepCircle3)
         for ((index, circle) in circles.withIndex()) {

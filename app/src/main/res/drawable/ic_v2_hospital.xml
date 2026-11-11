@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v2 icon (Lucide-style, 24dp, stroke 2). Recolor with app:tint / iconTint. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#16161A"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M12 6v4" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#16161A"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M14 14h-4" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#16161A"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M14 18h-4" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#16161A"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M14 8h-4" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#16161A"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#16161A"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18" />
+</vector>

@@ -29,16 +29,18 @@ class PassengerChatAdapter(
         holder.tvHospitalName.text = item.hospitalName.ifEmpty { "Ambulance " + item.driverName }
         holder.tvLastMessage.text = item.lastMessage.ifEmpty { "Tap to view the conversation" }
 
-        if (item.status == "accepted" || item.status == "picked_up") {
-            holder.tvStatus.text = "Ongoing"
-            holder.tvStatus.setTextColor(holder.itemView.context.getColor(android.R.color.holo_green_dark))
-        } else if (item.status.equals("CANCELLED", ignoreCase = true)) {
-            holder.tvStatus.text = "Cancelled"
-            holder.tvStatus.setTextColor(holder.itemView.context.getColor(android.R.color.holo_red_dark))
-        } else {
-            holder.tvStatus.text = "Completed"
-            holder.tvStatus.setTextColor(holder.itemView.context.getColor(android.R.color.darker_gray))
+        // v2: status ditampilkan sebagai badge (warna teks + latar pill)
+        val ctx = holder.itemView.context
+        val (label, textColor, bgColor) = when {
+            item.status == "accepted" || item.status == "picked_up" ->
+                Triple("Ongoing", R.color.v2_success, R.color.v2_success_soft)
+            item.status.equals("CANCELLED", ignoreCase = true) ->
+                Triple("Cancelled", R.color.v2_danger, R.color.v2_danger_soft)
+            else -> Triple("Completed", R.color.v2_text_secondary, R.color.v2_bg_subtle)
         }
+        holder.tvStatus.text = label
+        holder.tvStatus.setTextColor(ctx.getColor(textColor))
+        holder.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(ctx.getColor(bgColor))
 
         holder.itemView.setOnClickListener { onItemClick(item) }
     }

@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Passenger tabs. IDs unchanged (PassengerHomeActivity relies on them):
+     beranda -> HomeFragment, layanan -> ActivityDriveFragment, aktivitas -> ChatFragment, akun -> ProfileFragment. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/navigation_beranda"
-        android:icon="@drawable/ic_botnav_home"
+        android:icon="@drawable/ic_v2_home"
         android:title="Home" />
     <item
         android:id="@+id/navigation_layanan"
-        android:icon="@drawable/ic_botnav_layanan"
-        android:title="Services" />
-    <item
-        android:id="@+id/navigation_aktivitas"
-        android:icon="@drawable/ic_botnav_aktivitas"
+        android:icon="@drawable/ic_v2_activity"
         android:title="Activity" />
     <item
+        android:id="@+id/navigation_aktivitas"
+        android:icon="@drawable/ic_v2_chat"
+        android:title="Chat" />
+    <item
         android:id="@+id/navigation_akun"
-        android:icon="@drawable/ic_botnav_akun"
-        android:title="Account" />
+        android:icon="@drawable/ic_v2_user"
+        android:title="Profile" />
 </menu>
