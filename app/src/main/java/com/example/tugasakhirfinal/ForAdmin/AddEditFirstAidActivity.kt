@@ -65,7 +65,9 @@ class AddEditFirstAidActivity : AppCompatActivity() {
 
         val id = editingId
         val task = if (id != null) {
-            val data = mapOf<String, Any>("title" to title, "symptoms" to symptoms, "steps" to steps)
+            // "customized": tandai entri yang pernah diedit Admin, supaya tombol "perbarui
+            // panduan bawaan" di ManageFirstAidActivity tidak menimpa hasil edit ini.
+            val data = mapOf<String, Any>("title" to title, "symptoms" to symptoms, "steps" to steps, "customized" to true)
             firestore.collection("firstAidConditions").document(id).update(data)
         } else {
             val data = mapOf(

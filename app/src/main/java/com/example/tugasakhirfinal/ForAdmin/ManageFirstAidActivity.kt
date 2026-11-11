@@ -29,6 +29,7 @@ class ManageFirstAidActivity : AppCompatActivity() {
     private lateinit var etSearchFirstAid: EditText
     private lateinit var cardImportSeed: MaterialCardView
     private lateinit var btnImportSeed: AppCompatButton
+    private lateinit var tvImportSeedMessage: android.widget.TextView
     private lateinit var fabAddFirstAid: FloatingActionButton
 
     private lateinit var firstAidAdapter: FirstAidAdminAdapter
@@ -47,6 +48,7 @@ class ManageFirstAidActivity : AppCompatActivity() {
         etSearchFirstAid = findViewById(R.id.etSearchFirstAid)
         cardImportSeed = findViewById(R.id.cardImportSeed)
         btnImportSeed = findViewById(R.id.btnImportSeed)
+        tvImportSeedMessage = findViewById(R.id.tvImportSeedMessage)
         rvFirstAidList = findViewById(R.id.rvFirstAidList)
         fabAddFirstAid = findViewById(R.id.fabAddFirstAid)
 
@@ -90,6 +92,7 @@ class ManageFirstAidActivity : AppCompatActivity() {
                 }
 
                 fullConditionList.clear()
+                latestDocs = snapshot?.documents ?: emptyList()
                 if (snapshot != null) {
                     for (doc in snapshot.documents) {
                         fullConditionList.add(
@@ -104,27 +107,83 @@ class ManageFirstAidActivity : AppCompatActivity() {
                 }
                 firstAidAdapter.updateList(fullConditionList)
 
-                // Tombol impor data awal cuma tampil kalau koleksi memang masih kosong, dan
-                // otomatis hilang lagi begitu ada data (baik dari impor maupun ditambah manual).
-                cardImportSeed.visibility = if (snapshot != null && snapshot.isEmpty) View.VISIBLE else View.GONE
+                // Kartu impor tampil kalau koleksi masih kosong ATAU ada panduan bawaan
+                // (FirstAidData) yang belum ada / masih versi lama di Firestore.
+                if (snapshot == null) {
+                    cardImportSeed.visibility = View.GONE
+                } else {
+                    val (newOnes, outdated) = computeSeedChanges(latestDocs)
+                    if (newOnes.isEmpty() && outdated.isEmpty()) {
+                        cardImportSeed.visibility = View.GONE
+                    } else {
+                        tvImportSeedMessage.text = if (snapshot.isEmpty) {
+                            "No data yet. Import ${newOnes.size} built-in First Aid guides?"
+                        } else {
+                            "Built-in guide update available: ${newOnes.size} new, ${outdated.size} updated. Guides you edited yourself are not changed."
+                        }
+                        btnImportSeed.text = if (snapshot.isEmpty) "Import" else "Update"
+                        btnImportSeed.isEnabled = true
+                        cardImportSeed.visibility = View.VISIBLE
+                    }
+                }
             }
     }
 
-    // Migrasi 9 data statis yang sebelumnya hardcoded di FirstAidData.kt ke Firestore, supaya
-    // Admin tidak perlu mengetik ulang semuanya dari nol saat pertama kali memakai fitur ini.
+    private var latestDocs: List<com.google.firebase.firestore.DocumentSnapshot> = emptyList()
+
+    private fun titleKey(title: String) = title.trim().lowercase()
+
+    // Bandingkan panduan bawaan (FirstAidData) dengan isi Firestore, dicocokkan lewat judul:
+    //  - newOnes  : judul bawaan yang belum ada sama sekali di Firestore
+    //  - outdated : dokumen dengan judul bawaan yang versinya < SEED_VERSION dan belum pernah
+    //               diedit Admin (field "customized" != true)
+    // Entri buatan Admin sendiri (judul tidak ada di daftar bawaan) tidak pernah disentuh.
+    private fun computeSeedChanges(
+        docs: List<com.google.firebase.firestore.DocumentSnapshot>
+    ): Pair<List<FirstAidCondition>, List<Pair<com.google.firebase.firestore.DocumentSnapshot, FirstAidCondition>>> {
+        val docsByTitle = docs.associateBy { titleKey(it.getString("title") ?: "") }
+        val newOnes = mutableListOf<FirstAidCondition>()
+        val outdated = mutableListOf<Pair<com.google.firebase.firestore.DocumentSnapshot, FirstAidCondition>>()
+        for (seed in FirstAidData.getList()) {
+            val doc = docsByTitle[titleKey(seed.title)]
+            if (doc == null) {
+                newOnes.add(seed)
+            } else {
+                val version = doc.getLong("builtInVersion") ?: 0L
+                val customized = doc.getBoolean("customized") == true
+                if (version < FirstAidData.SEED_VERSION && !customized) outdated.add(doc to seed)
+            }
+        }
+        return newOnes to outdated
+    }
+
+    // Impor panduan bawaan yang belum ada + perbarui panduan bawaan versi lama, dalam satu batch.
     private fun importSeedData() {
+        val (newOnes, outdated) = computeSeedChanges(latestDocs)
+        if (newOnes.isEmpty() && outdated.isEmpty()) return
+
         val batch = firestore.batch()
         val collection = firestore.collection("firstAidConditions")
 
-        for (condition in FirstAidData.getList()) {
-            val docRef = collection.document()
+        for (condition in newOnes) {
             batch.set(
-                docRef,
+                collection.document(),
                 mapOf(
                     "title" to condition.title,
                     "symptoms" to condition.symptoms,
                     "steps" to condition.steps,
+                    "builtInVersion" to FirstAidData.SEED_VERSION,
                     "createdAt" to FieldValue.serverTimestamp()
+                )
+            )
+        }
+        for ((doc, condition) in outdated) {
+            batch.update(
+                doc.reference,
+                mapOf(
+                    "symptoms" to condition.symptoms,
+                    "steps" to condition.steps,
+                    "builtInVersion" to FirstAidData.SEED_VERSION
                 )
             )
         }
@@ -132,7 +191,7 @@ class ManageFirstAidActivity : AppCompatActivity() {
         btnImportSeed.isEnabled = false
         batch.commit()
             .addOnSuccessListener {
-                Toast.makeText(this, "9 initial entries imported successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "${newOnes.size} guides added, ${outdated.size} updated", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
                 btnImportSeed.isEnabled = true
