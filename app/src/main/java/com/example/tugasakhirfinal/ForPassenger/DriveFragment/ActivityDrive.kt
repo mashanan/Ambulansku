@@ -219,29 +219,99 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         else requestLocationPermission()
     }
 
-    private fun setupUserLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mMap.isMyLocationEnabled = true
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                if (location != null) {
-                    val currentLatLng = LatLng(location.latitude, location.longitude)
-                    lastKnownLocation = currentLatLng
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+    // Dialog sistem "Nyalakan lokasi?" (dari SettingsClient). Kalau user menyalakan GPS lewat
+    // dialog itu, langsung lanjut ambil lokasi; kalau ditolak, tampilkan pesan di bottom sheet.
+    private val locationSettingsLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) fetchUserLocation()
+        else showLocationProblem("Location is turned off. Turn on GPS so we can find the nearest hospital.")
+    }
 
-                    // Kalau passenger sudah punya booking aktif (baru saja back dari layar ini di
-                    // tengah penjemputan), reconnect ke trip itu dulu - jangan biarkan masuk ke
-                    // mode standby/pilih rumah sakit yang bisa berujung bikin booking baru.
-                    checkForActiveBooking { hasActive ->
-                        if (hasActive) return@checkForActiveBooking
-                        if (isManualHospitalSelected && destinationHospitalLoc != null) {
-                            drawRouteLine(currentLatLng, destinationHospitalLoc!!, "antar")
-                            displaySelectedHospitalMarker()
-                        } else {
-                            loadHospitalData()
-                        }
+    private fun setupUserLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
+        mMap.isMyLocationEnabled = true
+
+        // Sebelumnya langsung pakai lastLocation: kalau GPS HP mati (atau belum pernah dapat fix),
+        // hasilnya null dan layar diam di "Detecting hospital location..." tanpa penjelasan.
+        // Sekarang cek dulu pengaturan lokasi HP dan minta user menyalakannya kalau mati.
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L).build()
+        val settingsRequest = LocationSettingsRequest.Builder().addLocationRequest(request).build()
+        LocationServices.getSettingsClient(this).checkLocationSettings(settingsRequest)
+            .addOnSuccessListener { fetchUserLocation() }
+            .addOnFailureListener { e ->
+                if (e is com.google.android.gms.common.api.ResolvableApiException) {
+                    try {
+                        locationSettingsLauncher.launch(
+                            androidx.activity.result.IntentSenderRequest.Builder(e.resolution).build()
+                        )
+                    } catch (ex: Exception) {
+                        showLocationProblem("Location is turned off. Turn on GPS so we can find the nearest hospital.")
                     }
+                } else {
+                    // Pengaturan tidak bisa dicek (mis. Play Services bermasalah) - tetap coba ambil lokasi.
+                    fetchUserLocation()
                 }
             }
+    }
+
+    // Pakai lokasi terakhir kalau ada; kalau null (GPS baru dinyalakan, belum ada cache),
+    // minta lokasi baru sekali lewat getCurrentLocation.
+    private fun fetchUserLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
+        binding.tvDestinationAddress.text = "Getting your location..."
+        fusedLocationClient.lastLocation.addOnSuccessListener { last ->
+            if (last != null) {
+                onUserLocationReady(last)
+                return@addOnSuccessListener
+            }
+            fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                com.google.android.gms.tasks.CancellationTokenSource().token
+            ).addOnSuccessListener { current ->
+                if (current != null) onUserLocationReady(current)
+                else showLocationProblem("Couldn't get your location. Make sure GPS is on, then reopen this screen.")
+            }.addOnFailureListener {
+                showLocationProblem("Couldn't get your location. Make sure GPS is on, then reopen this screen.")
+            }
+        }.addOnFailureListener {
+            showLocationProblem("Couldn't get your location. Make sure GPS is on, then reopen this screen.")
+        }
+    }
+
+    private fun showLocationProblem(message: String) {
+        binding.tvDestinationAddress.text = "Location unavailable"
+        binding.tvDestinationEstimation.text = message
+    }
+
+    private fun onUserLocationReady(location: Location) {
+        val currentLatLng = LatLng(location.latitude, location.longitude)
+        lastKnownLocation = currentLatLng
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+
+        // Kalau passenger sudah punya booking aktif (baru saja back dari layar ini di
+        // tengah penjemputan), reconnect ke trip itu dulu - jangan biarkan masuk ke
+        // mode standby/pilih rumah sakit yang bisa berujung bikin booking baru.
+        checkForActiveBooking { hasActive ->
+            if (hasActive) return@checkForActiveBooking
+            if (isManualHospitalSelected && destinationHospitalLoc != null) {
+                drawRouteLine(currentLatLng, destinationHospitalLoc!!, "antar")
+                displaySelectedHospitalMarker()
+            } else {
+                loadHospitalData()
+            }
+        }
+    }
+
+    // Sebelumnya tidak ada handler ini: setelah user memberi izin lokasi pertama kali, lokasi
+    // tidak langsung diambil (harus keluar-masuk layar dulu).
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != 100) return
+        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (::mMap.isInitialized) setupUserLocation()
+        } else {
+            showLocationProblem("Location permission is needed to find the nearest hospital and pick you up.")
         }
     }
 
@@ -639,6 +709,12 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                 val driverId = snapshot.getString("driverId") ?: ""
 
                 if (status == "accepted") {
+                    // Passenger mungkin sedang di Home (pencarian jalan di background) - beri tahu
+                    // lewat notifikasi sekali saat driver pertama kali menerima.
+                    // (searchDialog != null = baru saja berpindah dari SEARCHING, bukan resume trip lama)
+                    if (currentBookingStatus == "standby" && searchDialog != null) {
+                        showTripNotification("Driver found", "An ambulance has accepted your booking and is heading to you.")
+                    }
                     dismissSearchingDriverDialog()
                     currentBookingStatus = "accepted"
                     binding.btnPesanAmbulans.visibility = View.GONE
@@ -903,6 +979,14 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            // Ketuk notifikasi -> kembali ke layar trip yang sama (bukan membuat instance baru)
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    this, tripNotificationId(bookingId),
+                    Intent(this, ActivityDrive::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            )
             .build()
 
         NotificationManagerCompat.from(this).notify(tripNotificationId(bookingId), notification)
@@ -1086,6 +1170,27 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
         dialogView.findViewById<Button>(R.id.btnRefreshSearch)?.setOnClickListener {
             retrySearch()
         }
+
+        // Kembali ke Home TANPA menghentikan pencarian: activity ini tidak di-finish, cuma
+        // ditaruh di belakang, jadi listener booking & timer tetap jalan. Tombol back HP
+        // diperlakukan sama (sebelumnya back tidak melakukan apa-apa karena dialog non-cancelable).
+        dialogView.findViewById<Button>(R.id.btnMinimizeSearch)?.setOnClickListener {
+            goHomeKeepSearching()
+        }
+        searchDialog?.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == android.view.KeyEvent.KEYCODE_BACK && event.action == android.view.KeyEvent.ACTION_UP) {
+                goHomeKeepSearching()
+                true
+            } else false
+        }
+    }
+
+    private fun goHomeKeepSearching() {
+        Toast.makeText(this, "Still searching for a driver. We'll notify you.", Toast.LENGTH_SHORT).show()
+        startActivity(
+            Intent(this, com.example.tugasakhirfinal.ForPassenger.PassengerHomeActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        )
     }
 
     private fun dismissSearchingDriverDialog() {

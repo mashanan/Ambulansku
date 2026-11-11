@@ -39,7 +39,10 @@ class ActivityDriveFragment : Fragment() {
 
         // Tombol Utama: Membuka Google Maps untuk Panggil Ambulans
         binding.cardMiniRight.setOnClickListener {
+            // REORDER_TO_FRONT: lanjutkan layar peta yang masih berjalan (mis. sedang mencari
+            // driver di background), bukan membuat instance kedua.
             val intent = Intent(requireContext(), ActivityDrive::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             startActivity(intent)
         }
     }

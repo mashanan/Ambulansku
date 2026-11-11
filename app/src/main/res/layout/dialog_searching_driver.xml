@@ -84,7 +84,7 @@
                 android:backgroundTint="@color/v2_warning_soft"
                 android:drawablePadding="10dp"
                 android:padding="12dp"
-                android:text="While waiting, keep the patient calm and check the First Aid guide on the Home screen."
+                android:text="While waiting, keep the patient calm. Go back to Home to open the First Aid guide. We keep searching and will notify you when a driver accepts."
                 android:textAppearance="@style/TextAppearance.V2.Caption"
                 android:textColor="@color/v2_warning"
                 app:drawableStartCompat="@drawable/ic_v2_first_aid"
@@ -99,6 +99,16 @@
                 android:text="Search again"
                 android:visibility="gone"
                 app:icon="@drawable/ic_v2_refresh" />
+
+            <!-- Leaves the search running in the background (ActivityDrive stays alive) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMinimizeSearch"
+                style="@style/Widget.V2.Button.Tertiary.Medium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Back to Home · keep searching"
+                app:icon="@drawable/ic_v2_home" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancelSearch"

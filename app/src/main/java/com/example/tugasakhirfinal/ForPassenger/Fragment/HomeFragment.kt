@@ -38,10 +38,10 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         firebaseAuth = FirebaseAuth.getInstance()
 
-        binding.cardMiniRight.setOnClickListener {
-            val intent = Intent(requireContext(), ActivityDrive::class.java)
-            startActivity(intent)
-        }
+        // REORDER_TO_FRONT: kalau layar peta masih hidup di belakang (pencarian driver sedang
+        // berjalan), bawa layar itu ke depan - jangan buat instance kedua untuk booking yang sama.
+        binding.cardMiniRight.setOnClickListener { openDriveScreen() }
+        binding.cardActiveBooking.setOnClickListener { openDriveScreen() }
 
         // Sebelumnya kartu ini belum ada listener sama sekali (tidak berfungsi saat ditekan) -
         // disamakan dengan ActivityDriveFragment (fragment Layanan) yang sudah benar.
@@ -79,6 +79,52 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         loadUserData()
+        loadActiveBooking()
+    }
+
+    private fun openDriveScreen() {
+        startActivity(
+            Intent(requireContext(), ActivityDrive::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        )
+    }
+
+    // Kartu "booking sedang berjalan" di atas Home: muncul saat passenger punya booking
+    // SEARCHING/accepted/picked_up (kriteria sama dengan ActivityDrive.checkForActiveBooking),
+    // supaya setelah kembali ke Home saat mencari driver, user tetap tahu & bisa balik ke peta.
+    private fun loadActiveBooking() {
+        val uid = firebaseAuth.currentUser?.uid ?: return
+        firestore.collection("bookings")
+            .whereEqualTo("passengerId", uid)
+            .whereIn("status", listOf("SEARCHING", "accepted", "picked_up"))
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (_binding == null || !isAdded) return@addOnSuccessListener
+                val now = com.google.firebase.Timestamp.now()
+                val active = snapshot.documents
+                    .filterNot { doc ->
+                        doc.getString("status") == "SEARCHING" &&
+                            doc.getTimestamp("expiresAt")?.let { it <= now } == true
+                    }
+                    .sortedByDescending { it.getTimestamp("createdAt") }
+                    .firstOrNull()
+
+                if (active == null) {
+                    binding.cardActiveBooking.visibility = View.GONE
+                    return@addOnSuccessListener
+                }
+                val hospital = active.getString("hospitalName") ?: "hospital"
+                binding.tvActiveBookingTitle.text = when (active.getString("status")) {
+                    "accepted" -> "Ambulance is on the way"
+                    "picked_up" -> "On the way to $hospital"
+                    else -> "Searching for a driver…"
+                }
+                binding.tvActiveBookingSubtitle.text = "To $hospital · Tap to view"
+                binding.cardActiveBooking.visibility = View.VISIBLE
+            }
+            .addOnFailureListener {
+                if (_binding != null) binding.cardActiveBooking.visibility = View.GONE
+            }
     }
 
     private fun loadUserData() {
