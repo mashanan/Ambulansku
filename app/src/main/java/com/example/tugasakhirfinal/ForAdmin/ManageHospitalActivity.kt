@@ -70,9 +70,10 @@ class ManageHospitalActivity : AppCompatActivity() {
         loadHospitalsFromFirestore()
     }
 
-    // ===== Impor data RS bawaan (assets/hospitals_jatim.json) =====
-    // Data RS besar di Jawa Timur (luar Surabaya) dari Google Places, dibangun dengan
-    // scripts/fetch_hospitals_jatim.js + scripts/build_hospital_seed.js. Ditulis Admin sendiri
+    // ===== Impor data RS bawaan (assets/hospitals_seed.json) =====
+    // Data RS besar se-Pulau Jawa di luar Surabaya (Jawa Timur, DKI Jakarta, Banten, Jawa Barat,
+    // Jawa Tengah, DI Yogyakarta) dari Google Places, dibangun dengan scripts/fetch_hospitals_*.js
+    // + scripts/build_hospital_seed.js. Ditulis Admin sendiri
     // lewat tombol Import (Firestore rules: hanya admin yang boleh menulis "hospitals").
     private lateinit var cardImportHospitals: View
     private lateinit var tvImportHospitalsMessage: android.widget.TextView
@@ -81,19 +82,19 @@ class ManageHospitalActivity : AppCompatActivity() {
 
     private data class SeedHospital(
         val nama: String, val alamat: String, val telepon: String,
-        val latitude: Double, val longitude: Double, val wilayah: String, val placeId: String
+        val latitude: Double, val longitude: Double, val wilayah: String, val provinsi: String, val placeId: String
     )
 
     private val seedHospitals: List<SeedHospital> by lazy {
         try {
-            val json = assets.open("hospitals_jatim.json").bufferedReader().use { it.readText() }
+            val json = assets.open("hospitals_seed.json").bufferedReader().use { it.readText() }
             val arr = org.json.JSONArray(json)
             (0 until arr.length()).map { i ->
                 val o = arr.getJSONObject(i)
                 SeedHospital(
                     o.getString("nama"), o.getString("alamat"), o.optString("telepon", "-"),
                     o.getDouble("latitude"), o.getDouble("longitude"),
-                    o.optString("wilayah", ""), o.optString("placeId", "")
+                    o.optString("wilayah", ""), o.optString("provinsi", ""), o.optString("placeId", "")
                 )
             }
         } catch (e: Exception) {
@@ -117,7 +118,9 @@ class ManageHospitalActivity : AppCompatActivity() {
             cardImportHospitals.visibility = View.GONE
             return
         }
-        tvImportHospitalsMessage.text = "${missing.size} major East Java hospitals (outside Surabaya) are ready to import."
+        val provinces = missing.map { it.provinsi }.filter { it.isNotEmpty() }.distinct()
+        tvImportHospitalsMessage.text = "${missing.size} major hospitals across Java are ready to import" +
+            if (provinces.isNotEmpty()) " (${provinces.joinToString(", ")})." else "."
         btnImportHospitals.isEnabled = true
         cardImportHospitals.visibility = View.VISIBLE
     }
@@ -136,6 +139,7 @@ class ManageHospitalActivity : AppCompatActivity() {
                     "telepon" to h.telepon,
                     "lokasi" to com.google.firebase.firestore.GeoPoint(h.latitude, h.longitude),
                     "wilayah" to h.wilayah,
+                    "provinsi" to h.provinsi,
                     "placeId" to h.placeId,
                     "source" to "google_places"
                 )
