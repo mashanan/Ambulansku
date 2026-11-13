@@ -62,7 +62,94 @@ class ManageHospitalActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
+        cardImportHospitals = findViewById(R.id.cardImportHospitals)
+        tvImportHospitalsMessage = findViewById(R.id.tvImportHospitalsMessage)
+        btnImportHospitals = findViewById(R.id.btnImportHospitals)
+        btnImportHospitals.setOnClickListener { importBuiltInHospitals() }
+
         loadHospitalsFromFirestore()
+    }
+
+    // ===== Impor data RS bawaan (assets/hospitals_jatim.json) =====
+    // Data RS besar di Jawa Timur (luar Surabaya) dari Google Places, dibangun dengan
+    // scripts/fetch_hospitals_jatim.js + scripts/build_hospital_seed.js. Ditulis Admin sendiri
+    // lewat tombol Import (Firestore rules: hanya admin yang boleh menulis "hospitals").
+    private lateinit var cardImportHospitals: View
+    private lateinit var tvImportHospitalsMessage: android.widget.TextView
+    private lateinit var btnImportHospitals: com.google.android.material.button.MaterialButton
+    private var latestHospitalDocs: List<com.google.firebase.firestore.DocumentSnapshot> = emptyList()
+
+    private data class SeedHospital(
+        val nama: String, val alamat: String, val telepon: String,
+        val latitude: Double, val longitude: Double, val wilayah: String, val placeId: String
+    )
+
+    private val seedHospitals: List<SeedHospital> by lazy {
+        try {
+            val json = assets.open("hospitals_jatim.json").bufferedReader().use { it.readText() }
+            val arr = org.json.JSONArray(json)
+            (0 until arr.length()).map { i ->
+                val o = arr.getJSONObject(i)
+                SeedHospital(
+                    o.getString("nama"), o.getString("alamat"), o.optString("telepon", "-"),
+                    o.getDouble("latitude"), o.getDouble("longitude"),
+                    o.optString("wilayah", ""), o.optString("placeId", "")
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun nameKey(name: String) = name.lowercase().replace(Regex("[^a-z0-9]"), "")
+
+    // RS bawaan yang belum ada di Firestore: dicocokkan lewat placeId, atau nama yang sama
+    // (supaya RS yang sudah diinput manual dengan nama persis sama tidak dobel).
+    private fun missingSeedHospitals(): List<SeedHospital> {
+        val placeIds = latestHospitalDocs.mapNotNull { it.getString("placeId") }.toSet()
+        val names = latestHospitalDocs.map { nameKey(it.getString("nama") ?: "") }.toSet()
+        return seedHospitals.filter { it.placeId !in placeIds && nameKey(it.nama) !in names }
+    }
+
+    private fun updateImportCard() {
+        val missing = missingSeedHospitals()
+        if (missing.isEmpty()) {
+            cardImportHospitals.visibility = View.GONE
+            return
+        }
+        tvImportHospitalsMessage.text = "${missing.size} major East Java hospitals (outside Surabaya) are ready to import."
+        btnImportHospitals.isEnabled = true
+        cardImportHospitals.visibility = View.VISIBLE
+    }
+
+    private fun importBuiltInHospitals() {
+        val missing = missingSeedHospitals()
+        if (missing.isEmpty()) return
+        val batch = firestore.batch()
+        val collection = firestore.collection("hospitals")
+        for (h in missing) {
+            batch.set(
+                collection.document(),
+                mapOf(
+                    "nama" to h.nama,
+                    "alamat" to h.alamat,
+                    "telepon" to h.telepon,
+                    "lokasi" to com.google.firebase.firestore.GeoPoint(h.latitude, h.longitude),
+                    "wilayah" to h.wilayah,
+                    "placeId" to h.placeId,
+                    "source" to "google_places"
+                )
+            )
+        }
+        btnImportHospitals.isEnabled = false
+        batch.commit()
+            .addOnSuccessListener {
+                Toast.makeText(this, "${missing.size} hospitals imported", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                btnImportHospitals.isEnabled = true
+                Toast.makeText(this, "Failed to import: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     override fun onResume() {
@@ -85,6 +172,8 @@ class ManageHospitalActivity : AppCompatActivity() {
                 }
 
                 fullHospitalList.clear()
+                latestHospitalDocs = snapshot?.documents ?: emptyList()
+                if (snapshot != null) updateImportCard()
                 if (snapshot != null && !snapshot.isEmpty) {
                     for (doc in snapshot.documents) {
                         val nama = doc.getString("nama") ?: "Untitled"

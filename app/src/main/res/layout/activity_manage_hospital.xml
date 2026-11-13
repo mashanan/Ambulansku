@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA">
+    android:background="@color/v2_bg_canvas"
+    android:fitsSystemWindows="true">
 
     <RelativeLayout
         android:id="@+id/toolbar"
         android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:background="@color/white"
-        android:elevation="2dp"
+        android:layout_height="64dp"
+        android:background="@drawable/bg_v2_divider_bottom"
         android:paddingHorizontal="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -18,20 +18,24 @@
 
         <ImageView
             android:id="@+id/btnBack"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_v2_circle"
+            android:backgroundTint="@color/v2_bg_subtle"
+            android:contentDescription="Back"
+            android:padding="10dp"
             android:layout_centerVertical="true"
-            android:src="@android:drawable/ic_menu_revert"
-            app:tint="@color/black" />
+            android:src="@drawable/ic_v2_arrow_left"
+            app:tint="@color/v2_text_primary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_toEndOf="@id/btnBack"
             android:text="Manage Hospitals"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.V2.H2" />
     </RelativeLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -39,9 +43,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="2dp"
-        app:strokeWidth="0dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:strokeColor="@color/v2_border_default"
+        app:strokeWidth="1dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
@@ -51,13 +56,59 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="@null"
-            android:drawableStart="@android:drawable/ic_menu_search"
+            app:drawableStartCompat="@drawable/ic_v2_search"
+            app:drawableTint="@color/v2_text_tertiary"
             android:drawablePadding="12dp"
             android:hint="Search hospitals..."
             android:inputType="text"
             android:paddingHorizontal="16dp"
-            android:textSize="14sp" />
+            android:textAppearance="@style/TextAppearance.V2.Body"
+            android:textColorHint="@color/v2_text_tertiary" />
     </com.google.android.material.card.MaterialCardView>
+
+    <!-- Built-in hospital data import (assets/hospitals_jatim.json). Shown only when some
+         entries are not in Firestore yet; see ManageHospitalActivity.updateImportCard(). -->
+    <LinearLayout
+        android:id="@+id/cardImportHospitals"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_v2_card_brand"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="14dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/searchCard">
+
+        <ImageView
+            style="@style/Widget.V2.IconBox"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:backgroundTint="@color/v2_brand"
+            android:importantForAccessibility="no"
+            android:padding="10dp"
+            android:src="@drawable/ic_v2_hospital"
+            app:tint="@color/v2_text_on_brand" />
+
+        <TextView
+            android:id="@+id/tvImportHospitalsMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_weight="1"
+            android:text="East Java hospitals available to import"
+            android:textAppearance="@style/TextAppearance.V2.Label" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnImportHospitals"
+            style="@style/Widget.V2.Button.Primary.Medium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Import" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvHospitalList"
@@ -70,7 +121,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/searchCard" />
+        app:layout_constraintTop_toBottomOf="@id/cardImportHospitals" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddHospital"
@@ -78,7 +129,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
         android:contentDescription="Add Hospital"
-        android:src="@android:drawable/ic_input_add"
+        android:src="@drawable/ic_v2_plus"
         app:backgroundTint="@color/pink_main"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
