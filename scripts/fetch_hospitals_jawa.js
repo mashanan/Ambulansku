@@ -3,14 +3,16 @@
 // Text Search, and writes scripts/hospitals_jawa.json. East Java lives in fetch_hospitals_jatim.js.
 //
 // Usage (from the repo root):  node scripts/fetch_hospitals_jawa.js
-// The API key is read from app/src/main/res/values/strings.xml (google_maps_key).
+// The API key is read from local.properties (PLACES_API_KEY, or MAPS_API_KEY as fallback).
 const fs = require("fs");
 const path = require("path");
 
 const root = path.join(__dirname, "..");
-const strings = fs.readFileSync(path.join(root, "app/src/main/res/values/strings.xml"), "utf8");
-const KEY = (strings.match(/google_maps_key">([^<]+)</) || [])[1];
-if (!KEY) throw new Error("google_maps_key not found in strings.xml");
+// Key is read from local.properties (gitignored): PLACES_API_KEY if set, otherwise MAPS_API_KEY.
+const localProps = fs.readFileSync(path.join(root, "local.properties"), "utf8");
+const prop = name => (localProps.match(new RegExp("^" + name + "=(.+)$", "m")) || [])[1]?.trim();
+const KEY = prop("PLACES_API_KEY") || prop("MAPS_API_KEY");
+if (!KEY) throw new Error("Set PLACES_API_KEY or MAPS_API_KEY in local.properties");
 
 // province -> [query, kota/kabupaten]
 const QUERIES = {

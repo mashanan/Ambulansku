@@ -20,7 +20,11 @@ Standard Gradle Android project. From the repo root:
 
 On Windows use `gradlew.bat` instead of `./gradlew`. There is no lint/ktlint config beyond the default AGP lint (`./gradlew lint`).
 
-Requires `app/google-services.json` (already checked in) for Firebase to initialize, and a Google Maps API key, currently hardcoded in `app/src/main/res/values/strings.xml` (`google_maps_key`).
+Requires `app/google-services.json` (already checked in) for Firebase to initialize, and a Google Maps API key in **`local.properties`** as `MAPS_API_KEY=...` (gitignored; never commit it, the repo is public). `app/build.gradle` turns it into the generated `R.string.google_maps_key` via `resValue`. Directions API requests send `X-Android-Package`/`X-Android-Cert` headers (`Maps/GoogleApiHeaders.kt`) so the key can be restricted to this app in Google Cloud Console. The hospital data scripts in `scripts/` read `PLACES_API_KEY` (or `MAPS_API_KEY`) from the same file.
+
+Build with a JDK 17/21 as `JAVA_HOME`: Android Studio 2026.x bundles Java 25, which Gradle 8.11 cannot run ("Unsupported class file major version 69").
+
+Firestore security rules live in `firestore.rules` (deploy: `firebase deploy --only firestore:rules`). Bookings and their `messages` are restricted to the booking's passenger, its assigned driver, drivers viewing `SEARCHING` bookings, and admins.
 
 ## Architecture
 

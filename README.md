@@ -39,6 +39,15 @@ What this means in practice:
 *   **Backend & Database:** Firebase Authentication, Cloud Firestore
 *   **Build Tool:** Gradle (Groovy DSL)
 
+## ⚙️ Build Setup
+The Google Maps API key is **not** stored in this repository. To build the app yourself, add your own key to `local.properties` (this file is ignored by Git):
+
+```properties
+MAPS_API_KEY=your_google_maps_api_key
+```
+
+The key needs the **Maps SDK for Android** and **Directions API** enabled. Build with JDK 17 or 21.
+
 ## 🔑 Test Accounts
 Use these ready-made accounts to try the app without signing up. Both are already email-verified, and the driver is already approved by the admin, so you can log in right away.
 

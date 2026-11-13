@@ -5,6 +5,19 @@ plugins {
     alias(libs.plugins.google.gms.google.services)
 }
 
+// Google Maps / Directions API key dibaca dari local.properties (TIDAK di-commit), bukan lagi
+// di-hardcode di strings.xml - repo ini publik. Tambahkan baris berikut di local.properties:
+//     MAPS_API_KEY=AIza...
+def localProps = new Properties()
+def localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
+}
+def mapsApiKey = localProps.getProperty("MAPS_API_KEY", "")
+if (mapsApiKey.isEmpty()) {
+    logger.warn("MAPS_API_KEY is missing from local.properties - maps and routes will not work.")
+}
+
 android {
     namespace 'com.example.tugasakhirfinal'
     compileSdk 36
@@ -17,6 +30,9 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // R.string.google_maps_key (dipakai AndroidManifest & request Directions API)
+        resValue "string", "google_maps_key", mapsApiKey
     }
 
     buildTypes {

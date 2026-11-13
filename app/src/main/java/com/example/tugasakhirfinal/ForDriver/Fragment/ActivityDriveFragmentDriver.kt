@@ -393,6 +393,8 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
         lastRouteRequestAt = SystemClock.elapsedRealtime()
         val requestSeq = ++routeRequestSeq
         val apiKey = getString(R.string.google_maps_key)
+        // Ambil context sebelum masuk coroutine IO (fragment bisa sudah lepas saat request jalan)
+        val appContext = requireContext().applicationContext
         val url = "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${start.latitude},${start.longitude}" +
                 "&destination=${end.latitude},${end.longitude}" +
@@ -414,6 +416,8 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
                     readTimeout = 3000
                     requestMethod = "GET"
                 }
+                // Identitas app (package + SHA-1) supaya API key bisa dibatasi khusus app ini
+                com.example.tugasakhirfinal.Maps.GoogleApiHeaders.apply(connection, appContext)
 
                 if (connection.responseCode == 200) {
                     val response = connection.inputStream.bufferedReader().use { it.readText() }

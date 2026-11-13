@@ -59,10 +59,65 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    function isDriver() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "driver";
+    }
+
+    // Booking berisi data pribadi pasien (nama, lokasi jemput, tujuan). Sebelumnya semua user
+    // yang login boleh membaca & mengubah semua booking; sekarang hanya pihak yang terlibat.
     match /bookings/{bookingId} {
-      allow read, write: if isSignedIn();
+      function isPassengerOf(b) {
+        return isSignedIn() && b.get('passengerId', '') == request.auth.uid;
+      }
+      function isDriverOf(b) {
+        return isSignedIn() && b.get('driverId', '') == request.auth.uid;
+      }
+      function changedOnly(keys) {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+      }
+
+      // Passenger & driver yang terlibat; driver lain hanya boleh melihat pesanan yang masih
+      // mencari driver (daftar pesanan masuk di Home driver / DriverOnlineService).
+      allow read: if isPassengerOf(resource.data)
+        || isDriverOf(resource.data)
+        || (resource.data.status == "SEARCHING" && isDriver())
+        || isAdmin();
+
+      // Passenger hanya bisa membuat pesanan atas namanya sendiri, belum ada driver-nya.
+      allow create: if isPassengerOf(request.resource.data)
+        && request.resource.data.status == "SEARCHING"
+        && request.resource.data.get('driverId', '') == "";
+
+      allow update: if
+        // Passenger: membatalkan pesanannya, atau mengisi alamat jemput hasil reverse-geocode.
+        (isPassengerOf(resource.data)
+          && changedOnly(['status', 'locationName'])
+          && (request.resource.data.status == resource.data.status
+              || request.resource.data.status == "CANCELLED"))
+        // Driver menerima pesanan yang masih SEARCHING (transaksi di HomeFragmentDriver).
+        || (isDriver()
+          && resource.data.status == "SEARCHING"
+          && changedOnly(['status', 'driverId'])
+          && request.resource.data.status == "accepted"
+          && request.resource.data.driverId == request.auth.uid)
+        // Driver yang ditugaskan: jemput, ganti RS tujuan, selesai, batal darurat.
+        || (isDriverOf(resource.data)
+          && changedOnly(['status', 'completedAt', 'hospitalName', 'hospitalLat', 'hospitalLng',
+                          'cancelledBy', 'cancelledAt'])
+          && request.resource.data.status in ['accepted', 'picked_up', 'completed', 'CANCELLED'])
+        || isAdmin();
+
+      allow delete: if isAdmin();
+
+      // Chat: hanya passenger & driver dari booking ini (termasuk menandai pesan terbaca).
       match /messages/{messageId} {
-        allow read, write: if isSignedIn();
+        function parentBooking() {
+          return get(/databases/$(database)/documents/bookings/$(bookingId)).data;
+        }
+        allow read, write: if isPassengerOf(parentBooking())
+          || isDriverOf(parentBooking())
+          || isAdmin();
       }
     }
   }

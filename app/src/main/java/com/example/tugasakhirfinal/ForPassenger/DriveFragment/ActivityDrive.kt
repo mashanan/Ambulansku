@@ -457,6 +457,8 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     readTimeout = 3000
                     requestMethod = "GET"
                 }
+                // Identitas app (package + SHA-1) supaya API key bisa dibatasi khusus app ini
+                com.example.tugasakhirfinal.Maps.GoogleApiHeaders.apply(connection, this@ActivityDrive)
 
                 if (connection.responseCode == 200) {
                     val response = connection.inputStream.bufferedReader().use { it.readText() }
