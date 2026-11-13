@@ -68,10 +68,12 @@ class HomeFragmentAdmin : Fragment() {
             binding.tvStatPendingDriver.text = pendingDriverCount.toString()
         }
 
-        firestore.collection("hospitals").get().addOnSuccessListener { snapshot ->
-            if (_binding == null) return@addOnSuccessListener
-            binding.tvStatHospitalCount.text = snapshot.size().toString()
-        }
+        // count() aggregation: dihitung di server, tidak membaca semua dokumen RS satu per satu.
+        firestore.collection("hospitals").count().get(com.google.firebase.firestore.AggregateSource.SERVER)
+            .addOnSuccessListener { snapshot ->
+                if (_binding == null) return@addOnSuccessListener
+                binding.tvStatHospitalCount.text = snapshot.count.toString()
+            }
     }
 
     override fun onDestroyView() {

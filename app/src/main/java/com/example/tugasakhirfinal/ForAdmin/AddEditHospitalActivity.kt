@@ -109,7 +109,9 @@ class AddEditHospitalActivity : AppCompatActivity(), OnMapReadyCallback {
             "nama" to nama,
             "alamat" to alamat,
             "telepon" to telepon,
-            "lokasi" to GeoPoint(latLng.latitude, latLng.longitude)
+            "lokasi" to GeoPoint(latLng.latitude, latLng.longitude),
+            // Kunci untuk query RS terdekat (radius), lihat Maps/NearbyHospitals.kt
+            "geohash" to com.example.tugasakhirfinal.Maps.NearbyHospitals.geohashFor(latLng.latitude, latLng.longitude)
         )
 
         val hospitalId = editingHospitalId

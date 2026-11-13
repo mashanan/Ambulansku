@@ -377,22 +377,14 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
     private fun loadHospitalData() {
         binding.tvDestinationAddress.text = "Detecting nearest hospital..."
 
-        firestore.collection("hospitals").get().addOnSuccessListener { result ->
+        // Hanya RS di sekitar passenger (radius 30 km, diperluas otomatis bila kosong), bukan
+        // seluruh koleksi - hemat pembacaan Firestore walau data RS mencakup seluruh Indonesia.
+        val center = lastKnownLocation ?: return
+        com.example.tugasakhirfinal.Maps.NearbyHospitals.load(firestore, center, onResult = { nearby, _ ->
             hospitalMarkers.forEach { it.remove() }
             hospitalMarkers.clear()
             hospitalList.clear()
-
-            for (document in result) {
-                val name = document.getString("nama") ?: "No Name"
-                val address = document.getString("alamat") ?: "-"
-                val phone = document.getString("telepon") ?: "-"
-                val geoPoint = document.getGeoPoint("lokasi")
-                val lat = geoPoint?.latitude ?: document.getDouble("latitude") ?: 0.0
-                val lng = geoPoint?.longitude ?: document.getDouble("longitude") ?: 0.0
-
-                val hospital = Hospital(document.id, name, address, phone, lat, lng, geoPoint)
-                hospitalList.add(hospital)
-            }
+            hospitalList.addAll(nearby)
 
             displayHospitalMarkers()
 
@@ -401,7 +393,9 @@ class ActivityDrive : AppCompatActivity(), OnMapReadyCallback {
                     findNearestHospitalFast(userLoc)
                 }
             }
-        }
+        }, onError = {
+            binding.tvDestinationAddress.text = "Couldn't load hospitals. Check your connection."
+        })
     }
 
     private fun findNearestHospitalFast(userLoc: LatLng) {

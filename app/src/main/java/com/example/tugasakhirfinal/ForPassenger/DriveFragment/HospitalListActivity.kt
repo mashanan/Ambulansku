@@ -49,7 +49,7 @@ class HospitalListActivity : AppCompatActivity() {
 
     private val locationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) fetchUserLocation()
+            if (granted) fetchUserLocation() else loadAllHospitals()
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,20 +91,67 @@ class HospitalListActivity : AppCompatActivity() {
         } else {
             locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-
-        loadHospitalsFromFirestore()
+        // Data RS dimuat SETELAH lokasi didapat (fetchUserLocation -> loadNearbyHospitals), supaya
+        // yang dibaca dari Firestore cuma RS di sekitar passenger, bukan seluruh koleksi.
     }
 
     // Lokasi passenger dipakai untuk menghitung jarak & estimasi waktu ke tiap RS (garis lurus,
     // bukan rute jalan - cukup untuk mengurutkan & memberi gambaran kasar di daftar). Kalau izin
     // ditolak atau lokasi tidak tersedia, daftar tetap tampil tanpa info jarak.
     private fun fetchUserLocation() {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            if (location != null) {
-                userLocation = location
+        try {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    onLocationReady(location)
+                    return@addOnSuccessListener
+                }
+                fusedLocationClient.getCurrentLocation(
+                    com.google.android.gms.location.Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                    com.google.android.gms.tasks.CancellationTokenSource().token
+                ).addOnSuccessListener { current ->
+                    if (current != null) onLocationReady(current) else loadAllHospitals()
+                }.addOnFailureListener { loadAllHospitals() }
+            }.addOnFailureListener { loadAllHospitals() }
+        } catch (e: SecurityException) {
+            loadAllHospitals()
+        }
+    }
+
+    private fun onLocationReady(location: Location) {
+        userLocation = location
+        loadNearbyHospitals(location)
+    }
+
+    // RS terdekat saja (radius 30 km, diperluas otomatis), lihat Maps/NearbyHospitals.kt.
+    private fun loadNearbyHospitals(location: Location) {
+        com.example.tugasakhirfinal.Maps.NearbyHospitals.load(
+            firestore,
+            com.google.android.gms.maps.model.LatLng(location.latitude, location.longitude),
+            onResult = { nearby, _ ->
+                fullHospitalList.clear()
+                fullHospitalList.addAll(nearby)
+                if (fullHospitalList.isEmpty()) {
+                    Toast.makeText(this, "No hospital data available yet", Toast.LENGTH_SHORT).show()
+                }
+                applyDistancesAndSort()
+            },
+            onError = { e ->
+                Toast.makeText(this, "Failed to load hospital data: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    // Cadangan kalau lokasi tidak tersedia / izin ditolak: baca semua RS sekali (tanpa listener).
+    private fun loadAllHospitals() {
+        firestore.collection("hospitals").get()
+            .addOnSuccessListener { snap ->
+                fullHospitalList.clear()
+                fullHospitalList.addAll(snap.documents.map(com.example.tugasakhirfinal.Maps.NearbyHospitals::fromDocument))
                 applyDistancesAndSort()
             }
-        }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Failed to load hospital data: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     // Estimasi kasar waktu tempuh (asumsi kecepatan rata-rata ambulans di kota ~30 km/jam), sama
@@ -133,44 +180,6 @@ class HospitalListActivity : AppCompatActivity() {
             fullHospitalList.sortBy { if (it.distanceMeters >= 0) it.distanceMeters else Float.MAX_VALUE }
         }
         hospitalAdapter.updateList(fullHospitalList)
-    }
-
-    private fun loadHospitalsFromFirestore() {
-        firestore.collection("hospitals")
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Toast.makeText(this, "Failed to load hospital data: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
-                    return@addSnapshotListener
-                }
-
-                if (snapshot != null && !snapshot.isEmpty) {
-                    fullHospitalList.clear()
-                    for (doc in snapshot.documents) {
-                        val nama = doc.getString("nama") ?: "No Name"
-                        val alamat = doc.getString("alamat") ?: "-"
-                        val telepon = doc.getString("telepon") ?: "-"
-
-                        // Membaca Tipe Data GeoPoint
-                        val geoPoint = doc.getGeoPoint("lokasi")
-                        val lat = geoPoint?.latitude ?: 0.0
-                        val lng = geoPoint?.longitude ?: 0.0
-
-                        // PERBAIKAN: Sesuaikan nama parameter dengan Hospital.kt
-                        val hospital = Hospital(
-                            id = doc.id,
-                            nama = nama,
-                            alamat = alamat,
-                            telepon = telepon,
-                            latitude = lat,
-                            longitude = lng
-                        )
-                        fullHospitalList.add(hospital)
-                    }
-                    applyDistancesAndSort()
-                } else {
-                    Toast.makeText(this, "No hospital data available yet", Toast.LENGTH_SHORT).show()
-                }
-            }
     }
 
     // Buka rumah sakit yang dipilih di peta (ActivityDrive), lengkap dengan rute & estimasi waktu/jarak.

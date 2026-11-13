@@ -54,6 +54,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore-ktx'
     implementation 'com.google.firebase:firebase-storage-ktx'
     implementation 'com.google.firebase:firebase-database-ktx'
+    // GeoFire utils: geohash untuk query rumah sakit terdekat (radius) di Firestore
+    implementation 'com.firebase:geofire-android-common:3.2.0'
 
     // --- Google Maps & Location (PENGGANTI OSM/MAPBOX) ---
     implementation 'com.google.android.gms:play-services-maps:18.2.0'

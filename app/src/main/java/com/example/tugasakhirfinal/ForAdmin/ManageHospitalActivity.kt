@@ -112,26 +112,50 @@ class ManageHospitalActivity : AppCompatActivity() {
         return seedHospitals.filter { it.placeId !in placeIds && nameKey(it.nama) !in names }
     }
 
+    // Dokumen RS yang punya lokasi tapi belum punya geohash: tidak akan muncul di pencarian
+    // RS terdekat (Maps/NearbyHospitals.kt), jadi perlu dilengkapi sekali lewat kartu ini.
+    private fun docsMissingGeohash() = latestHospitalDocs.filter {
+        it.getString(com.example.tugasakhirfinal.Maps.NearbyHospitals.FIELD_GEOHASH).isNullOrEmpty() &&
+            it.getGeoPoint("lokasi") != null
+    }
+
     private fun updateImportCard() {
         val missing = missingSeedHospitals()
-        if (missing.isEmpty()) {
+        val unindexed = docsMissingGeohash()
+        if (missing.isEmpty() && unindexed.isEmpty()) {
             cardImportHospitals.visibility = View.GONE
             return
         }
-        val provinces = missing.map { it.provinsi }.filter { it.isNotEmpty() }.distinct()
-        tvImportHospitalsMessage.text = "${missing.size} major hospitals across Java are ready to import" +
-            if (provinces.isNotEmpty()) " (${provinces.joinToString(", ")})." else "."
+        val parts = mutableListOf<String>()
+        if (missing.isNotEmpty()) {
+            val provinces = missing.map { it.provinsi }.filter { it.isNotEmpty() }.distinct()
+            parts += "${missing.size} major hospitals ready to import" +
+                if (provinces.isNotEmpty()) " (${provinces.joinToString(", ")})" else ""
+        }
+        if (unindexed.isNotEmpty()) {
+            parts += "${unindexed.size} hospitals need a location index for nearby search"
+        }
+        tvImportHospitalsMessage.text = parts.joinToString(". ") + "."
+        btnImportHospitals.text = if (missing.isNotEmpty()) "Import" else "Update"
         btnImportHospitals.isEnabled = true
         cardImportHospitals.visibility = View.VISIBLE
     }
 
+    // Tulis RS bawaan yang belum ada + lengkapi geohash dokumen lama. Dipecah per 400 operasi
+    // karena satu batch Firestore maksimal 500 tulisan.
     private fun importBuiltInHospitals() {
         val missing = missingSeedHospitals()
-        if (missing.isEmpty()) return
-        val batch = firestore.batch()
+        val unindexed = docsMissingGeohash()
+        if (missing.isEmpty() && unindexed.isEmpty()) return
         val collection = firestore.collection("hospitals")
+        val ops = mutableListOf<(com.google.firebase.firestore.WriteBatch) -> Unit>()
+        for (doc in unindexed) {
+            val gp = doc.getGeoPoint("lokasi") ?: continue
+            ops += { b -> b.update(doc.reference, com.example.tugasakhirfinal.Maps.NearbyHospitals.FIELD_GEOHASH,
+                com.example.tugasakhirfinal.Maps.NearbyHospitals.geohashFor(gp.latitude, gp.longitude)) }
+        }
         for (h in missing) {
-            batch.set(
+            ops += { batch -> batch.set(
                 collection.document(),
                 mapOf(
                     "nama" to h.nama,
@@ -141,18 +165,25 @@ class ManageHospitalActivity : AppCompatActivity() {
                     "wilayah" to h.wilayah,
                     "provinsi" to h.provinsi,
                     "placeId" to h.placeId,
-                    "source" to "google_places"
+                    "source" to "google_places",
+                    com.example.tugasakhirfinal.Maps.NearbyHospitals.FIELD_GEOHASH to
+                        com.example.tugasakhirfinal.Maps.NearbyHospitals.geohashFor(h.latitude, h.longitude)
                 )
-            )
+            ) }
         }
         btnImportHospitals.isEnabled = false
-        batch.commit()
+        val commits = ops.chunked(400).map { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { it(batch) }
+            batch.commit()
+        }
+        com.google.android.gms.tasks.Tasks.whenAll(commits)
             .addOnSuccessListener {
-                Toast.makeText(this, "${missing.size} hospitals imported", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "${missing.size} imported, ${unindexed.size} indexed", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
                 btnImportHospitals.isEnabled = true
-                Toast.makeText(this, "Failed to import: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to save: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
