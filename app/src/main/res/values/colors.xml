@@ -7,10 +7,11 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="pink_main">#FF624E</color>
-    <color name="pink_button">#FF0000</color>
-    <color name="pink_pale">#FADFDF</color>
-    <color name="gray">#818181</color>
+    <!-- v2: legacy names now point at v2 tokens so not-yet-migrated screens match the new look -->
+    <color name="pink_main">#D63B27</color>
+    <color name="pink_button">#DC2626</color>
+    <color name="pink_pale">#FFF2EF</color>
+    <color name="gray">#6F6F7A</color>
     <color name="transparent">#00000000</color>
     <color name="ic_launcher_background">#FFFFFF</color>
 </resources>

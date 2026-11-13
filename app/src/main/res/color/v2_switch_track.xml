@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Driver online switch: green track when online, grey when offline. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/v2_success" android:state_checked="true" />
+    <item android:color="@color/v2_border_strong" />
+</selector>

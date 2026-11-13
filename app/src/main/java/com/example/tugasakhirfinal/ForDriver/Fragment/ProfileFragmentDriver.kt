@@ -151,12 +151,12 @@ class ProfileFragmentDriver : Fragment() {
 
         if (isApproved) {
             binding.tvQualificationStatus.text = "✓ Verified"
-            binding.tvQualificationStatus.setTextColor(android.graphics.Color.parseColor("#2E7D32"))
-            binding.tvQualificationStatus.setBackgroundColor(android.graphics.Color.parseColor("#E8F5E9"))
+            binding.tvQualificationStatus.setTextColor(android.graphics.Color.parseColor("#15803D")) // v2 success
+            binding.tvQualificationStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#E9F8EF")) // v2 success-soft pill
         } else {
             binding.tvQualificationStatus.text = "⏳ Pending Admin Verification"
-            binding.tvQualificationStatus.setTextColor(android.graphics.Color.parseColor("#E65100"))
-            binding.tvQualificationStatus.setBackgroundColor(android.graphics.Color.parseColor("#FFF3E0"))
+            binding.tvQualificationStatus.setTextColor(android.graphics.Color.parseColor("#B45309")) // v2 warning
+            binding.tvQualificationStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FEF4E2")) // v2 warning-soft pill
         }
     }
 

@@ -1,62 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Edit Email. IDs unchanged (ActivityEditEmail.kt). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/v2_bg_surface"
+    android:fitsSystemWindows="true"
     android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center_horizontal">
+    android:paddingHorizontal="24dp"
+    android:paddingTop="32dp"
+    android:paddingBottom="24dp">
 
     <TextView
         android:id="@+id/textJudul"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Change Your Email"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"
-        android:layout_marginBottom="16dp" />
+        android:text="Email address"
+        android:textAppearance="@style/TextAppearance.V2.H1" />
 
     <TextView
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="You use this email to sign in to the app."
-        android:textSize="16sp"
-        android:textStyle="normal"
-        android:gravity="center"
-        android:paddingBottom="24dp"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="8dp"
+        android:text="You use this email to sign in to Ambulansku."
+        android:textAppearance="@style/TextAppearance.V2.Body.Secondary" />
 
-    <EditText
-        android:id="@+id/editTextEmail"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Email"
-        android:inputType="textEmailAddress"
-        android:importantForAutofill="no"
-        android:textSize="18sp"
-        android:padding="12dp"
-        android:background="@android:drawable/edit_text"/>
+        android:layout_marginTop="24dp"
+        android:text="Email"
+        android:textAppearance="@style/TextAppearance.V2.Label"
+        android:textColor="@color/v2_text_secondary" />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.V2.TextInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:hintEnabled="false"
+        app:startIconDrawable="@drawable/ic_v2_mail">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextEmail"
+            style="@style/Widget.V2.TextInputEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter email"
+            android:importantForAutofill="no"
+            android:inputType="textEmailAddress" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/saveEmailButton"
+        style="@style/Widget.V2.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Change Email"
-        android:textColor="@color/white"
-        android:textStyle="bold"
-        android:background="@drawable/rounded_button"
-        android:layout_marginTop="20dp"  />
+        android:text="Change email" />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/resetPasswordButton"
+        style="@style/Widget.V2.Button.Text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Send Password Reset to Email"
-        android:textColor="@android:color/holo_red_dark"
-        android:textStyle="normal"
-        android:background="?android:attr/selectableItemBackground"
-        android:layout_marginTop="12dp"  />
-
+        android:layout_marginTop="8dp"
+        android:text="Send password reset email"
+        app:icon="@drawable/ic_v2_lock"
+        app:iconGravity="textStart"
+        app:iconTint="@color/v2_brand" />
 </LinearLayout>

@@ -880,9 +880,10 @@ class ActivityDriveFragmentDriver : Fragment(), OnMapReadyCallback {
     // stage: 1=Jemput, 2=Menuju RS, 3=Selesai.
     private fun updateTripStepper(activeStage: Int) {
         if (_binding == null) return
-        val green = Color.parseColor("#2E7D32")
-        val gray = Color.parseColor("#E0E0E0")
-        val pink = ContextCompat.getColor(requireContext(), R.color.pink_main)
+        // v2: tahap lewat = coral, tahap aktif = coral terang, tahap belum = abu (sama dengan passenger)
+        val green = ContextCompat.getColor(requireContext(), R.color.v2_brand)
+        val gray = ContextCompat.getColor(requireContext(), R.color.v2_bg_subtle)
+        val pink = ContextCompat.getColor(requireContext(), R.color.v2_brand_accent)
 
         val circles = listOf(binding.stepCircle1, binding.stepCircle2, binding.stepCircle3)
         for ((index, circle) in circles.withIndex()) {

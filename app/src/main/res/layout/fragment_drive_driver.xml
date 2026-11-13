@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- v2 Driver Trip map: full-screen map + draggable bottom sheet with status, passenger card,
+     trip stepper and actions. All IDs/types used by ActivityDriveFragmentDriver.kt are unchanged. -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/v2_bg_canvas">
 
-    <!-- 🗺️ Google Map - selalu penuh layar, tidak lagi tertutup permanen oleh panel info -->
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 💬 Tombol Chat - posisi tetap di kanan atas peta, tidak ikut naik-turun bersama
-         panel bawah supaya selalu gampang dijangkau apa pun posisi panel-nya -->
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -24,98 +25,97 @@
             android:id="@+id/btnChatPassenger"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_dialog_email"
+            android:layout_margin="4dp"
+            android:contentDescription="Chat with passenger"
+            android:src="@drawable/ic_v2_chat"
             android:visibility="gone"
-            app:backgroundTint="#0084FF"
-            app:tint="@android:color/white"
-            android:contentDescription="Passenger Chat" />
+            app:backgroundTint="@color/v2_brand"
+            app:tint="@color/v2_text_on_brand"
+            tools:visibility="visible" />
 
-        <!-- 🔴 Angka Notif Merah (Badge) untuk Driver -->
         <TextView
             android:id="@+id/tvUnreadBadge"
             android:layout_width="22dp"
             android:layout_height="22dp"
             android:layout_gravity="top|end"
-            android:background="@drawable/bg_badge_red"
+            android:background="@drawable/bg_v2_circle"
+            android:backgroundTint="@color/v2_danger"
+            android:elevation="10dp"
             android:gravity="center"
             android:text="1"
-            android:textColor="@android:color/white"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:elevation="10dp"
+            android:textAppearance="@style/TextAppearance.V2.Overline"
+            android:textColor="@color/v2_text_on_brand"
             android:visibility="gone" />
     </FrameLayout>
 
-    <!-- 📋 Panel Info Jarak & Tombol Selesai - sekarang bottom sheet yang bisa ditarik turun
-         (mengecil, cuma sisakan handle + status pesanan saat ini, memaksimalkan tampilan peta)
-         atau ditarik naik (tampil penuh) kapan saja oleh driver. Sengaja TIDAK hideable penuh
-         supaya selalu ada handle tersisa untuk ditarik kembali. -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/bottomLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:behavior_peekHeight="72dp"
         app:behavior_fitToContents="true"
-        app:cardElevation="10dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.BottomSheetTop">
+        app:behavior_peekHeight="88dp"
+        app:cardBackgroundColor="@color/v2_bg_surface"
+        app:cardElevation="12dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.BottomSheetTop"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="20dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="20dp">
 
-            <!-- Pegangan drag -->
             <View
                 android:layout_width="40dp"
                 android:layout_height="4dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_drag_handle" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_v2_handle" />
 
-            <!-- Status pesanan saat ini - satu-satunya yang tetap terlihat saat panel dikecilkan -->
+            <!-- Current status: the only line still visible when the sheet is collapsed -->
             <TextView
                 android:id="@+id/tvCurrentStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Ready to accept bookings..."
-                android:textAlignment="center"
-                android:textColor="#D32F2F"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.V2.H2" />
 
             <TextView
                 android:id="@+id/tvEstimationInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textAlignment="center"
-                android:textColor="#757575"
-                android:textSize="13sp" />
+                android:textAppearance="@style/TextAppearance.V2.Caption" />
 
-            <!-- 🚑 Info Penumpang: supaya driver bisa konfirmasi penumpang saat bertemu -->
+            <!-- Passenger card -->
             <LinearLayout
                 android:id="@+id/layoutPassengerInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_v2_round_lg"
+                android:backgroundTint="@color/v2_bg_canvas"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:visibility="gone">
+                android:padding="14dp"
+                android:visibility="gone"
+                tools:visibility="visible">
 
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/ivPassengerPhoto"
                     android:layout_width="52dp"
                     android:layout_height="52dp"
                     android:src="@drawable/foto_profil"
-                    app:civ_border_color="#80FF624E"
+                    app:civ_border_color="@color/v2_brand_soft_strong"
                     app:civ_border_width="2dp" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
+                    android:layout_marginHorizontal="12dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -123,38 +123,33 @@
                         android:id="@+id/tvPassengerName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:text="Passenger Name"
-                        android:textColor="@android:color/black"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
+                        android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
 
                     <TextView
                         android:id="@+id/tvPassengerPhone"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="-"
-                        android:textColor="#757575"
-                        android:textSize="12sp" />
+                        android:textAppearance="@style/TextAppearance.V2.Caption" />
                 </LinearLayout>
 
                 <ImageView
                     android:id="@+id/btnCallPassenger"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:background="@drawable/rounded_button"
-                    android:backgroundTint="#2E7D32"
-                    android:contentDescription="Call Passenger"
-                    android:padding="8dp"
-                    android:src="@android:drawable/ic_menu_call"
-                    app:tint="@color/white" />
+                    style="@style/Widget.V2.CircleButton"
+                    android:backgroundTint="@color/v2_brand"
+                    android:contentDescription="Call passenger"
+                    android:src="@drawable/ic_v2_phone"
+                    app:tint="@color/v2_text_on_brand" />
             </LinearLayout>
 
-            <!-- 🚑 Stepper progres perjalanan: pembacaan visual dari status booking yang sudah
-                 dilacak listener yang ada, bukan sumber data baru. -->
+            <!-- Trip stepper, colored by ActivityDriveFragmentDriver -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -166,27 +161,27 @@
 
                     <View
                         android:id="@+id/stepCircle1"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:background="@drawable/bg_step_circle" />
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:background="@drawable/bg_v2_circle"
+                        android:backgroundTint="@color/v2_bg_subtle" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="6dp"
                         android:text="Pickup"
-                        android:textColor="#757575"
-                        android:textSize="10sp" />
+                        android:textAppearance="@style/TextAppearance.V2.Caption" />
                 </LinearLayout>
 
                 <View
                     android:id="@+id/stepConnector1"
                     android:layout_width="0dp"
                     android:layout_height="3dp"
+                    android:layout_marginHorizontal="6dp"
+                    android:layout_marginBottom="20dp"
                     android:layout_weight="1"
-                    android:layout_marginHorizontal="4dp"
-                    android:layout_marginBottom="14dp"
-                    android:background="#E0E0E0" />
+                    android:background="@color/v2_bg_subtle" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -196,27 +191,27 @@
 
                     <View
                         android:id="@+id/stepCircle2"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:background="@drawable/bg_step_circle" />
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:background="@drawable/bg_v2_circle"
+                        android:backgroundTint="@color/v2_bg_subtle" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="To Hospital"
-                        android:textColor="#757575"
-                        android:textSize="10sp" />
+                        android:layout_marginTop="6dp"
+                        android:text="To hospital"
+                        android:textAppearance="@style/TextAppearance.V2.Caption" />
                 </LinearLayout>
 
                 <View
                     android:id="@+id/stepConnector2"
                     android:layout_width="0dp"
                     android:layout_height="3dp"
+                    android:layout_marginHorizontal="6dp"
+                    android:layout_marginBottom="20dp"
                     android:layout_weight="1"
-                    android:layout_marginHorizontal="4dp"
-                    android:layout_marginBottom="14dp"
-                    android:background="#E0E0E0" />
+                    android:background="@color/v2_bg_subtle" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -226,64 +221,51 @@
 
                     <View
                         android:id="@+id/stepCircle3"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:background="@drawable/bg_step_circle" />
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:background="@drawable/bg_v2_circle"
+                        android:backgroundTint="@color/v2_bg_subtle" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="6dp"
                         android:text="Done"
-                        android:textColor="#757575"
-                        android:textSize="10sp" />
+                        android:textAppearance="@style/TextAppearance.V2.Caption" />
                 </LinearLayout>
             </LinearLayout>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSelesai"
+                style="@style/Widget.V2.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="18dp"
                 android:text="Confirm Pickup"
-                android:backgroundTint="#D32F2F"
-                android:textColor="@android:color/white"
-                android:padding="12dp"
-                android:textAllCaps="false"
-                android:visibility="gone" />
+                android:visibility="gone"
+                app:icon="@drawable/ic_v2_check" />
 
-            <!-- Hanya muncul saat mode "antar" (sudah menjemput pasien, menuju RS) - driver
-                 dianggap punya kapabilitas menilai kegawatdaruratan pasien & bisa mengalihkan
-                 tujuan ke RS lain yang fasilitasnya lebih lengkap kalau kondisinya mendesak. -->
-            <androidx.appcompat.widget.AppCompatButton
+            <!-- Only in "to hospital" mode: redirect to a better-equipped hospital in an emergency -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGantiRumahSakit"
+                style="@style/Widget.V2.Button.Tertiary.Medium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/rounded_button"
-                android:backgroundTint="@color/pink_pale"
-                android:text="Change to Another Hospital (Emergency)"
-                android:textAllCaps="false"
-                android:textColor="@color/pink_main"
-                android:textSize="13sp"
-                android:visibility="gone" />
+                android:layout_marginTop="10dp"
+                android:text="Change to another hospital (emergency)"
+                android:visibility="gone"
+                app:icon="@drawable/ic_v2_hospital" />
 
-            <!-- Sengaja dibuat teks polos (bukan tombol merah besar) supaya tidak gampang
-                 tersenggol tidak sengaja - dipakai HANYA untuk keadaan darurat di tengah
-                 perjalanan (kecelakaan, ban bocor, dll), butuh 2x konfirmasi sebelum benar-benar
-                 membatalkan (lihat ActivityDriveFragmentDriver.kt). -->
-            <androidx.appcompat.widget.AppCompatButton
+            <!-- Deliberately a plain text button (the code asks for 2 confirmations) -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBatalkanPesanan"
+                style="@style/Widget.V2.Button.Text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:background="@android:color/transparent"
-                android:text="Cancel Booking (Emergency)"
-                android:textAllCaps="false"
-                android:textColor="#D32F2F"
-                android:textSize="13sp"
+                android:text="Cancel booking (emergency)"
+                android:textColor="@color/v2_danger"
                 android:visibility="gone" />
-
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

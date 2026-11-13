@@ -1,31 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- v2 Driver Home shell: online/offline status bar + fragment container + bottom nav.
+     IDs used by DriverHomeActivity.kt: topBar, statusText, switchOnline, statusDot, tvStatusHint,
+     fragment_container, bottom_navigation. -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/v2_bg_canvas"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@color/white"
-        android:elevation="4dp">
+        android:background="@drawable/bg_v2_divider_bottom"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="14dp">
 
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="wrap_content"
+        <View
+            android:id="@+id/statusDot"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:background="@drawable/bg_v2_circle"
+            android:backgroundTint="@color/v2_text_disabled" />
+
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Status: Offline"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:layout_marginHorizontal="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-        <androidx.appcompat.widget.SwitchCompat
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="You're offline"
+                android:textAppearance="@style/TextAppearance.V2.H3" />
+
+            <TextView
+                android:id="@+id/tvStatusHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Turn on to receive bookings"
+                android:textAppearance="@style/TextAppearance.V2.Caption" />
+        </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchOnline"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Turn on to receive bookings" />
+            android:contentDescription="Go online to receive bookings"
+            app:thumbTint="@color/v2_bg_surface"
+            app:trackTint="@color/v2_switch_track" />
     </LinearLayout>
 
     <FrameLayout
@@ -37,10 +66,9 @@
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
+        style="@style/Widget.V2.BottomNav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@color/white"
-        app:itemIconTint="@color/bottom_nav_color"
-        app:itemTextColor="@color/bottom_nav_color"
-        app:menu="@menu/driver_bottom_menu" /> </RelativeLayout>
+        app:menu="@menu/driver_bottom_menu" />
+</RelativeLayout>

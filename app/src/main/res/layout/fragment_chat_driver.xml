@@ -1,65 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Driver Chat List (mirror of fragment_chat). IDs unchanged (ChatFragmentDriver.kt). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA">
+    android:background="@color/v2_bg_surface"
+        android:orientation="vertical">
 
     <TextView
         android:id="@+id/tvHeaderTitleDriver"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
-        android:text="Patient Chat List"
-        android:textColor="@android:color/black"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:paddingHorizontal="20dp"
+        android:paddingTop="16dp"
+        android:text="Messages"
+        android:textAppearance="@style/TextAppearance.V2.H1" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvDriverChatList"
-        android:layout_width="0dp"
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:paddingHorizontal="20dp"
+        android:text="Chat with your patients"
+        android:textAppearance="@style/TextAppearance.V2.Body.Secondary" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_v2_round_md"
+        android:backgroundTint="@color/v2_bg_canvas"
+        android:drawablePadding="10dp"
+        android:gravity="center_vertical"
+        android:padding="12dp"
+        android:text="Chats are hidden some time after a trip ends."
+        android:textAppearance="@style/TextAppearance.V2.Caption"
+        app:drawableStartCompat="@drawable/ic_v2_clock"
+        app:drawableTint="@color/v2_text_tertiary" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        android:clipToPadding="false"
-        android:paddingBottom="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvHeaderTitleDriver"
-        tools:listitem="@layout/item_driver_chat_list" />
+        android:layout_marginTop="8dp"
+        android:layout_weight="1">
 
-    <LinearLayout
-        android:id="@+id/layoutEmptyChatDriver"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDriverChatList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            tools:listitem="@layout/item_driver_chat_list" />
 
-        <ImageView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginBottom="8dp"
-            android:alpha="0.5"
-            android:contentDescription="Empty"
-            android:src="@android:drawable/ic_menu_info_details"
-            app:tint="#BDBDBD" />
-
-        <TextView
-            android:id="@+id/tvEmptyChatDriver"
-            android:layout_width="wrap_content"
+        <!-- Empty state -->
+        <LinearLayout
+            android:id="@+id/layoutEmptyChatDriver"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No active chats from patients yet"
-            android:textColor="#757575"
-            android:textSize="14sp" />
-    </LinearLayout>
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="40dp"
+            android:visibility="gone">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:background="@drawable/bg_v2_circle"
+                android:backgroundTint="@color/v2_bg_subtle"
+                android:importantForAccessibility="no"
+                android:padding="20dp"
+                android:src="@drawable/ic_v2_chat"
+                app:tint="@color/v2_text_tertiary" />
+
+            <TextView
+                android:id="@+id/tvEmptyChatDriver"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="No active chats from patients yet"
+                android:textAppearance="@style/TextAppearance.V2.H3" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:text="After you accept a booking, you can chat with the patient here."
+                android:textAppearance="@style/TextAppearance.V2.Caption" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

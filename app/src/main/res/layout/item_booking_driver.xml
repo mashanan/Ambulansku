@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Booking Card (Figma component "Booking Card"). Purple = pickup, blue = hospital,
+     matching the map route colors. IDs unchanged (BookingAdapter). -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.V2.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="10dp"
-    app:cardElevation="4dp">
+    android:layout_marginBottom="12dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,85 +14,162 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvPassengerName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Passenger Name"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvBookingCategory"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:background="#FADFDF"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="2dp"
-            android:text="Ambulans Biasa"
-            android:textColor="@color/pink_main"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvHospitalName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Destination: Hospital"
-            android:textColor="#333333" />
-
-        <TextView
-            android:id="@+id/tvLocation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Pickup Location: Jl. Mawar No. 12"
-            android:textColor="#666666" />
-
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_v2_circle"
+                android:backgroundTint="@color/v2_brand_soft"
+                android:importantForAccessibility="no"
+                android:padding="10dp"
+                android:src="@drawable/ic_v2_user"
+                app:tint="@color/v2_brand" />
+
+            <TextView
+                android:id="@+id/tvPassengerName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Passenger Name"
+                android:textAppearance="@style/TextAppearance.V2.H3" />
+
+            <TextView
+                android:id="@+id/tvBookingCategory"
+                style="@style/Widget.V2.Badge.Brand"
+                android:text="Ambulans Biasa" />
+        </LinearLayout>
+
+        <!-- Route -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_v2_round_md"
+            android:backgroundTint="@color/v2_bg_canvas"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_marginTop="5dp"
+                    android:background="@drawable/bg_v2_circle"
+                    android:backgroundTint="@color/v2_route_pickup" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Pickup"
+                        android:textAppearance="@style/TextAppearance.V2.Caption"
+                        android:textColor="@color/v2_text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvLocation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Jl. Mawar No. 12"
+                        android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_marginTop="5dp"
+                    android:background="@drawable/bg_v2_circle"
+                    android:backgroundTint="@color/v2_route_hospital" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Destination"
+                        android:textAppearance="@style/TextAppearance.V2.Caption"
+                        android:textColor="@color/v2_text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvHospitalName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Hospital"
+                        android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Meta -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/tvDistance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Distance: - km"
-                android:textColor="#D32F2F"
-                android:textStyle="bold"
-                android:textSize="13sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="•"
-                android:textColor="#D32F2F"
-                android:textSize="13sp" />
+                android:drawablePadding="6dp"
+                android:gravity="center_vertical"
+                android:text="- km away"
+                android:textAppearance="@style/TextAppearance.V2.Label"
+                android:textColor="@color/v2_text_secondary"
+                app:drawableStartCompat="@drawable/ic_v2_navigation"
+                app:drawableTint="@color/v2_text_secondary" />
 
             <TextView
                 android:id="@+id/tvEstimasi"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Estimate: - min"
-                android:textColor="#D32F2F"
-                android:textStyle="bold"
-                android:textSize="13sp" />
-
+                android:layout_marginStart="16dp"
+                android:drawablePadding="6dp"
+                android:gravity="center_vertical"
+                android:text="~- min"
+                android:textAppearance="@style/TextAppearance.V2.Label"
+                android:textColor="@color/v2_text_secondary"
+                app:drawableStartCompat="@drawable/ic_v2_clock"
+                app:drawableTint="@color/v2_text_secondary" />
         </LinearLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnTerima"
+            style="@style/Widget.V2.Button.Primary.Medium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:backgroundTint="@color/pink_button"
+            android:layout_marginTop="14dp"
             android:text="Accept Booking"
-            android:textColor="@android:color/white" />
+            app:icon="@drawable/ic_v2_check" />
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

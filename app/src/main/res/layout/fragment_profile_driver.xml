@@ -1,183 +1,307 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Driver Profile (mirror of passenger P14 + qualification card).
+     IDs used by ProfileFragmentDriver.kt are unchanged. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/v2_bg_canvas"
     android:fillViewport="true">
 
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="#F3F3F3">
-
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/profileImage"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="24dp"
-        android:src="@drawable/foto_profil"
-        app:civ_border_color="#80FF624E"
-        app:civ_border_width="15dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/infoContainer"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp"
-        app:layout_constraintTop_toBottomOf="@id/profileImage">
-
-        <FrameLayout
-            android:id="@+id/frameNama"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginBottom="15dp"
-            android:background="@drawable/bg_frame">
-            <TextView
-                android:id="@+id/textNama"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Driver Name"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
-        </FrameLayout>
-
-        <FrameLayout
-            android:id="@+id/frameNoTlp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="@drawable/bg_frame">
-            <TextView
-                android:id="@+id/noTlp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Phone Number"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
-        </FrameLayout>
-    </LinearLayout>
-
-    <!-- Info Kelayakan Driver: ringkasan data kualifikasi + status verifikasi Admin -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardDriverQualification"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="4dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="3dp"
-        app:layout_constraintTop_toBottomOf="@id/infoContainer">
+        android:layout_height="wrap_content">
 
         <LinearLayout
+            android:id="@+id/infoContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="24dp">
 
-            <TextView
+            <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Driver Eligibility Info"
-                android:textStyle="bold"
-                android:textSize="15sp" />
+                android:layout_gravity="center_horizontal">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/profileImage"
+                    android:layout_width="104dp"
+                    android:layout_height="104dp"
+                    android:contentDescription="@string/foto_profil"
+                    android:src="@drawable/foto_profil"
+                    app:civ_border_color="@color/v2_brand_soft_strong"
+                    app:civ_border_width="4dp" />
+
+                <ImageView
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/bg_v2_circle"
+                    android:backgroundTint="@color/v2_brand"
+                    android:importantForAccessibility="no"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_v2_camera"
+                    app:tint="@color/v2_text_on_brand" />
+            </FrameLayout>
 
             <TextView
-                android:id="@+id/tvQualificationStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="4dp"
-                android:text="Loading status..."
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                style="@style/Widget.V2.Badge.Brand"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
+                android:text="Driver" />
 
+            <!-- Account -->
             <TextView
-                android:id="@+id/tvQualLicenseNumber"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="License No.: -"
-                android:textColor="#616161"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/tvQualPlateNumber"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Plate / Registration No.: -"
-                android:textColor="#616161"
-                android:textSize="13sp" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnEditQualification"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_button"
-                android:backgroundTint="@color/pink_main"
-                android:padding="10dp"
-                android:text="Edit Qualification Data"
-                android:textAllCaps="false"
-                android:textColor="@color/white" />
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="24dp"
+                android:text="Account"
+                android:textAppearance="@style/TextAppearance.V2.Overline" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_v2_card"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
+
+                <LinearLayout
+                    android:id="@+id/frameNama"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        style="@style/Widget.V2.IconBox"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:importantForAccessibility="no"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_v2_user" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Name"
+                            android:textAppearance="@style/TextAppearance.V2.Caption"
+                            android:textColor="@color/v2_text_tertiary" />
+
+                        <TextView
+                            android:id="@+id/textNama"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Driver Name"
+                            android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_v2_chevron_right"
+                        app:tint="@color/v2_text_tertiary" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/frameNoTlp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        style="@style/Widget.V2.IconBox"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:importantForAccessibility="no"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_v2_phone" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Phone number"
+                            android:textAppearance="@style/TextAppearance.V2.Caption"
+                            android:textColor="@color/v2_text_tertiary" />
+
+                        <TextView
+                            android:id="@+id/noTlp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Phone Number"
+                            android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_v2_chevron_right"
+                        app:tint="@color/v2_text_tertiary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Qualification -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="24dp"
+                android:text="Driver eligibility"
+                android:textAppearance="@style/TextAppearance.V2.Overline" />
+
+            <LinearLayout
+                android:id="@+id/cardDriverQualification"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_v2_card"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        style="@style/Widget.V2.IconBox"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:backgroundTint="@color/v2_info_soft"
+                        android:importantForAccessibility="no"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_v2_shield_check"
+                        app:tint="@color/v2_info" />
+
+                    <TextView
+                        android:id="@+id/tvQualificationStatus"
+                        style="@style/Widget.V2.Badge.Neutral"
+                        android:layout_marginStart="12dp"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:text="Loading status..."
+                        android:textAppearance="@style/TextAppearance.V2.Label" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvQualLicenseNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:drawablePadding="8dp"
+                    android:gravity="center_vertical"
+                    android:text="License No.: -"
+                    android:textAppearance="@style/TextAppearance.V2.Body.Secondary"
+                    app:drawableStartCompat="@drawable/ic_v2_id_card"
+                    app:drawableTint="@color/v2_text_tertiary" />
+
+                <TextView
+                    android:id="@+id/tvQualPlateNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:drawablePadding="8dp"
+                    android:gravity="center_vertical"
+                    android:text="Plate / Registration No.: -"
+                    android:textAppearance="@style/TextAppearance.V2.Body.Secondary"
+                    app:drawableStartCompat="@drawable/ic_v2_ambulance"
+                    app:drawableTint="@color/v2_text_tertiary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEditQualification"
+                    style="@style/Widget.V2.Button.Secondary.Medium"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Edit qualification data"
+                    app:icon="@drawable/ic_v2_pencil" />
+            </LinearLayout>
+
+            <!-- Other -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="24dp"
+                android:text="Other"
+                android:textAppearance="@style/TextAppearance.V2.Overline" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_v2_card"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
+
+                <TextView
+                    android:id="@+id/logoutButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:drawablePadding="12dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:text="Log out"
+                    android:textAppearance="@style/TextAppearance.V2.BodyStrong"
+                    app:drawableStartCompat="@drawable/ic_v2_log_out"
+                    app:drawableTint="@color/v2_text_secondary" />
+
+                <TextView
+                    android:id="@+id/deleteAccountButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:drawablePadding="12dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:text="Delete account"
+                    android:textAppearance="@style/TextAppearance.V2.BodyStrong"
+                    android:textColor="@color/v2_danger"
+                    app:drawableStartCompat="@drawable/ic_v2_trash"
+                    app:drawableTint="@color/v2_danger" />
+            </LinearLayout>
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
-    <!-- Sama dengan profil passenger: Logout = aksi utama, Delete Account (berbahaya) paling
-         bawah dengan gaya garis merah. Keduanya satu chain "packed" yang menempel di bawah -
-         sebelumnya Logout ditambatkan atas+bawah sehingga melayang di tengah sisa ruang. -->
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/logoutButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="24dp"
-        android:background="@drawable/rounded_button"
-        android:text="Logout"
-        android:textColor="@color/white"
-        android:textStyle="bold"
-        android:textAllCaps="false"
-        app:layout_constraintBottom_toTopOf="@id/deleteAccountButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardDriverQualification"
-        app:layout_constraintVertical_bias="1"
-        app:layout_constraintVertical_chainStyle="packed" />
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/deleteAccountButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="20dp"
-        android:background="@drawable/rounded_button_outline_danger"
-        android:text="Delete Account"
-        android:textColor="@color/pink_button"
-        android:textStyle="bold"
-        android:textAllCaps="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/logoutButton" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
-
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </FrameLayout>
 </androidx.core.widget.NestedScrollView>

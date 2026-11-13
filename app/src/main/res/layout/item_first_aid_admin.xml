@@ -6,8 +6,8 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeColor="#E0E0E0"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/v2_border_default"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -21,9 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Condition Name"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.V2.H3" />
 
         <TextView
             android:id="@+id/tvConditionSymptoms"
@@ -33,7 +31,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:text="Symptoms"
-            android:textColor="#616161"
+            android:textColor="@color/v2_text_secondary"
             android:textSize="13sp" />
 
         <TextView
@@ -42,7 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="0 first aid steps"
-            android:textColor="#9E9E9E"
+            android:textColor="@color/v2_text_secondary"
             android:textSize="12sp" />
 
         <LinearLayout
@@ -51,30 +49,24 @@
             android:layout_marginTop="12dp"
             android:orientation="horizontal">
 
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEditFirstAid"
+                style="@style/Widget.V2.Button.Secondary.Medium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_button"
-                android:backgroundTint="@color/pink_main"
-                android:padding="8dp"
                 android:text="Edit"
-                android:textAllCaps="false"
-                android:textColor="@color/white" />
+                app:icon="@drawable/ic_v2_pencil" />
 
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDeleteFirstAid"
+                style="@style/Widget.V2.Button.Danger.Medium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/rounded_button"
-                android:backgroundTint="@color/pink_button"
-                android:padding="8dp"
                 android:text="Delete"
-                android:textAllCaps="false"
-                android:textColor="@color/white" />
+                app:icon="@drawable/ic_v2_trash" />
         </LinearLayout>
 
     </LinearLayout>

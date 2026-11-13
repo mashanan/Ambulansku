@@ -85,10 +85,14 @@ class DriverHomeActivity : AppCompatActivity() {
                 }
                 requestOnlinePermissionsIfNeeded()
                 ContextCompat.startForegroundService(this, Intent(this, DriverOnlineService::class.java))
-                binding.statusText.text = "Status: Online (Ready to Accept Bookings)"
+                binding.statusText.text = "You're online"
+                binding.tvStatusHint.text = "Ready to accept nearby bookings"
+                binding.statusDot.backgroundTintList = ContextCompat.getColorStateList(this, R.color.v2_success)
             } else {
                 stopService(Intent(this, DriverOnlineService::class.java))
-                binding.statusText.text = "Status: Offline"
+                binding.statusText.text = "You're offline"
+                binding.tvStatusHint.text = "Turn on to receive bookings"
+                binding.statusDot.backgroundTintList = ContextCompat.getColorStateList(this, R.color.v2_text_disabled)
             }
         }
     }

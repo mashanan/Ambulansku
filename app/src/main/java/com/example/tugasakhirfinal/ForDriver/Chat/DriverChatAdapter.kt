@@ -29,19 +29,21 @@ class DriverChatAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = chatList[position]
         holder.tvPassengerName.text = item.driverName.ifEmpty { "Ambulance Patient" } // Diisi nama pasien/penumpang
-        holder.tvHospitalDestination.text = "Destination: ${item.hospitalName}"
+        holder.tvHospitalDestination.text = "To ${item.hospitalName}"
         holder.tvLastMessage.text = item.lastMessage.ifEmpty { "Tap to open chat" }
 
-        if (item.status.equals("accepted", ignoreCase = true) || item.status.equals("picked_up", ignoreCase = true)) {
-            holder.tvChatStatus.text = "Ongoing"
-            holder.tvChatStatus.setTextColor(holder.itemView.context.getColor(android.R.color.holo_green_dark))
-        } else if (item.status.equals("CANCELLED", ignoreCase = true)) {
-            holder.tvChatStatus.text = "Cancelled"
-            holder.tvChatStatus.setTextColor(holder.itemView.context.getColor(android.R.color.holo_red_dark))
-        } else {
-            holder.tvChatStatus.text = "Completed"
-            holder.tvChatStatus.setTextColor(holder.itemView.context.getColor(android.R.color.darker_gray))
+        // v2: status ditampilkan sebagai badge (warna teks + latar pill), sama dengan sisi passenger
+        val ctx = holder.itemView.context
+        val (label, textColor, bgColor) = when {
+            item.status.equals("accepted", ignoreCase = true) || item.status.equals("picked_up", ignoreCase = true) ->
+                Triple("Ongoing", R.color.v2_success, R.color.v2_success_soft)
+            item.status.equals("CANCELLED", ignoreCase = true) ->
+                Triple("Cancelled", R.color.v2_danger, R.color.v2_danger_soft)
+            else -> Triple("Completed", R.color.v2_text_secondary, R.color.v2_bg_subtle)
         }
+        holder.tvChatStatus.text = label
+        holder.tvChatStatus.setTextColor(ctx.getColor(textColor))
+        holder.tvChatStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(ctx.getColor(bgColor))
 
         holder.itemView.setOnClickListener { onItemClick(item) }
     }

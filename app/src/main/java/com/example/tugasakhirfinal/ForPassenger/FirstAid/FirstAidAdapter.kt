@@ -29,7 +29,8 @@ class FirstAidAdapter(
         val condition = conditionList[position]
         holder.tvTitle.text = condition.title
         holder.tvSymptoms.text = condition.symptoms
-        holder.tvSteps.text = condition.steps.joinToString("\n") { "•  $it" }
+        // v2: langkah bernomor dengan jarak antar langkah, lebih mudah diikuti saat panik
+        holder.tvSteps.text = condition.steps.mapIndexed { i, step -> "${i + 1}.  $step" }.joinToString("\n\n")
 
         holder.layoutDetail.visibility = if (condition.isExpanded) View.VISIBLE else View.GONE
         holder.tvExpandArrow.text = if (condition.isExpanded) "▲" else "▼"

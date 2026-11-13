@@ -1,55 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- v2 photo picker bottom sheet (profile photo / chat photo). IDs unchanged. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_v2_sheet"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@android:color/white">
+    android:paddingHorizontal="20dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="24dp">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_v2_handle" />
 
     <TextView
         android:id="@+id/editProfileTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Choose Profile Photo"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="10dp"/>
+        android:layout_marginBottom="16dp"
+        android:text="Choose profile photo"
+        android:textAppearance="@style/TextAppearance.V2.H2" />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/selectImageButton"
+        style="@style/Widget.V2.Button.Tertiary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/rounded_button"
-        android:backgroundTint="@color/pink_main"
-        android:padding="12dp"
-        android:text="Choose Photo from Gallery"
-        android:textAllCaps="false"
-        android:textColor="@color/white"
-        android:textStyle="bold" />
+        android:text="Choose from gallery"
+        app:icon="@drawable/ic_v2_image" />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/captureImageButton"
+        style="@style/Widget.V2.Button.Tertiary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/rounded_button"
-        android:backgroundTint="@color/pink_main"
-        android:padding="12dp"
-        android:text="Take New Photo"
-        android:textAllCaps="false"
-        android:textColor="@color/white"
-        android:textStyle="bold" />
+        android:layout_marginTop="10dp"
+        android:text="Take a new photo"
+        app:icon="@drawable/ic_v2_camera" />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/cancelButton"
+        style="@style/Widget.V2.Button.Text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_button"
-        android:backgroundTint="@color/pink_main"
-        android:padding="12dp"
+        android:layout_marginTop="8dp"
         android:text="Cancel"
-        android:textAllCaps="false"
-        android:textColor="@color/white"
-        android:textStyle="bold" />
+        android:textColor="@color/v2_text_secondary" />
 </LinearLayout>

@@ -6,8 +6,8 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeColor="#E0E0E0"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/v2_border_default"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -21,9 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="RSUD Dr. Soetomo"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.V2.H3" />
 
         <TextView
             android:id="@+id/tvHospitalAddress"
@@ -31,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="Jl. Mayjen Prof. Dr. Moestopo No. 6-8, Surabaya"
-            android:textColor="#616161"
+            android:textColor="@color/v2_text_secondary"
             android:textSize="13sp" />
 
         <TextView
@@ -40,20 +38,20 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="(031) 5501078"
-            android:textColor="#D32F2F"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.V2.Caption"
+            android:textColor="@color/v2_text_tertiary" />
 
         <TextView
             android:id="@+id/tvMissingLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:background="#FFF3E0"
+            android:background="@drawable/bg_v2_pill"
+                android:backgroundTint="@color/v2_warning_soft"
             android:paddingHorizontal="8dp"
             android:paddingVertical="4dp"
             android:text="Location not set"
-            android:textColor="#E65100"
+            android:textColor="@color/v2_warning"
             android:textSize="11sp"
             android:textStyle="bold"
             android:visibility="gone" />
@@ -64,30 +62,24 @@
             android:layout_marginTop="12dp"
             android:orientation="horizontal">
 
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEditHospital"
+                style="@style/Widget.V2.Button.Secondary.Medium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_button"
-                android:backgroundTint="@color/pink_main"
-                android:padding="8dp"
                 android:text="Edit"
-                android:textAllCaps="false"
-                android:textColor="@color/white" />
+                app:icon="@drawable/ic_v2_pencil" />
 
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDeleteHospital"
+                style="@style/Widget.V2.Button.Danger.Medium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/rounded_button"
-                android:backgroundTint="@color/pink_button"
-                android:padding="8dp"
                 android:text="Delete"
-                android:textAllCaps="false"
-                android:textColor="@color/white" />
+                app:icon="@drawable/ic_v2_trash" />
         </LinearLayout>
 
     </LinearLayout>

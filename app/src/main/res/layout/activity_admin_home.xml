@@ -15,9 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@color/white"
-        app:itemIconTint="@color/bottom_nav_color"
-        app:itemTextColor="@color/bottom_nav_color"
+        style="@style/Widget.V2.BottomNav"
         app:menu="@menu/admin_bottom_menu" />
 
 </RelativeLayout>

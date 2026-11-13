@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Driver tabs. IDs unchanged (DriverHomeActivity): home -> bookings, drive -> active trip map,
+     chat -> patient chats, profile. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_home"
-        android:icon="@drawable/ic_botnav_home"
+        android:icon="@drawable/ic_v2_home"
         android:title="Home" />
     <item
         android:id="@+id/nav_drive"
-        android:icon="@drawable/ic_botnav_layanan"
-        android:title="Services" />
+        android:icon="@drawable/ic_v2_navigation"
+        android:title="Trip" />
     <item
         android:id="@+id/nav_chat"
-        android:icon="@drawable/ic_botnav_aktivitas"
-        android:title="Activity" />
+        android:icon="@drawable/ic_v2_chat"
+        android:title="Chat" />
     <item
         android:id="@+id/nav_profile"
-        android:icon="@drawable/ic_botnav_akun"
-        android:title="Account" />
+        android:icon="@drawable/ic_v2_user"
+        android:title="Profile" />
 </menu>

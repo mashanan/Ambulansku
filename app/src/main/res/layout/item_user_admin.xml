@@ -6,8 +6,8 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeColor="#E0E0E0"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/v2_border_default"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -28,20 +28,19 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="User Name"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.V2.H3" />
 
             <TextView
                 android:id="@+id/tvUserRole"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"
-                android:background="#EEEEEE"
+                android:background="@drawable/bg_v2_pill"
+                android:backgroundTint="@color/v2_bg_subtle"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"
                 android:text="Passenger"
-                android:textColor="#424242"
+                android:textColor="@color/v2_text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
@@ -49,11 +48,12 @@
                 android:id="@+id/tvUserStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="#E8F5E9"
+                android:background="@drawable/bg_v2_pill"
+                android:backgroundTint="@color/v2_success_soft"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"
                 android:text="Active"
-                android:textColor="#2E7D32"
+                android:textColor="@color/v2_success"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -64,7 +64,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="user@email.com"
-            android:textColor="#616161"
+            android:textColor="@color/v2_text_secondary"
             android:textSize="13sp" />
 
         <LinearLayout
@@ -73,31 +73,25 @@
             android:layout_marginTop="12dp"
             android:orientation="horizontal">
 
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnToggleActive"
+                style="@style/Widget.V2.Button.Primary.Medium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:background="@drawable/rounded_button"
-                android:padding="8dp"
-                android:text="Deactivate"
-                android:textAllCaps="false"
-                android:textColor="@color/white" />
+                android:layout_marginEnd="8dp"
+                android:text="Deactivate" />
 
             <!-- Untuk membersihkan dokumen Firestore milik akun yang sudah dihapus langsung dari
                  Firebase Console (Auth) - lihat catatan di ManageUsersActivity.kt -->
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDeleteUser"
+                style="@style/Widget.V2.Button.Danger.Medium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/rounded_button"
-                android:backgroundTint="@color/pink_button"
-                android:padding="8dp"
-                android:text="Delete Account"
-                android:textAllCaps="false"
-                android:textColor="@color/white" />
+                android:text="Delete"
+                app:icon="@drawable/ic_v2_trash" />
 
         </LinearLayout>
 

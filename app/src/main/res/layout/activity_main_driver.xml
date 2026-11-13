@@ -1,93 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Welcome Driver (same pattern as passenger P03). Coral hero with logo, headline, Sign In + Sign Up. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/v2_bg_surface"
+    android:orientation="vertical"
     tools:context=".ForDriver.Welcome.MainActivityDriver">
 
-    <!-- background: wave vector, gampang diubah warna/bentuknya tanpa perlu edit gambar -->
-    <ImageView
+    <FrameLayout
         android:id="@+id/backgroundmainImage"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:scaleType="fitXY"
-        android:src="@drawable/bg_wave_login"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:layout_weight="1"
+        android:background="@drawable/bg_v2_header_gradient"
+        android:fitsSystemWindows="true">
 
-    <!-- Nama app & tagline: dulu berupa tulisan "Grab"/"Your everyday everything app"
-         yang ikut ter-bake di dalam gambar PNG - sekarang jadi TextView biasa supaya
-         nama app/tagline bisa diganti kapan saja tanpa perlu edit ulang gambar. -->
-    <TextView
-        android:id="@+id/tvLoginTitle"
-        android:layout_width="wrap_content"
+        <View
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_v2_splash_ring" />
+
+        <View
+            android:layout_width="168dp"
+            android:layout_height="168dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_v2_splash_ring" />
+
+        <ImageView
+            android:id="@+id/imageLoginIcon"
+            android:layout_width="116dp"
+            android:layout_height="116dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_v2_circle"
+            android:contentDescription="Ambulance"
+            android:elevation="4dp"
+            android:padding="28dp"
+            android:src="@drawable/ic_v2_ambulance"
+            app:tint="@color/v2_brand" />
+
+        <TextView
+            android:id="@+id/tvLoginTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|bottom"
+            android:layout_marginBottom="32dp"
+            android:background="@drawable/bg_v2_pill"
+            android:drawablePadding="6dp"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="Verified ambulance drivers"
+            android:textAppearance="@style/TextAppearance.V2.Caption"
+            android:textColor="@color/v2_text_primary"
+            app:drawableStartCompat="@drawable/ic_v2_shield_check"
+            app:drawableTint="@color/v2_brand" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ambulansku"
-        android:textColor="@color/white"
-        android:textSize="34sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/tvLoginTagline"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="32dp">
 
-    <TextView
-        android:id="@+id/tvLoginTagline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:text="Standby driver partner for emergency medical assistance"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintBottom_toTopOf="@id/imageLoginIcon"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Driver partner"
+            android:textAppearance="@style/TextAppearance.V2.Overline"
+            android:textColor="@color/v2_brand" />
 
-    <!-- Gambar ambulans diposisikan di tengah layar (bukan lagi menempel ke atas) -->
-    <ImageView
-        android:id="@+id/imageLoginIcon"
-        android:layout_width="160dp"
-        android:layout_height="107dp"
-        android:contentDescription="Ambulance Icon"
-        android:src="@drawable/ic_small_car"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Be there when it matters"
+            android:textAppearance="@style/TextAppearance.V2.Display" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/buttonsignindriver"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="76dp"
-        android:background="@drawable/rounded_button"
-        android:text="Sign In"
-        android:textColor="@color/white"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        <TextView
+            android:id="@+id/tvLoginTagline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Receive nearby emergency bookings, navigate with live traffic, and keep patients updated."
+            android:textAppearance="@style/TextAppearance.V2.Body.Secondary" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/buttonsignupdriver"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="28dp"
-        android:text="Don't have an account? Sign Up!"
-        android:textSize="16sp"
-        android:textColor="@color/pink_main"
-        android:textStyle="bold"
-        android:padding="0dp"
-        android:background="@android:color/transparent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.400"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonsignindriver"
+            style="@style/Widget.V2.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="Sign In" />
 
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonsignupdriver"
+            style="@style/Widget.V2.Button.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Register as a driver" />
+    </LinearLayout>
+</LinearLayout>

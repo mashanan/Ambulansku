@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
 
     <!-- Container Google Maps -->
     <RelativeLayout
@@ -22,8 +23,9 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:padding="16dp">
+        android:background="@drawable/bg_v2_sheet"
+        android:elevation="8dp"
+        android:padding="20dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -33,15 +35,20 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Address Details"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp"/>
+                android:text="Address details"
+                android:textAppearance="@style/TextAppearance.V2.H2"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Move the map to set the pickup point, then fill in the details."
+                android:textAppearance="@style/TextAppearance.V2.Caption"
+                android:layout_marginBottom="16dp"/>
 
             <!-- Label Alamat -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.V2.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Label Name (e.g. Home, Boarding House)"
@@ -56,7 +63,7 @@
 
             <!-- Alamat Lengkap -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.V2.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Full Address"
@@ -72,7 +79,7 @@
 
             <!-- Catatan Tambahan -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.V2.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Note / Landmark (e.g. Blue Gate)"
@@ -86,15 +93,12 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Tombol Simpan -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveAddress"
+                style="@style/Widget.V2.Button.Primary"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="Save Address"
-                android:textAllCaps="false"
-                android:backgroundTint="@color/pink_main"
-                android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:layout_height="wrap_content"
+                android:text="Save address" />
 
         </LinearLayout>
     </ScrollView>

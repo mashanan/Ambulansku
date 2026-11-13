@@ -37,18 +37,18 @@ class UserAdminAdapter(
 
         if (user.isActive) {
             holder.tvStatus.text = "Active"
-            holder.tvStatus.setTextColor(Color.parseColor("#2E7D32"))
-            holder.tvStatus.setBackgroundColor(Color.parseColor("#E8F5E9"))
+            holder.tvStatus.setTextColor(Color.parseColor("#15803D"))
+            holder.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#E9F8EF")) // v2 success-soft pill
             holder.btnToggle.text = "Deactivate"
             // Warna utama app (oranye), bukan merah - supaya jelas beda dari tombol Delete Account
             // (merah) di sebelahnya. Sama dengan pola Edit/Delete di Manage Hospitals.
-            holder.btnToggle.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#FF624E"))
+            holder.btnToggle.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#D63B27"))
         } else {
             holder.tvStatus.text = "Inactive"
-            holder.tvStatus.setTextColor(Color.parseColor("#C62828"))
-            holder.tvStatus.setBackgroundColor(Color.parseColor("#FFEBEE"))
+            holder.tvStatus.setTextColor(Color.parseColor("#DC2626"))
+            holder.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#FDECEC")) // v2 danger-soft pill
             holder.btnToggle.text = "Reactivate"
-            holder.btnToggle.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#2E7D32"))
+            holder.btnToggle.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#15803D"))
         }
 
         holder.btnToggle.setOnClickListener {

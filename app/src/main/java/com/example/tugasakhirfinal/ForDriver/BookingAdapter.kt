@@ -25,17 +25,18 @@ class BookingAdapter(
         holder.binding.apply {
             tvPassengerName.text = booking.passengerName
             tvBookingCategory.text = booking.ambulanceCategory.ifEmpty { "Ambulans Biasa" }
-            tvHospitalName.text = "Destination: ${booking.hospitalName.ifEmpty { "Hospital" }}"
-            tvLocation.text = "Pickup Location: ${booking.locationName.ifEmpty { "-" }}"
+            // v2: label "Pickup"/"Destination" sudah ada di layout, jadi teks di sini tanpa awalan
+            tvHospitalName.text = booking.hospitalName.ifEmpty { "Hospital" }
+            tvLocation.text = booking.locationName.ifEmpty { "-" }
             tvDistance.text = if (booking.distanceMeters >= 0) {
-                "Distance: ${String.format("%.1f", booking.distanceMeters / 1000)} km"
+                "${String.format("%.1f", booking.distanceMeters / 1000)} km away"
             } else {
-                "Distance: -"
+                "Distance -"
             }
             tvEstimasi.text = if (booking.estimatedMinutes >= 0) {
-                "Estimate: ${booking.estimatedMinutes} min"
+                "~${booking.estimatedMinutes} min"
             } else {
-                "Estimate: -"
+                "ETA -"
             }
 
             btnTerima.setOnClickListener {

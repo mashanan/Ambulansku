@@ -1,72 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- v2 Driver Chat List Item (mirror of item_passenger_chat). IDs unchanged (DriverChatAdapter). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="12dp"
-    android:layout_marginVertical="6dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    android:background="@drawable/bg_v2_divider_bottom"
+    android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="14dp">
+
+    <ImageView
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_v2_circle"
+        android:backgroundTint="@color/v2_brand_soft"
+        android:importantForAccessibility="no"
+        android:padding="14dp"
+        android:src="@drawable/ic_v2_user"
+        app:tint="@color/v2_brand" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="16dp">
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_apps"
-            app:tint="#D32F2F" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvPassengerName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Patient Name"
-                android:textColor="@android:color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvHospitalDestination"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Destination: Hospital"
-                android:textColor="#D32F2F"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvLastMessage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Message from passenger..."
-                android:textColor="#757575"
-                android:textSize="13sp" />
-        </LinearLayout>
+        android:layout_marginHorizontal="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tvChatStatus"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvPassengerName"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ongoing"
-            android:textColor="@android:color/holo_green_dark"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Patient Name"
+            android:textAppearance="@style/TextAppearance.V2.BodyStrong" />
 
+        <TextView
+            android:id="@+id/tvHospitalDestination"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="To Hospital"
+            android:textAppearance="@style/TextAppearance.V2.Caption"
+            android:textColor="@color/v2_brand" />
+
+        <TextView
+            android:id="@+id/tvLastMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Last message..."
+            android:textAppearance="@style/TextAppearance.V2.Body.Secondary" />
     </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/tvChatStatus"
+        style="@style/Widget.V2.Badge.Success"
+        android:text="Ongoing" />
+</LinearLayout>
